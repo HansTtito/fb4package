@@ -5,6 +5,7 @@
 FB4.Param2 = append(FB4.Param2, "calc.spawn")
 FB4.Value2 = append(FB4.Value2, as.logical(calc.spawn))
 
+
 if(calc.spawn){
   if(file.exists(Reproduction_File)){
     Reproduction <- read.csv(Reproduction_File,head=TRUE, stringsAsFactors = FALSE)
