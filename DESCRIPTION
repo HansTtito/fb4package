@@ -1,11 +1,11 @@
-Package: BionergeticPackage
+Package: fb4package
 Type: Package
 Title: What the Package Does (Title Case)
 Version: 0.1.0
 Authors@R: c(
     person(
-      "Jane", "Doe",
-      email = "jane@example.com",
+      "Hans", "Ttito",
+      email = "kvttitos@gmail.com",
       role = c("aut", "cre")
     )
   )
