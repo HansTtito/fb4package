@@ -5,16 +5,16 @@
 \title{Calcular composición corporal completa}
 \usage{
 calculate_body_composition(
-  W,
-  H2O_fraction = 0.728,
+  weight,
+  water_fraction = 0.728,
   fat_energy = 39300,
   protein_energy = 23600
 )
 }
 \arguments{
-\item{W}{Peso total húmedo (g)}
+\item{weight}{Peso total húmedo (g)}
 
-\item{H2O_fraction}{Fracción de agua (0-1), por defecto 0.728}
+\item{water_fraction}{Fracción de agua (0-1), por defecto 0.728}
 
 \item{fat_energy}{Energía por gramo de grasa (J/g)}
 
@@ -24,16 +24,6 @@ calculate_body_composition(
 Lista con composición corporal completa
 }
 \description{
-Función que calcula todos los componentes de la composición corporal
+Función principal que calcula todos los componentes de la composición corporal
 y la densidad energética a partir del peso y fracción de agua
-}
-\examples{
-# Composición para un pez de 100g
-composition <- calculate_body_composition(W = 100, H2O_fraction = 0.72)
-print(composition)
-
-# Composición para múltiples pesos
-weights <- c(10, 50, 100, 200)
-compositions <- lapply(weights, calculate_body_composition)
-names(compositions) <- paste0("Fish_", weights, "g")
 }

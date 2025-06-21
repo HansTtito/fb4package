@@ -5,20 +5,20 @@
 \title{Validar parámetros de mortalidad y reproducción}
 \usage{
 validate_mortality_reproduction_params(
-  mortality_rates = NULL,
-  reproduction_fractions = NULL,
+  mortality_params,
+  reproduction_params = NULL,
   species_type = "general"
 )
 }
 \arguments{
-\item{mortality_rates}{Vector o matriz de tasas de mortalidad}
+\item{mortality_params}{Lista con parámetros de mortalidad}
 
-\item{reproduction_fractions}{Vector de fracciones reproductivas}
+\item{reproduction_params}{Lista con parámetros de reproducción (opcional)}
 
-\item{species_type}{Tipo de especie ("small_fish", "large_fish", "general")}
+\item{species_type}{Tipo de especie para validación}
 }
 \value{
-Lista con validación
+Lista con resultados de validación
 }
 \description{
 Verifica que los parámetros estén en rangos realistas

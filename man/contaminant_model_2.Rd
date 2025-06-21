@@ -2,27 +2,35 @@
 % Please edit documentation in R/06-contaminant-accumulation.R
 \name{contaminant_model_2}
 \alias{contaminant_model_2}
-\title{Modelo de contaminantes 2 - Con eliminación}
+\title{Modelo de contaminantes 2 - Con eliminación dependiente de T y peso}
 \usage{
-contaminant_model_2(C, W, Temperature, X_Prey, X_ae, Burden)
+contaminant_model_2(
+  consumption,
+  weight,
+  temperature,
+  prey_concentrations,
+  assimilation_efficiency,
+  current_burden
+)
 }
 \arguments{
-\item{C}{Vector de consumo por presa (g/día)}
+\item{consumption}{Vector de consumo por presa (g/día)}
 
-\item{W}{Peso del pez (g)}
+\item{weight}{Peso del pez (g)}
 
-\item{Temperature}{Temperatura del agua (°C)}
+\item{temperature}{Temperatura del agua (°C)}
 
-\item{X_Prey}{Vector de concentraciones en presas (μg/g)}
+\item{prey_concentrations}{Vector de concentraciones en presas (μg/g)}
 
-\item{X_ae}{Vector de eficiencias de asimilación}
+\item{assimilation_efficiency}{Vector de eficiencias de asimilación}
 
-\item{Burden}{Carga corporal actual (μg)}
+\item{current_burden}{Carga corporal actual (μg)}
 }
 \value{
-Vector con c(Clearance, Uptake, Burden, NA)
+Lista con clearance, uptake, y nueva carga
 }
 \description{
 Modelo con captación de alimento y eliminación dependiente de temperatura y peso
 Basado en Trudel & Rasmussen (1997) para MeHg
 }
+\keyword{internal}

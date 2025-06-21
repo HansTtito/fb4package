@@ -2,18 +2,16 @@
 % Please edit documentation in R/07-nutrient-regeneration.R
 \name{compare_with_redfield}
 \alias{compare_with_redfield}
-\title{Comparar ratios N:P con valores de referencia (Redfield)}
+\title{Comparar con ratios de Redfield}
 \usage{
-compare_with_redfield(np_ratios, redfield_ratio = NULL)
+compare_with_redfield(np_ratios)
 }
 \arguments{
-\item{np_ratios}{Output de calculate_np_ratios}
-
-\item{redfield_ratio}{Ratio de Redfield de referencia (16:1 molar, 7.2:1 masa)}
+\item{np_ratios}{Lista resultado de calculate_np_ratios}
 }
 \value{
 Data frame con comparación
 }
 \description{
-Compara ratios calculados con el ratio de Redfield y otros valores de referencia
+Compara ratios N:P calculados con el ratio de Redfield
 }

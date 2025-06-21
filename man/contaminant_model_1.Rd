@@ -4,20 +4,26 @@
 \alias{contaminant_model_1}
 \title{Modelo de contaminantes 1 - Solo captación de alimento}
 \usage{
-contaminant_model_1(C, X_Prey, TEx, Burden)
+contaminant_model_1(
+  consumption,
+  prey_concentrations,
+  transfer_efficiency,
+  current_burden
+)
 }
 \arguments{
-\item{C}{Vector de consumo por presa (g/día)}
+\item{consumption}{Vector de consumo por presa (g/día)}
 
-\item{X_Prey}{Vector de concentraciones en presas (μg/g)}
+\item{prey_concentrations}{Vector de concentraciones en presas (μg/g)}
 
-\item{TEx}{Vector de eficiencias de transferencia}
+\item{transfer_efficiency}{Vector de eficiencias de transferencia}
 
-\item{Burden}{Carga corporal actual (μg)}
+\item{current_burden}{Carga corporal actual (μg)}
 }
 \value{
-Vector con c(Clearance, Uptake, Burden, NA)
+Lista con clearance, uptake, y nueva carga
 }
 \description{
 Modelo simple sin eliminación, solo acumulación desde el alimento
 }
+\keyword{internal}

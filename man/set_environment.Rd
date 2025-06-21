@@ -4,14 +4,12 @@
 \alias{set_environment}
 \title{Configurar datos ambientales}
 \usage{
-set_environment(x, temperature_data, ...)
+set_environment(x, temperature_data)
 }
 \arguments{
 \item{x}{Objeto Bioenergetic}
 
-\item{temperature_data}{Data frame con datos de temperatura}
-
-\item{...}{Datos ambientales adicionales}
+\item{temperature_data}{Data frame con columnas Day y Temperature}
 }
 \value{
 Objeto Bioenergetic modificado

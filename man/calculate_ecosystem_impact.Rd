@@ -2,22 +2,30 @@
 % Please edit documentation in R/07-nutrient-regeneration.R
 \name{calculate_ecosystem_impact}
 \alias{calculate_ecosystem_impact}
-\title{Calcular impacto ecosistémico de excreción de nutrientes}
+\title{Estimar impacto ecosistémico de excreción de nutrientes}
 \usage{
-calculate_ecosystem_impact(daily_excretion, fish_biomass, water_volume, days)
+calculate_ecosystem_impact(
+  daily_n_excretion,
+  daily_p_excretion,
+  fish_biomass,
+  water_volume,
+  simulation_days
+)
 }
 \arguments{
-\item{daily_excretion}{Lista con excreción diaria de N y P}
+\item{daily_n_excretion}{Excreción diaria de nitrógeno (g N/día)}
 
-\item{fish_biomass}{Biomasa total de peces (g)}
+\item{daily_p_excretion}{Excreción diaria de fósforo (g P/día)}
+
+\item{fish_biomass}{Biomasa total de peces en el sistema (g)}
 
 \item{water_volume}{Volumen de agua del sistema (L)}
 
-\item{days}{Número de días para el cálculo}
+\item{simulation_days}{Número de días de simulación}
 }
 \value{
-Lista con concentraciones e impactos estimados
+Lista con estimaciones de impacto ecosistémico
 }
 \description{
-Estima el impacto de la excreción de nutrientes por peces en el ecosistema
+Calcula el impacto potencial en el ecosistema de la excreción de nutrientes
 }

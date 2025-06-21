@@ -6,16 +6,16 @@
 \usage{
 validate_nutrient_concentrations(
   nutrient_concentrations,
-  organism_type = "predator"
+  organism_type = "fish"
 )
 }
 \arguments{
 \item{nutrient_concentrations}{Lista con concentraciones de N y P}
 
-\item{organism_type}{Tipo de organismo ("predator", "zooplankton", "invertebrates", "fish")}
+\item{organism_type}{Tipo de organismo para validación}
 }
 \value{
-Lista con validación
+Lista con resultados de validación
 }
 \description{
 Verifica que las concentraciones estén en rangos biológicamente realistas

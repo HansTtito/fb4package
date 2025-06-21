@@ -4,27 +4,25 @@
 \alias{calculate_fish_water_partition}
 \title{Calcular coeficiente de partición pez:agua}
 \usage{
-calculate_fish_water_partition(Fat_fr, ProAsh_fr, H2O_fr, Kow)
+calculate_fish_water_partition(
+  fat_fraction,
+  protein_ash_fraction,
+  water_fraction,
+  kow
+)
 }
 \arguments{
-\item{Fat_fr}{Fracción de grasa en el pez}
+\item{fat_fraction}{Fracción de grasa en el pez}
 
-\item{ProAsh_fr}{Fracción de proteína + ceniza}
+\item{protein_ash_fraction}{Fracción de proteína + ceniza}
 
-\item{H2O_fr}{Fracción de agua}
+\item{water_fraction}{Fracción de agua}
 
-\item{Kow}{Coeficiente de partición octanol:agua}
+\item{kow}{Coeficiente de partición octanol:agua}
 }
 \value{
 Coeficiente de partición pez:agua
 }
 \description{
 Calcula Kbw basado en composición corporal y Kow según Arnot & Gobas (2004)
-}
-\examples{
-# Composición típica de pez
-Kbw <- calculate_fish_water_partition(
-  Fat_fr = 0.08, ProAsh_fr = 0.20, H2O_fr = 0.72,
-  Kow = 10^5.17
-)
 }

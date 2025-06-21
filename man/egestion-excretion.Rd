@@ -2,7 +2,7 @@
 % Please edit documentation in R/03-egestion-excretion.R
 \name{egestion-excretion}
 \alias{egestion-excretion}
-\title{Funciones de Egestion y Excreción para el Modelo FB4}
+\title{Funciones de Egestión y Excreción para el Modelo FB4}
 \description{
-Funciones de Egestion y Excreción para el Modelo FB4
+Funciones de Egestión y Excreción para el Modelo FB4
 }

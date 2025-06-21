@@ -2,55 +2,27 @@
 % Please edit documentation in R/07-nutrient-regeneration.R
 \name{nutrient_analysis_example}
 \alias{nutrient_analysis_example}
-\title{Función de ejemplo integrado de nutrientes}
+\title{Ejemplo completo de análisis de nutrientes}
 \usage{
 nutrient_analysis_example(
-  consumption_data,
+  consumption,
   weight_gain,
-  prey_N_concentrations,
-  prey_P_concentrations,
-  predator_N_concentration,
-  predator_P_concentration,
-  N_assimilation_efficiencies,
-  P_assimilation_efficiencies
+  organism_type = "fish",
+  custom_params = NULL
 )
 }
 \arguments{
-\item{consumption_data}{Datos de consumo por presa}
+\item{consumption}{Vector de consumo por presa (g/día)}
 
-\item{weight_gain}{Ganancia de peso diaria}
+\item{weight_gain}{Ganancia de peso (g/día)}
 
-\item{prey_N_concentrations}{Concentraciones de N en presas}
+\item{organism_type}{Tipo de organismo para parámetros por defecto}
 
-\item{prey_P_concentrations}{Concentraciones de P en presas}
-
-\item{predator_N_concentration}{Concentración de N en depredador}
-
-\item{predator_P_concentration}{Concentración de P en depredador}
-
-\item{N_assimilation_efficiencies}{Eficiencias de asimilación de N}
-
-\item{P_assimilation_efficiencies}{Eficiencias de asimilación de P}
+\item{custom_params}{Parámetros personalizados (opcional)}
 }
 \value{
-Lista con análisis completo de nutrientes
+Lista con análisis completo
 }
 \description{
-Ejemplo completo que muestra el uso de las funciones de nutrientes
-}
-\examples{
-\dontrun{
-# Ejemplo de uso completo
-example_result <- nutrient_analysis_example(
-  consumption_data = c(0.8, 0.5),
-  weight_gain = 0.15,
-  prey_N_concentrations = c(0.095, 0.072),
-  prey_P_concentrations = c(0.012, 0.008),
-  predator_N_concentration = 0.098,
-  predator_P_concentration = 0.015,
-  N_assimilation_efficiencies = c(0.88, 0.92),
-  P_assimilation_efficiencies = c(0.85, 0.90)
-)
-print(example_result)
-}
+Demuestra el uso integrado de las funciones de nutrientes
 }

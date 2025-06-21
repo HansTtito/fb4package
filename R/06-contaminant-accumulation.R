@@ -5,611 +5,458 @@
 NULL
 
 # ============================================================================
-# MODELOS DE ACUMULACIÓN DE CONTAMINANTES
-# ============================================================================
-
-#' Modelo de concentración de contaminantes en depredador
-#'
-#' Función principal que calcula la dinámica de contaminantes usando diferentes
-#' ecuaciones según la configuración del modelo
-#'
-#' @param R_O2 Respiración en g O2/g/día
-#' @param C Vector de consumo por tipo de presa (g/día)
-#' @param W Peso del pez (g)
-#' @param Temperature Temperatura del agua (°C)
-#' @param X_Prey Vector de concentraciones en presas (μg/g)
-#' @param X_Pred Concentración actual en depredador (μg/g)
-#' @param TEx Vector de eficiencias de transferencia por presa
-#' @param X_ae Vector de eficiencias de asimilación por presa
-#' @param Ew Eficiencia de captación branquial (para CONTEQ = 3)
-#' @param Kbw Coeficiente de partición pez:agua (para CONTEQ = 3)
-#' @param Cw_tot Concentración total en agua (mg/L, para CONTEQ = 3)
-#' @param phi_DT Fracción disuelta del contaminante (para CONTEQ = 3)
-#' @param DO_Sat_fr Saturación de oxígeno disuelto (fracción, para CONTEQ = 3)
-#' @param CONTEQ Ecuación de contaminantes (1, 2, o 3)
-#' @return Vector con c(Clearance, Uptake, Burden, X_Pred)
-#' @export
-#' @examples
-#' # Modelo 1: Solo captación de alimento, sin eliminación
-#' result1 <- pred_cont_conc(
-#'   R_O2 = 0.01, C = c(0.5, 0.3), W = 100, Temperature = 20,
-#'   X_Prey = c(2.0, 3.5), X_Pred = 1.5,
-#'   TEx = c(0.95, 0.98), X_ae = c(0.8, 0.9),
-#'   CONTEQ = 1
-#' )
-pred_cont_conc <- function(R_O2, C, W, Temperature, X_Prey, X_Pred, TEx, X_ae,
-                           Ew = NULL, Kbw = NULL, Cw_tot = NULL, phi_DT = NULL,
-                           DO_Sat_fr = NULL, CONTEQ) {
-
-  # Validar entrada
-  if (!CONTEQ %in% 1:3) {
-    stop("CONTEQ debe ser 1, 2, o 3")
-  }
-
-  if (length(C) != length(X_Prey) || length(C) != length(TEx) || length(C) != length(X_ae)) {
-    stop("C, X_Prey, TEx y X_ae deben tener la misma longitud")
-  }
-
-  # Calcular carga corporal inicial (μg)
-  Burden <- X_Pred * W
-
-  # Seleccionar modelo según CONTEQ
-  if (CONTEQ == 1) {
-    # Modelo 1: Solo captación de alimento, sin eliminación
-    result <- contaminant_model_1(C, X_Prey, TEx, Burden)
-
-  } else if (CONTEQ == 2) {
-    # Modelo 2: Captación de alimento + eliminación dependiente de T y W
-    result <- contaminant_model_2(C, W, Temperature, X_Prey, X_ae, Burden)
-
-  } else if (CONTEQ == 3) {
-    # Modelo 3: Arnot & Gobas (2004) - captación de agua y alimento + eliminación
-    result <- contaminant_model_3(R_O2, C, W, Temperature, X_Prey, X_ae, Burden,
-                                  Ew, Kbw, Cw_tot, phi_DT, DO_Sat_fr)
-  }
-
-  # Actualizar concentración en depredador
-  result[4] <- result[3] / W  # Burden / W = concentración
-
-  return(result)
-}
-
-# ============================================================================
-# MODELO 1: SOLO CAPTACIÓN DE ALIMENTO
+# FUNCIONES CORE DE MODELOS DE CONTAMINANTES
 # ============================================================================
 
 #' Modelo de contaminantes 1 - Solo captación de alimento
 #'
 #' Modelo simple sin eliminación, solo acumulación desde el alimento
 #'
-#' @param C Vector de consumo por presa (g/día)
-#' @param X_Prey Vector de concentraciones en presas (μg/g)
-#' @param TEx Vector de eficiencias de transferencia
-#' @param Burden Carga corporal actual (μg)
-#' @return Vector con c(Clearance, Uptake, Burden, NA)
-#' @export
-contaminant_model_1 <- function(C, X_Prey, TEx, Burden) {
-
+#' @param consumption Vector de consumo por presa (g/día)
+#' @param prey_concentrations Vector de concentraciones en presas (μg/g)
+#' @param transfer_efficiency Vector de eficiencias de transferencia
+#' @param current_burden Carga corporal actual (μg)
+#' @return Lista con clearance, uptake, y nueva carga
+#' @keywords internal
+contaminant_model_1 <- function(consumption, prey_concentrations, transfer_efficiency, current_burden) {
+  
+  # Validar entradas
+  if (length(consumption) != length(prey_concentrations) || 
+      length(consumption) != length(transfer_efficiency)) {
+    stop("Vectores de entrada deben tener la misma longitud")
+  }
+  
   # Captación desde alimento (μg/día)
-  Uptake <- sum(C * X_Prey * TEx)
-
-  # Sin eliminación
-  Clearance <- 0
-
-  # Acumulación neta
-  Accumulation <- Uptake - Clearance
-
+  uptake <- sum(consumption * prey_concentrations * transfer_efficiency, na.rm = TRUE)
+  
+  # Sin eliminación en este modelo
+  clearance <- 0
+  
   # Nueva carga corporal
-  New_Burden <- Burden + Accumulation
-
-  return(c(Clearance, Uptake, New_Burden, NA))
+  new_burden <- current_burden + uptake
+  
+  return(list(
+    clearance = clearance,
+    uptake = uptake,
+    new_burden = pmax(0, new_burden)
+  ))
 }
 
-# ============================================================================
-# MODELO 2: CAPTACIÓN + ELIMINACIÓN (TEMPERATURA Y PESO)
-# ============================================================================
-
-#' Modelo de contaminantes 2 - Con eliminación
+#' Modelo de contaminantes 2 - Con eliminación dependiente de T y peso
 #'
 #' Modelo con captación de alimento y eliminación dependiente de temperatura y peso
 #' Basado en Trudel & Rasmussen (1997) para MeHg
 #'
-#' @param C Vector de consumo por presa (g/día)
-#' @param W Peso del pez (g)
-#' @param Temperature Temperatura del agua (°C)
-#' @param X_Prey Vector de concentraciones en presas (μg/g)
-#' @param X_ae Vector de eficiencias de asimilación
-#' @param Burden Carga corporal actual (μg)
-#' @return Vector con c(Clearance, Uptake, Burden, NA)
-#' @export
-contaminant_model_2 <- function(C, W, Temperature, X_Prey, X_ae, Burden) {
-
+#' @param consumption Vector de consumo por presa (g/día)
+#' @param weight Peso del pez (g)
+#' @param temperature Temperatura del agua (°C)
+#' @param prey_concentrations Vector de concentraciones en presas (μg/g)
+#' @param assimilation_efficiency Vector de eficiencias de asimilación
+#' @param current_burden Carga corporal actual (μg)
+#' @return Lista con clearance, uptake, y nueva carga
+#' @keywords internal
+contaminant_model_2 <- function(consumption, weight, temperature, prey_concentrations, 
+                                assimilation_efficiency, current_burden) {
+  
+  # Validar entradas
+  if (length(consumption) != length(prey_concentrations) || 
+      length(consumption) != length(assimilation_efficiency)) {
+    stop("Vectores de entrada deben tener la misma longitud")
+  }
+  
   # Captación desde alimento (μg/día)
-  Uptake <- sum(C * X_Prey * X_ae)
-
+  uptake <- sum(consumption * prey_concentrations * assimilation_efficiency, na.rm = TRUE)
+  
   # Coeficiente de eliminación de MeHg (Trudel & Rasmussen 1997)
   # Kx = exp(0.066*T - 0.2*log(W) - 6.56)
-  Kx <- exp(0.066 * Temperature - 0.2 * log(W) - 6.56)
-
+  safe_temp <- clamp(temperature, 0, 40)
+  safe_weight <- pmax(0.1, weight)
+  
+  Kx <- safe_exp(0.066 * safe_temp - 0.2 * log(safe_weight) - 6.56)
+  
   # Eliminación (μg/día)
-  Clearance <- Kx * Burden
-
-  # Acumulación neta
-  Accumulation <- Uptake - Clearance
-
+  clearance <- Kx * current_burden
+  
   # Nueva carga corporal
-  New_Burden <- Burden + Accumulation
-
-  return(c(Clearance, Uptake, New_Burden, NA))
+  new_burden <- current_burden + uptake - clearance
+  
+  return(list(
+    clearance = clearance,
+    uptake = uptake,
+    new_burden = pmax(0, new_burden)
+  ))
 }
-
-# ============================================================================
-# MODELO 3: ARNOT & GOBAS (2004)
-# ============================================================================
 
 #' Modelo de contaminantes 3 - Arnot & Gobas (2004)
 #'
-#' Modelo completo con captación desde agua y alimento, eliminación proporcional
-#' a la respiración
+#' Modelo completo con captación desde agua y alimento, eliminación proporcional a respiración
 #'
-#' @param R_O2 Respiración (g O2/g/día)
-#' @param C Vector de consumo por presa (g/día)
-#' @param W Peso del pez (g)
-#' @param Temperature Temperatura del agua (°C)
-#' @param X_Prey Vector de concentraciones en presas (μg/g)
-#' @param X_ae Vector de eficiencias de asimilación
-#' @param Burden Carga corporal actual (μg)
-#' @param Ew Eficiencia de captación branquial
-#' @param Kbw Coeficiente de partición pez:agua
-#' @param Cw_tot Concentración total en agua (mg/L)
-#' @param phi_DT Fracción disuelta
-#' @param DO_Sat_fr Saturación de oxígeno (fracción)
-#' @return Vector con c(Clearance, Uptake, Burden, NA)
-#' @export
-contaminant_model_3 <- function(R_O2, C, W, Temperature, X_Prey, X_ae, Burden,
-                                Ew, Kbw, Cw_tot, phi_DT, DO_Sat_fr) {
-
+#' @param respiration_o2 Respiración (g O2/g/día)
+#' @param consumption Vector de consumo por presa (g/día)
+#' @param weight Peso del pez (g)
+#' @param temperature Temperatura del agua (°C)
+#' @param prey_concentrations Vector de concentraciones en presas (μg/g)
+#' @param assimilation_efficiency Vector de eficiencias de asimilación
+#' @param current_burden Carga corporal actual (μg)
+#' @param gill_efficiency Eficiencia de captación branquial
+#' @param fish_water_partition Coeficiente de partición pez:agua
+#' @param water_concentration Concentración total en agua (mg/L)
+#' @param dissolved_fraction Fracción disuelta
+#' @param do_saturation Saturación de oxígeno disuelto (fracción)
+#' @return Lista con clearance, uptake, y nueva carga
+#' @keywords internal
+contaminant_model_3 <- function(respiration_o2, consumption, weight, temperature,
+                                prey_concentrations, assimilation_efficiency, current_burden,
+                                gill_efficiency, fish_water_partition, water_concentration,
+                                dissolved_fraction, do_saturation) {
+  
   # Validar parámetros requeridos
-  required_params <- c("Ew", "Kbw", "Cw_tot", "phi_DT", "DO_Sat_fr")
-  for (param in required_params) {
-    if (is.null(get(param))) {
-      stop(paste(param, "es requerido para CONTEQ = 3"))
-    }
+  required_params <- c(gill_efficiency, fish_water_partition, water_concentration, 
+                       dissolved_fraction, do_saturation)
+  if (any(is.na(required_params))) {
+    warning("Parámetros faltantes para modelo 3, usando modelo 2")
+    return(contaminant_model_2(consumption, weight, temperature, prey_concentrations,
+                               assimilation_efficiency, current_burden))
   }
-
+  
   # Convertir respiración a mg O2/g/día
-  VOx <- 1000 * R_O2
-
+  VOx <- 1000 * respiration_o2
+  
   # Concentración de oxígeno disuelto (mg O2/L)
-  # Ecuación 9 de Arnot & Gobas (2004)
-  COx <- (-0.24 * Temperature + 14.04) * DO_Sat_fr
-
+  # Ecuación de Arnot & Gobas (2004)
+  safe_temp <- clamp(temperature, 0, 40)
+  COx <- (-0.24 * safe_temp + 14.04) * do_saturation
+  COx <- pmax(1, COx)  # Evitar división por cero
+  
   # Tasa de eliminación de agua (L/g/día)
-  K1 <- Ew * VOx / COx
-
+  K1 <- gill_efficiency * VOx / COx
+  
   # Captación desde agua (μg/día)
-  Uptake_water <- W * K1 * phi_DT * Cw_tot * 1000  # (L/día)*(mg/L)*(1000 μg/mg)
-
+  uptake_water <- weight * K1 * dissolved_fraction * water_concentration * 1000
+  
   # Captación desde alimento (μg/día)
-  Uptake_food <- sum(C * X_Prey * X_ae)
-
+  uptake_food <- sum(consumption * prey_concentrations * assimilation_efficiency, na.rm = TRUE)
+  
   # Captación total
-  Uptake <- Uptake_water + Uptake_food
-
+  uptake <- uptake_water + uptake_food
+  
   # Coeficiente de eliminación
-  Kx <- K1 / Kbw
-
+  Kx <- K1 / fish_water_partition
+  
   # Eliminación (μg/día)
-  Clearance <- Kx * Burden
-
-  # Acumulación neta
-  Accumulation <- Uptake - Clearance
-
+  clearance <- Kx * current_burden
+  
   # Nueva carga corporal
-  New_Burden <- Burden + Accumulation
-
-  return(c(Clearance, Uptake, New_Burden, NA))
+  new_burden <- current_burden + uptake - clearance
+  
+  return(list(
+    clearance = clearance,
+    uptake = uptake,
+    uptake_water = uptake_water,
+    uptake_food = uptake_food,
+    new_burden = pmax(0, new_burden)
+  ))
 }
 
 # ============================================================================
-# FUNCIONES DE PARÁMETROS PARA MODELO 3
+# FUNCIÓN PRINCIPAL DE CONTAMINANTES
+# ============================================================================
+
+#' Calcular acumulación de contaminantes
+#'
+#' Función principal para calcular la dinámica de contaminantes
+#'
+#' @param respiration_o2 Respiración en g O2/g/día
+#' @param consumption Vector de consumo por tipo de presa (g/día)
+#' @param weight Peso del pez (g)
+#' @param temperature Temperatura del agua (°C)
+#' @param current_concentration Concentración actual en depredador (μg/g)
+#' @param contaminant_params Lista con parámetros de contaminantes
+#' @return Lista con resultados de contaminantes
+#' @export
+calculate_contaminant_accumulation <- function(respiration_o2, consumption, weight, temperature,
+                                               current_concentration, contaminant_params) {
+  
+  # Validaciones básicas
+  if (is.null(contaminant_params)) {
+    stop("contaminant_params no puede ser NULL")
+  }
+  
+  # Validar valores de entrada
+  weight <- check_numeric_value(weight, "weight", min_val = 0.001)
+  temperature <- check_numeric_value(temperature, "temperature", min_val = -5, max_val = 50)
+  current_concentration <- check_numeric_value(current_concentration, "current_concentration", min_val = 0)
+  respiration_o2 <- check_numeric_value(respiration_o2, "respiration_o2", min_val = 0)
+  
+  # Calcular carga corporal inicial (μg)
+  current_burden <- current_concentration * weight
+  
+  # Determinar modelo a usar
+  CONTEQ <- contaminant_params$CONTEQ %||% 1
+  
+  # Extraer parámetros comunes
+  prey_concentrations <- contaminant_params$prey_concentrations %||% rep(1.0, length(consumption))
+  
+  # Ajustar longitud de vectores si es necesario
+  if (length(prey_concentrations) != length(consumption)) {
+    if (length(prey_concentrations) == 1) {
+      prey_concentrations <- rep(prey_concentrations, length(consumption))
+    } else {
+      stop("Longitud de prey_concentrations no coincide con consumption")
+    }
+  }
+  
+  # Calcular según modelo
+  if (CONTEQ == 1) {
+    # Modelo 1: Solo captación de alimento
+    transfer_efficiency <- contaminant_params$transfer_efficiency %||% rep(0.95, length(consumption))
+    
+    result <- contaminant_model_1(consumption, prey_concentrations, transfer_efficiency, current_burden)
+    
+  } else if (CONTEQ == 2) {
+    # Modelo 2: Captación + eliminación
+    assimilation_efficiency <- contaminant_params$assimilation_efficiency %||% rep(0.80, length(consumption))
+    
+    result <- contaminant_model_2(consumption, weight, temperature, prey_concentrations,
+                                  assimilation_efficiency, current_burden)
+    
+  } else if (CONTEQ == 3) {
+    # Modelo 3: Arnot & Gobas
+    assimilation_efficiency <- contaminant_params$assimilation_efficiency %||% rep(0.80, length(consumption))
+    gill_efficiency <- contaminant_params$gill_efficiency %||% 0.5
+    fish_water_partition <- contaminant_params$fish_water_partition %||% 1000
+    water_concentration <- contaminant_params$water_concentration %||% 0.001
+    dissolved_fraction <- contaminant_params$dissolved_fraction %||% 0.8
+    do_saturation <- contaminant_params$do_saturation %||% 0.9
+    
+    result <- contaminant_model_3(respiration_o2, consumption, weight, temperature,
+                                  prey_concentrations, assimilation_efficiency, current_burden,
+                                  gill_efficiency, fish_water_partition, water_concentration,
+                                  dissolved_fraction, do_saturation)
+  } else {
+    warning("Ecuación de contaminantes no válida: ", CONTEQ, ". Usando modelo 1.")
+    transfer_efficiency <- contaminant_params$transfer_efficiency %||% rep(0.95, length(consumption))
+    result <- contaminant_model_1(consumption, prey_concentrations, transfer_efficiency, current_burden)
+  }
+  
+  # Calcular nueva concentración
+  new_concentration <- if (weight > 0) result$new_burden / weight else 0
+  
+  # Añadir información adicional al resultado
+  result$new_concentration <- new_concentration
+  result$weight <- weight
+  result$model_used <- CONTEQ
+  
+  return(result)
+}
+
+# ============================================================================
+# FUNCIONES DE CÁLCULO DE PARÁMETROS PARA MODELO 3
 # ============================================================================
 
 #' Calcular eficiencia de captación branquial
 #'
-#' Calcula Ew basado en el coeficiente de partición octanol:agua (Kow)
-#' según Arnot & Gobas (2004)
+#' Calcula eficiencia branquial basada en Kow según Arnot & Gobas (2004)
 #'
-#' @param Kow Coeficiente de partición octanol:agua
+#' @param kow Coeficiente de partición octanol:agua
 #' @return Eficiencia de captación branquial
 #' @export
-#' @examples
-#' # Para pentaclorobenceno (log Kow = 5.17)
-#' Kow <- 10^5.17
-#' ew <- calculate_gill_efficiency(Kow)
-calculate_gill_efficiency <- function(Kow) {
-
-  if (Kow <= 0) {
-    stop("Kow debe ser positivo")
-  }
-
-  # Ecuación 6 de Arnot & Gobas (2004)
-  Ew <- 1 / (1.85 + (155 / Kow))
-
-  # Validar rango
-  if (Ew < 0 || Ew > 1) {
-    warning("Eficiencia de captación branquial fuera de rango (0-1): ", Ew)
-  }
-
-  return(Ew)
+calculate_gill_efficiency <- function(kow) {
+  
+  kow <- check_numeric_value(kow, "kow", min_val = 0.001)
+  
+  # Ecuación de Arnot & Gobas (2004)
+  efficiency <- 1 / (1.85 + (155 / kow))
+  
+  # Limitar a rango válido
+  efficiency <- clamp(efficiency, 0, 1)
+  
+  return(efficiency)
 }
 
 #' Calcular coeficiente de partición pez:agua
 #'
 #' Calcula Kbw basado en composición corporal y Kow según Arnot & Gobas (2004)
 #'
-#' @param Fat_fr Fracción de grasa en el pez
-#' @param ProAsh_fr Fracción de proteína + ceniza
-#' @param H2O_fr Fracción de agua
-#' @param Kow Coeficiente de partición octanol:agua
+#' @param fat_fraction Fracción de grasa en el pez
+#' @param protein_ash_fraction Fracción de proteína + ceniza
+#' @param water_fraction Fracción de agua
+#' @param kow Coeficiente de partición octanol:agua
 #' @return Coeficiente de partición pez:agua
 #' @export
-#' @examples
-#' # Composición típica de pez
-#' Kbw <- calculate_fish_water_partition(
-#'   Fat_fr = 0.08, ProAsh_fr = 0.20, H2O_fr = 0.72,
-#'   Kow = 10^5.17
-#' )
-calculate_fish_water_partition <- function(Fat_fr, ProAsh_fr, H2O_fr, Kow) {
-
+calculate_fish_water_partition <- function(fat_fraction, protein_ash_fraction, water_fraction, kow) {
+  
   # Validar fracciones
-  total_fraction <- Fat_fr + ProAsh_fr + H2O_fr
-  if (abs(total_fraction - 1) > 0.01) {
-    warning("Las fracciones no suman 1.0: ", round(total_fraction, 3))
+  fat_fraction <- check_numeric_value(fat_fraction, "fat_fraction", min_val = 0, max_val = 1)
+  protein_ash_fraction <- check_numeric_value(protein_ash_fraction, "protein_ash_fraction", min_val = 0, max_val = 1)
+  water_fraction <- check_numeric_value(water_fraction, "water_fraction", min_val = 0, max_val = 1)
+  kow <- check_numeric_value(kow, "kow", min_val = 0.001)
+  
+  total_fraction <- fat_fraction + protein_ash_fraction + water_fraction
+  if (abs(total_fraction - 1) > 0.1) {
+    warning("Las fracciones se desvían significativamente de 1.0: ", round(total_fraction, 3))
   }
-
-  # Ecuación 3 de Arnot & Gobas (2004)
-  Kbw <- Fat_fr * Kow + ProAsh_fr * 0.035 * Kow + H2O_fr
-
-  return(Kbw)
+  
+  # Ecuación de Arnot & Gobas (2004)
+  partition_coeff <- fat_fraction * kow + protein_ash_fraction * 0.035 * kow + water_fraction
+  
+  return(pmax(1, partition_coeff))  # Mínimo de 1
 }
 
 #' Calcular fracción disuelta del contaminante
 #'
-#' Calcula phi_DT basado en concentraciones de carbono orgánico según
-#' Arnot & Gobas (2004)
+#' Calcula fracción disuelta basada en carbono orgánico según Arnot & Gobas (2004)
 #'
-#' @param XPOC Concentración de carbono orgánico particulado (kg/L)
-#' @param XDOC Concentración de carbono orgánico disuelto (kg/L)
-#' @param Kow Coeficiente de partición octanol:agua
-#' @param DPOC Factor de desequilibrio para POC (por defecto 1)
-#' @param DDOC Factor de desequilibrio para DOC (por defecto 1)
-#' @param aPOC Constante de proporcionalidad para POC (por defecto 0.35)
-#' @param aDOC Constante de proporcionalidad para DOC (por defecto 0.08)
+#' @param poc_concentration Concentración de carbono orgánico particulado (kg/L)
+#' @param doc_concentration Concentración de carbono orgánico disuelto (kg/L)
+#' @param kow Coeficiente de partición octanol:agua
 #' @return Fracción disuelta
 #' @export
-calculate_dissolved_fraction <- function(XPOC, XDOC, Kow,
-                                         DPOC = 1, DDOC = 1,
-                                         aPOC = 0.35, aDOC = 0.08) {
-
-  # Ecuación 4 de Arnot & Gobas (2004)
-  phi_DT <- 1 / (1 + XPOC * DPOC * aPOC * Kow + XDOC * DDOC * aDOC * Kow)
-
-  # Validar rango
-  if (phi_DT < 0 || phi_DT > 1) {
-    warning("Fracción disuelta fuera de rango (0-1): ", phi_DT)
-  }
-
-  return(phi_DT)
+calculate_dissolved_fraction <- function(poc_concentration, doc_concentration, kow) {
+  
+  # Validar entradas
+  poc_concentration <- check_numeric_value(poc_concentration, "poc_concentration", min_val = 0)
+  doc_concentration <- check_numeric_value(doc_concentration, "doc_concentration", min_val = 0)
+  kow <- check_numeric_value(kow, "kow", min_val = 0.001)
+  
+  # Constantes de Arnot & Gobas (2004)
+  a_poc <- 0.35
+  a_doc <- 0.08
+  
+  # Ecuación de Arnot & Gobas (2004)
+  denominator <- 1 + poc_concentration * a_poc * kow + doc_concentration * a_doc * kow
+  dissolved_fraction <- 1 / denominator
+  
+  # Limitar a rango válido
+  dissolved_fraction <- clamp(dissolved_fraction, 0, 1)
+  
+  return(dissolved_fraction)
 }
 
+
 # ============================================================================
-# FUNCIONES DE ANÁLISIS Y VALIDACIÓN
+# FUNCIONES DE UTILIDAD
 # ============================================================================
 
 #' Validar parámetros de contaminantes
 #'
-#' Verifica que los parámetros estén en rangos realistas
-#'
-#' @param params Lista con parámetros de contaminantes
-#' @param CONTEQ Ecuación de contaminantes
-#' @return Lista con validación
+#' @param contaminant_params Lista con parámetros
+#' @return Lista con resultados de validación
 #' @export
-validate_contaminant_params <- function(params, CONTEQ) {
-
-  warnings <- character()
-  errors <- character()
-  valid <- TRUE
-
-  # Validaciones comunes
-  if ("X_Prey" %in% names(params)) {
-    if (any(params$X_Prey < 0)) {
-      errors <- c(errors, "Concentraciones en presas no pueden ser negativas")
-      valid <- FALSE
-    }
-    if (any(params$X_Prey > 1000)) {
-      warnings <- c(warnings, "Concentraciones en presas muy altas (>1000 μg/g)")
-    }
-  }
-
-  if ("X_ae" %in% names(params)) {
-    if (any(params$X_ae < 0 | params$X_ae > 1)) {
-      errors <- c(errors, "Eficiencias de asimilación deben estar entre 0 y 1")
-      valid <- FALSE
-    }
-  }
-
-  if ("TEx" %in% names(params)) {
-    if (any(params$TEx < 0 | params$TEx > 1)) {
-      errors <- c(errors, "Eficiencias de transferencia deben estar entre 0 y 1")
-      valid <- FALSE
-    }
-  }
-
-  # Validaciones específicas por modelo
-  if (CONTEQ == 3) {
-    if ("Ew" %in% names(params)) {
-      if (params$Ew < 0 || params$Ew > 1) {
-        errors <- c(errors, "Eficiencia branquial debe estar entre 0 y 1")
-        valid <- FALSE
-      }
-    }
-
-    if ("Kbw" %in% names(params)) {
-      if (params$Kbw <= 0) {
-        errors <- c(errors, "Coeficiente de partición pez:agua debe ser positivo")
-        valid <- FALSE
-      }
-      if (params$Kbw > 1e6) {
-        warnings <- c(warnings, "Coeficiente de partición muy alto")
-      }
-    }
-
-    if ("Cw_tot" %in% names(params)) {
-      if (params$Cw_tot < 0) {
-        errors <- c(errors, "Concentración en agua no puede ser negativa")
-        valid <- FALSE
-      }
-    }
-
-    if ("phi_DT" %in% names(params)) {
-      if (params$phi_DT < 0 || params$phi_DT > 1) {
-        errors <- c(errors, "Fracción disuelta debe estar entre 0 y 1")
-        valid <- FALSE
-      }
-    }
-  }
-
-  return(list(
-    valid = valid,
-    warnings = warnings,
-    errors = errors,
-    n_warnings = length(warnings),
-    n_errors = length(errors)
-  ))
-}
-
-#' Simular acumulación de contaminantes en el tiempo
-#'
-#' Simula la dinámica de contaminantes durante una serie temporal
-#'
-#' @param days Vector de días
-#' @param consumption_data Matriz de consumo por día y presa
-#' @param contaminant_data Lista con datos de contaminantes por día
-#' @param initial_concentration Concentración inicial en depredador
-#' @param fish_weight Vector de pesos del pez por día
-#' @param temperature Vector de temperaturas por día
-#' @param CONTEQ Ecuación de contaminantes
-#' @param ... Parámetros adicionales según el modelo
-#' @return Data frame con dinámica temporal
-#' @export
-simulate_contaminant_dynamics <- function(days, consumption_data, contaminant_data,
-                                          initial_concentration, fish_weight,
-                                          temperature, CONTEQ, ...) {
-
-  n_days <- length(days)
-  n_prey <- ncol(consumption_data)
-
-  # Inicializar resultados
-  results <- data.frame(
-    Day = days,
-    Weight = fish_weight,
-    Temperature = temperature,
-    Concentration = numeric(n_days),
-    Burden = numeric(n_days),
-    Daily_Uptake = numeric(n_days),
-    Daily_Clearance = numeric(n_days),
-    Cumulative_Uptake = numeric(n_days),
-    Cumulative_Clearance = numeric(n_days)
+validate_contaminant_params <- function(contaminant_params) {
+  
+  validation <- list(
+    valid = TRUE,
+    warnings = character(),
+    errors = character()
   )
-
-  # Concentración y carga inicial
-  current_concentration <- initial_concentration
-  cumulative_uptake <- 0
-  cumulative_clearance <- 0
-
-  # Parámetros adicionales
-  extra_params <- list(...)
-
-  # Simulación diaria
-  for (i in 1:n_days) {
-    # Datos del día
-    daily_consumption <- consumption_data[i, ]
-    daily_weight <- fish_weight[i]
-    daily_temp <- temperature[i]
-
-    # Concentraciones en presas para este día
-    X_Prey <- contaminant_data$prey_concentrations[i, ]
-
-    # Eficiencias para este día
-    if ("assimilation_efficiency" %in% names(contaminant_data)) {
-      X_ae <- contaminant_data$assimilation_efficiency[i, ]
-    } else {
-      X_ae <- rep(0.8, n_prey)  # Valor por defecto
-    }
-
-    if ("transfer_efficiency" %in% names(contaminant_data)) {
-      TEx <- contaminant_data$transfer_efficiency[i, ]
-    } else {
-      TEx <- rep(0.95, n_prey)  # Valor por defecto
-    }
-
-    # Preparar parámetros para el modelo
-    model_params <- list(
-      R_O2 = extra_params$R_O2[i] %||% 0.01,
-      C = daily_consumption,
-      W = daily_weight,
-      Temperature = daily_temp,
-      X_Prey = X_Prey,
-      X_Pred = current_concentration,
-      TEx = TEx,
-      X_ae = X_ae,
-      CONTEQ = CONTEQ
-    )
-
-    # Agregar parámetros específicos del modelo 3
-    if (CONTEQ == 3) {
-      model_params$Ew <- extra_params$Ew %||% 0.5
-      model_params$Kbw <- extra_params$Kbw %||% 1000
-      model_params$Cw_tot <- extra_params$Cw_tot %||% 0.001
-      model_params$phi_DT <- extra_params$phi_DT %||% 0.8
-      model_params$DO_Sat_fr <- extra_params$DO_Sat_fr %||% 0.9
-    }
-
-    # Ejecutar modelo
-    daily_result <- do.call(pred_cont_conc, model_params)
-
-    # Extraer resultados
-    daily_clearance <- daily_result[1]
-    daily_uptake <- daily_result[2]
-    new_burden <- daily_result[3]
-    new_concentration <- daily_result[4]
-
-    # Actualizar acumulados
-    cumulative_uptake <- cumulative_uptake + daily_uptake
-    cumulative_clearance <- cumulative_clearance + daily_clearance
-
-    # Guardar resultados
-    results$Concentration[i] <- new_concentration
-    results$Burden[i] <- new_burden
-    results$Daily_Uptake[i] <- daily_uptake
-    results$Daily_Clearance[i] <- daily_clearance
-    results$Cumulative_Uptake[i] <- cumulative_uptake
-    results$Cumulative_Clearance[i] <- cumulative_clearance
-
-    # Actualizar concentración para siguiente día
-    current_concentration <- new_concentration
+  
+  CONTEQ <- contaminant_params$CONTEQ %||% 1
+  
+  if (!CONTEQ %in% 1:3) {
+    validation$errors <- c(validation$errors, "CONTEQ debe ser 1, 2, o 3")
+    validation$valid <- FALSE
+    return(validation)
   }
-
-  return(results)
+  
+  # Validar concentraciones en presas
+  if ("prey_concentrations" %in% names(contaminant_params)) {
+    if (any(contaminant_params$prey_concentrations < 0, na.rm = TRUE)) {
+      validation$errors <- c(validation$errors, "Concentraciones en presas no pueden ser negativas")
+      validation$valid <- FALSE
+    }
+    
+    if (any(contaminant_params$prey_concentrations > 1000, na.rm = TRUE)) {
+      validation$warnings <- c(validation$warnings, "Concentraciones en presas muy altas (>1000 μg/g)")
+    }
+  }
+  
+  # Validar eficiencias
+  efficiency_params <- c("transfer_efficiency", "assimilation_efficiency")
+  for (param in efficiency_params) {
+    if (param %in% names(contaminant_params)) {
+      values <- contaminant_params[[param]]
+      if (any(values < 0 | values > 1, na.rm = TRUE)) {
+        validation$errors <- c(validation$errors, paste(param, "debe estar entre 0 y 1"))
+        validation$valid <- FALSE
+      }
+    }
+  }
+  
+  # Validaciones específicas para modelo 3
+  if (CONTEQ == 3) {
+    model3_params <- c("gill_efficiency", "dissolved_fraction")
+    for (param in model3_params) {
+      if (param %in% names(contaminant_params)) {
+        value <- contaminant_params[[param]]
+        if (value < 0 || value > 1) {
+          validation$errors <- c(validation$errors, paste(param, "debe estar entre 0 y 1"))
+          validation$valid <- FALSE
+        }
+      }
+    }
+    
+    if ("fish_water_partition" %in% names(contaminant_params)) {
+      if (contaminant_params$fish_water_partition <= 0) {
+        validation$errors <- c(validation$errors, "fish_water_partition debe ser positivo")
+        validation$valid <- FALSE
+      }
+    }
+  }
+  
+  return(validation)
 }
 
-# ============================================================================
-# FUNCIONES DE VISUALIZACIÓN
-# ============================================================================
-
-#' Graficar dinámica de contaminantes
+#' Generar parámetros de ejemplo para contaminantes
 #'
-#' Crea gráficos de la acumulación de contaminantes en el tiempo
-#'
-#' @param simulation_results Output de simulate_contaminant_dynamics
-#' @param plot_type Tipo de gráfico ("concentration", "uptake", "balance")
-#' @return Gráfico de dinámica de contaminantes
+#' @param contaminant_type Tipo de contaminante ("mercury", "pcb", "generic")
+#' @param model_equation Ecuación de modelo (1, 2, o 3)
+#' @param n_prey Número de tipos de presa
+#' @return Lista con parámetros de ejemplo
 #' @export
-plot_contaminant_dynamics <- function(simulation_results, plot_type = "concentration") {
-
-  if (plot_type == "concentration") {
-    # Gráfico de concentración y carga
-    par(mfrow = c(2, 1))
-
-    plot(simulation_results$Day, simulation_results$Concentration,
-         type = "l", lwd = 2, col = "red",
-         xlab = "Día", ylab = "Concentración (μg/g)",
-         main = "Concentración de Contaminantes")
-    grid()
-
-    plot(simulation_results$Day, simulation_results$Burden,
-         type = "l", lwd = 2, col = "blue",
-         xlab = "Día", ylab = "Carga Corporal (μg)",
-         main = "Carga Corporal de Contaminantes")
-    grid()
-
-    par(mfrow = c(1, 1))
-
-  } else if (plot_type == "uptake") {
-    # Gráfico de captación y eliminación
-    par(mfrow = c(2, 1))
-
-    plot(simulation_results$Day, simulation_results$Daily_Uptake,
-         type = "l", lwd = 2, col = "green",
-         xlab = "Día", ylab = "Captación Diaria (μg/d)",
-         main = "Captación Diaria de Contaminantes")
-    grid()
-
-    plot(simulation_results$Day, simulation_results$Daily_Clearance,
-         type = "l", lwd = 2, col = "orange",
-         xlab = "Día", ylab = "Eliminación Diaria (μg/d)",
-         main = "Eliminación Diaria de Contaminantes")
-    grid()
-
-    par(mfrow = c(1, 1))
-
-  } else if (plot_type == "balance") {
-    # Gráfico de balance acumulativo
-    plot(simulation_results$Day, simulation_results$Cumulative_Uptake,
-         type = "l", lwd = 2, col = "green",
-         xlab = "Día", ylab = "Contaminantes (μg)",
-         main = "Balance Acumulativo de Contaminantes",
-         ylim = range(c(simulation_results$Cumulative_Uptake,
-                        simulation_results$Cumulative_Clearance)))
-
-    lines(simulation_results$Day, simulation_results$Cumulative_Clearance,
-          lwd = 2, col = "red")
-
-    legend("topleft", legend = c("Captación", "Eliminación"),
-           col = c("green", "red"), lwd = 2)
-    grid()
+generate_example_contaminant_params <- function(contaminant_type = "mercury", model_equation = 2, n_prey = 2) {
+  
+  params <- list(CONTEQ = model_equation)
+  
+  if (contaminant_type == "mercury") {
+    params$prey_concentrations <- c(0.5, 1.2)[1:n_prey]  # μg/g
+    params$assimilation_efficiency <- rep(0.85, n_prey)
+    params$transfer_efficiency <- rep(0.95, n_prey)
+    
+    if (model_equation == 3) {
+      params$gill_efficiency <- 0.3
+      params$fish_water_partition <- 10000
+      params$water_concentration <- 0.0001  # mg/L
+      params$dissolved_fraction <- 0.9
+      params$do_saturation <- 0.9
+    }
+    
+  } else if (contaminant_type == "pcb") {
+    params$prey_concentrations <- c(2.0, 4.5)[1:n_prey]  # μg/g
+    params$assimilation_efficiency <- rep(0.70, n_prey)
+    params$transfer_efficiency <- rep(0.90, n_prey)
+    
+    if (model_equation == 3) {
+      params$gill_efficiency <- 0.8
+      params$fish_water_partition <- 100000
+      params$water_concentration <- 0.00001  # mg/L
+      params$dissolved_fraction <- 0.3
+      params$do_saturation <- 0.9
+    }
+    
+  } else {  # generic
+    params$prey_concentrations <- rep(1.0, n_prey)
+    params$assimilation_efficiency <- rep(0.75, n_prey)
+    params$transfer_efficiency <- rep(0.90, n_prey)
+    
+    if (model_equation == 3) {
+      params$gill_efficiency <- 0.5
+      params$fish_water_partition <- 1000
+      params$water_concentration <- 0.001  # mg/L
+      params$dissolved_fraction <- 0.5
+      params$do_saturation <- 0.9
+    }
   }
-}
-
-#' Comparar modelos de contaminantes
-#'
-#' Compara resultados de diferentes modelos de contaminantes
-#'
-#' @param scenarios Lista con escenarios para comparar
-#' @param metric Métrica a comparar ("concentration", "burden")
-#' @return Gráfico comparativo
-#' @export
-compare_contaminant_models <- function(scenarios, metric = "concentration") {
-
-  colors <- rainbow(length(scenarios))
-  labels <- names(scenarios)
-
-  if (is.null(labels)) {
-    labels <- paste("Modelo", 1:length(scenarios))
-  }
-
-  # Configurar gráfico
-  y_range <- range(sapply(scenarios, function(s) range(s[[metric]])))
-
-  plot(NULL, xlim = range(scenarios[[1]]$Day), ylim = y_range,
-       xlab = "Día",
-       ylab = if(metric == "concentration") "Concentración (μg/g)" else "Carga (μg)",
-       main = paste("Comparación de Modelos -",
-                    if(metric == "concentration") "Concentración" else "Carga"))
-
-  # Graficar cada escenario
-  for (i in seq_along(scenarios)) {
-    lines(scenarios[[i]]$Day, scenarios[[i]][[metric]],
-          lwd = 2, col = colors[i])
-  }
-
-  # Leyenda
-  legend("topright", legend = labels, col = colors, lwd = 2, cex = 0.8)
-  grid()
-}
-
-# Operador %||% para valores por defecto
-`%||%` <- function(x, y) {
-  if (is.null(x)) y else x
+  
+  return(params)
 }

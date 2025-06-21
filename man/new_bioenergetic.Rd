@@ -7,6 +7,7 @@
 new_bioenergetic(
   species,
   initial_weight,
+  life_stage = NULL,
   duration = 365,
   temperature_avg = 20,
   temperature_variation = 5,
@@ -15,9 +16,11 @@ new_bioenergetic(
 )
 }
 \arguments{
-\item{species}{Nombre o número de especie}
+\item{species}{Nombre científico de la especie o número de índice}
 
 \item{initial_weight}{Peso inicial (g)}
+
+\item{life_stage}{Estadio de vida (por defecto usa el primero disponible)}
 
 \item{duration}{Duración en días}
 

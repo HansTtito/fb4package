@@ -4,16 +4,14 @@
 \alias{validate_contaminant_params}
 \title{Validar parámetros de contaminantes}
 \usage{
-validate_contaminant_params(params, CONTEQ)
+validate_contaminant_params(contaminant_params)
 }
 \arguments{
-\item{params}{Lista con parámetros de contaminantes}
-
-\item{CONTEQ}{Ecuación de contaminantes}
+\item{contaminant_params}{Lista con parámetros}
 }
 \value{
-Lista con validación
+Lista con resultados de validación
 }
 \description{
-Verifica que los parámetros estén en rangos realistas
+Validar parámetros de contaminantes
 }

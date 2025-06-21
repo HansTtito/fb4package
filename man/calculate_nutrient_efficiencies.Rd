@@ -7,13 +7,13 @@
 calculate_nutrient_efficiencies(nitrogen_fluxes, phosphorus_fluxes)
 }
 \arguments{
-\item{nitrogen_fluxes}{Vector resultado de nitrogen_allocation}
+\item{nitrogen_fluxes}{Lista resultado de calculate_nitrogen_allocation}
 
-\item{phosphorus_fluxes}{Vector resultado de phosphorous_allocation}
+\item{phosphorus_fluxes}{Lista resultado de calculate_phosphorus_allocation}
 }
 \value{
 Lista con eficiencias calculadas
 }
 \description{
-Calcula eficiencias de asimilación y retención neta para N y P
+Calcula eficiencias de asimilación y retención para N y P
 }

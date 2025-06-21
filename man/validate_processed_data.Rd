@@ -2,16 +2,16 @@
 % Please edit documentation in R/11-data-processing.R
 \name{validate_processed_data}
 \alias{validate_processed_data}
-\title{Validar consistencia de datos procesados}
+\title{Validar datos procesados}
 \usage{
 validate_processed_data(processed_data)
 }
 \arguments{
-\item{processed_data}{Datos procesados}
+\item{processed_data}{Lista con datos procesados}
 }
 \value{
 Lista con resultados de validación
 }
 \description{
-Validar consistencia de datos procesados
+Verifica la consistencia e integridad de los datos procesados
 }

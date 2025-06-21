@@ -7,25 +7,15 @@
 calculate_np_ratios(nitrogen_fluxes, phosphorus_fluxes, ratio_type = "mass")
 }
 \arguments{
-\item{nitrogen_fluxes}{Vector resultado de nitrogen_allocation}
+\item{nitrogen_fluxes}{Lista resultado de calculate_nitrogen_allocation}
 
-\item{phosphorus_fluxes}{Vector resultado de phosphorous_allocation}
+\item{phosphorus_fluxes}{Lista resultado de calculate_phosphorus_allocation}
 
 \item{ratio_type}{Tipo de ratio ("mass" o "molar")}
 }
 \value{
-Lista con ratios N:P para cada proceso
+Lista con ratios N:P
 }
 \description{
 Calcula ratios molares y de masa N:P para consumo, crecimiento, excreción y egestion
-}
-\examples{
-# Calcular flujos de nutrientes
-N_fluxes <- nitrogen_allocation(c(0.8, 0.5), c(0.095, 0.072),
-                               c(0.88, 0.92), 0.2, 0.098)
-P_fluxes <- phosphorous_allocation(c(0.8, 0.5), c(0.012, 0.008),
-                                  c(0.85, 0.90), 0.2, 0.015)
-
-# Calcular ratios
-ratios <- calculate_np_ratios(N_fluxes, P_fluxes, ratio_type = "molar")
 }

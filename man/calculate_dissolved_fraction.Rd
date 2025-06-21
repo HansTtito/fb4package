@@ -4,35 +4,18 @@
 \alias{calculate_dissolved_fraction}
 \title{Calcular fracción disuelta del contaminante}
 \usage{
-calculate_dissolved_fraction(
-  XPOC,
-  XDOC,
-  Kow,
-  DPOC = 1,
-  DDOC = 1,
-  aPOC = 0.35,
-  aDOC = 0.08
-)
+calculate_dissolved_fraction(poc_concentration, doc_concentration, kow)
 }
 \arguments{
-\item{XPOC}{Concentración de carbono orgánico particulado (kg/L)}
+\item{poc_concentration}{Concentración de carbono orgánico particulado (kg/L)}
 
-\item{XDOC}{Concentración de carbono orgánico disuelto (kg/L)}
+\item{doc_concentration}{Concentración de carbono orgánico disuelto (kg/L)}
 
-\item{Kow}{Coeficiente de partición octanol:agua}
-
-\item{DPOC}{Factor de desequilibrio para POC (por defecto 1)}
-
-\item{DDOC}{Factor de desequilibrio para DOC (por defecto 1)}
-
-\item{aPOC}{Constante de proporcionalidad para POC (por defecto 0.35)}
-
-\item{aDOC}{Constante de proporcionalidad para DOC (por defecto 0.08)}
+\item{kow}{Coeficiente de partición octanol:agua}
 }
 \value{
 Fracción disuelta
 }
 \description{
-Calcula phi_DT basado en concentraciones de carbono orgánico según
-Arnot & Gobas (2004)
+Calcula fracción disuelta basada en carbono orgánico según Arnot & Gobas (2004)
 }

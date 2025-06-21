@@ -20,6 +20,9 @@ validate_time_series_data(
 
 \item{min_cols}{Número mínimo de columnas}
 }
+\value{
+NULL (lanza error si inválido)
+}
 \description{
 Validar datos de series de tiempo
 }

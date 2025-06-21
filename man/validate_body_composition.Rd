@@ -7,11 +7,11 @@
 validate_body_composition(composition)
 }
 \arguments{
-\item{composition}{Lista de composición corporal (output de calculate_body_composition)}
+\item{composition}{Lista de composición corporal}
 }
 \value{
 Lista con resultados de validación
 }
 \description{
-Verifica que la composición corporal esté en rangos biológicamente realistas
+Validar composición corporal
 }

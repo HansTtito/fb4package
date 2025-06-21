@@ -30,13 +30,3 @@ Objeto de clase "Bioenergetic"
 Crea un objeto de clase Bioenergetic que encapsula todos los componentes
 del modelo bioenergético de peces.
 }
-\examples{
-\dontrun{
-# Crear modelo bioenergético
-modelo <- Bioenergetic$new(
-  species = "Bluegill",
-  initial_weight = 10,
-  duration = 365
-)
-}
-}

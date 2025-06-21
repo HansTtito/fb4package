@@ -5,49 +5,49 @@
 \title{Modelo de contaminantes 3 - Arnot & Gobas (2004)}
 \usage{
 contaminant_model_3(
-  R_O2,
-  C,
-  W,
-  Temperature,
-  X_Prey,
-  X_ae,
-  Burden,
-  Ew,
-  Kbw,
-  Cw_tot,
-  phi_DT,
-  DO_Sat_fr
+  respiration_o2,
+  consumption,
+  weight,
+  temperature,
+  prey_concentrations,
+  assimilation_efficiency,
+  current_burden,
+  gill_efficiency,
+  fish_water_partition,
+  water_concentration,
+  dissolved_fraction,
+  do_saturation
 )
 }
 \arguments{
-\item{R_O2}{Respiración (g O2/g/día)}
+\item{respiration_o2}{Respiración (g O2/g/día)}
 
-\item{C}{Vector de consumo por presa (g/día)}
+\item{consumption}{Vector de consumo por presa (g/día)}
 
-\item{W}{Peso del pez (g)}
+\item{weight}{Peso del pez (g)}
 
-\item{Temperature}{Temperatura del agua (°C)}
+\item{temperature}{Temperatura del agua (°C)}
 
-\item{X_Prey}{Vector de concentraciones en presas (μg/g)}
+\item{prey_concentrations}{Vector de concentraciones en presas (μg/g)}
 
-\item{X_ae}{Vector de eficiencias de asimilación}
+\item{assimilation_efficiency}{Vector de eficiencias de asimilación}
 
-\item{Burden}{Carga corporal actual (μg)}
+\item{current_burden}{Carga corporal actual (μg)}
 
-\item{Ew}{Eficiencia de captación branquial}
+\item{gill_efficiency}{Eficiencia de captación branquial}
 
-\item{Kbw}{Coeficiente de partición pez:agua}
+\item{fish_water_partition}{Coeficiente de partición pez:agua}
 
-\item{Cw_tot}{Concentración total en agua (mg/L)}
+\item{water_concentration}{Concentración total en agua (mg/L)}
 
-\item{phi_DT}{Fracción disuelta}
+\item{dissolved_fraction}{Fracción disuelta}
 
-\item{DO_Sat_fr}{Saturación de oxígeno (fracción)}
+\item{do_saturation}{Saturación de oxígeno disuelto (fracción)}
 }
 \value{
-Vector con c(Clearance, Uptake, Burden, NA)
+Lista con clearance, uptake, y nueva carga
 }
 \description{
-Modelo completo con captación desde agua y alimento, eliminación proporcional
-a la respiración
+Modelo completo con captación desde agua y alimento, eliminación proporcional a respiración
 }
+\keyword{internal}

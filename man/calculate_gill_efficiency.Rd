@@ -4,20 +4,14 @@
 \alias{calculate_gill_efficiency}
 \title{Calcular eficiencia de captación branquial}
 \usage{
-calculate_gill_efficiency(Kow)
+calculate_gill_efficiency(kow)
 }
 \arguments{
-\item{Kow}{Coeficiente de partición octanol:agua}
+\item{kow}{Coeficiente de partición octanol:agua}
 }
 \value{
 Eficiencia de captación branquial
 }
 \description{
-Calcula Ew basado en el coeficiente de partición octanol:agua (Kow)
-según Arnot & Gobas (2004)
-}
-\examples{
-# Para pentaclorobenceno (log Kow = 5.17)
-Kow <- 10^5.17
-ew <- calculate_gill_efficiency(Kow)
+Calcula eficiencia branquial basada en Kow según Arnot & Gobas (2004)
 }

@@ -1,527 +1,421 @@
-#' Funciones de Egestion y Excreción para el Modelo FB4
+#' Funciones de Egestión y Excreción para el Modelo FB4
 #'
 #' @name egestion-excretion
 #' @aliases egestion-excretion
 NULL
 
 # ============================================================================
-# FUNCIONES DE EGESTION
+# FUNCIONES CORE DE EGESTIÓN
 # ============================================================================
 
-#' Modelo de egestion 1 - Básico
+#' Modelo de egestión 1 - Básico
 #'
-#' Modelo simple de egestion con fracción constante del consumo
+#' Modelo simple de egestión con fracción constante del consumo
 #'
-#' @param C Consumo (J/g)
-#' @param FA Fracción de egestion
-#' @return Egestion (J/g)
-#' @export
-egestion1 <- function(C, FA) {
-  Eg <- FA * C
-  return(Eg)
+#' @param consumption Consumo (J/g)
+#' @param FA Fracción de egestión
+#' @return Egestión (J/g)
+#' @keywords internal
+egestion_model_1 <- function(consumption, FA) {
+  if (is.na(consumption) || is.na(FA) || consumption <= 0) return(0)
+  
+  egestion <- FA * consumption
+  return(pmax(0, pmin(egestion, consumption)))
 }
 
-#' Modelo de egestion 2 - Elliott (1976)
+#' Modelo de egestión 2 - Elliott (1976)
 #'
-#' Modelo de egestion dependiente de temperatura y nivel de alimentación
+#' Modelo de egestión dependiente de temperatura y nivel de alimentación
 #'
-#' @param C Consumo (J/g)
-#' @param Temperature Temperatura del agua (°C)
-#' @param p Proporción del consumo máximo (p-value)
-#' @param FA Parámetro base de egestion
+#' @param consumption Consumo (J/g)
+#' @param temperature Temperatura del agua (°C)
+#' @param p_value Proporción del consumo máximo (p-value)
+#' @param FA Parámetro base de egestión
 #' @param FB Coeficiente de dependencia de temperatura
 #' @param FG Coeficiente de dependencia del nivel de alimentación
-#' @return Egestion (J/g)
-#' @export
-egestion2 <- function(C, Temperature, p, FA, FB, FG) {
-  Eg <- FA * (Temperature^FB) * exp(FG * p) * C
-  return(Eg)
+#' @return Egestión (J/g)
+#' @keywords internal
+egestion_model_2 <- function(consumption, temperature, p_value, FA, FB, FG) {
+  if (any(is.na(c(consumption, temperature, p_value, FA, FB, FG))) || consumption <= 0) {
+    return(0)
+  }
+  
+  # Cálculos seguros
+  safe_temp <- clamp(temperature, 0, 50)
+  safe_p <- clamp(p_value, 0, 5)
+  safe_FB <- clamp(FB, -5, 5)
+  safe_FG <- clamp(FG, -5, 5)
+  
+  egestion <- FA * (safe_temp^safe_FB) * safe_exp(safe_FG * safe_p) * consumption
+  return(pmax(0, pmin(egestion, consumption)))
 }
 
-#' Modelo de egestion 3 - Stewart et al. (1983)
+#' Modelo de egestión 3 - Stewart et al. (1983)
 #'
 #' Modelo que incluye presas indigeribles
 #'
-#' @param C Consumo (J/g)
-#' @param Temperature Temperatura del agua (°C)
-#' @param p Proporción del consumo máximo (p-value)
-#' @param FA Parámetro base de egestion
+#' @param consumption Consumo (J/g)
+#' @param temperature Temperatura del agua (°C)
+#' @param p_value Proporción del consumo máximo (p-value)
+#' @param FA Parámetro base de egestión
 #' @param FB Coeficiente de dependencia de temperatura
 #' @param FG Coeficiente de dependencia del nivel de alimentación
 #' @param indigestible_fraction Fracción indigerible de las presas
-#' @return Egestion (J/g)
-#' @export
-egestion3 <- function(C, Temperature, p, FA, FB, FG, indigestible_fraction = 0) {
-  # Calcular eficiencia de egestion base
-  PE <- FA * (Temperature^FB) * exp(FG * p)
-
+#' @return Egestión (J/g)
+#' @keywords internal
+egestion_model_3 <- function(consumption, temperature, p_value, FA, FB, FG, 
+                             indigestible_fraction = 0) {
+  if (any(is.na(c(consumption, temperature, p_value, FA, FB, FG))) || consumption <= 0) {
+    return(0)
+  }
+  
+  # Cálculos seguros
+  safe_temp <- clamp(temperature, 0, 50)
+  safe_p <- clamp(p_value, 0, 5)
+  safe_FB <- clamp(FB, -5, 5)
+  safe_FG <- clamp(FG, -5, 5)
+  safe_indig <- clamp(indigestible_fraction, 0, 1)
+  
+  # Calcular eficiencia de egestión base
+  PE <- FA * (safe_temp^safe_FB) * safe_exp(safe_FG * safe_p)
+  
   # Ajustar por presas indigeribles
-  PFF <- indigestible_fraction  # Fracción indigerible
-  PF <- ((PE - 0.1) / 0.9) * (1 - PFF) + PFF
-
-  # Calcular egestion final
-  Eg <- PF * C
-
-  return(Eg)
+  PF <- ((PE - 0.1) / 0.9) * (1 - safe_indig) + safe_indig
+  PF <- clamp(PF, 0, 1)
+  
+  egestion <- PF * consumption
+  return(pmax(0, pmin(egestion, consumption)))
 }
 
-#' Modelo de egestion 4 - Elliott (1976) sin p-value
+#' Modelo de egestión 4 - Elliott (1976) sin p-value
 #'
 #' Modelo simplificado sin dependencia del nivel de alimentación
 #'
-#' @param C Consumo (J/g)
-#' @param Temperature Temperatura del agua (°C)
-#' @param FA Parámetro base de egestion
+#' @param consumption Consumo (J/g)
+#' @param temperature Temperatura del agua (°C)
+#' @param FA Parámetro base de egestión
 #' @param FB Coeficiente de dependencia de temperatura
-#' @return Egestion (J/g)
-#' @export
-egestion4 <- function(C, Temperature, FA, FB) {
-  Eg <- FA * (Temperature^FB) * C
-  return(Eg)
-}
-
-#' Función principal de egestion
-#'
-#' Calcula la egestion usando la ecuación especificada
-#'
-#' @param C Consumo (J/g)
-#' @param Temperature Temperatura del agua (°C)
-#' @param p Proporción del consumo máximo (p-value)
-#' @param EGEQ Número de ecuación de egestion (1-4)
-#' @param FA Parámetro base de egestion
-#' @param FB Coeficiente de dependencia de temperatura (opcional)
-#' @param FG Coeficiente de dependencia del nivel de alimentación (opcional)
-#' @param indigestible_fraction Fracción indigerible de presas (para ecuación 3)
-#' @return Egestion (J/g)
-#' @export
-#' @examples
-#' # Usando ecuación 1 (básica)
-#' egestion(C = 100, Temperature = 20, p = 0.5, EGEQ = 1, FA = 0.15)
-#'
-#' # Usando ecuación 2 (Elliott 1976)
-#' egestion(C = 100, Temperature = 20, p = 0.5, EGEQ = 2,
-#'          FA = 0.15, FB = 0.5, FG = 0.1)
-egestion <- function(C, Temperature, p, EGEQ, FA, FB = NULL, FG = NULL,
-                     indigestible_fraction = 0) {
-
-  # Validar entrada
-  if (!EGEQ %in% 1:4) {
-    stop("EGEQ debe ser 1, 2, 3, o 4")
-  }
-
-  if (C < 0) {
-    warning("Consumo negativo detectado")
+#' @return Egestión (J/g)
+#' @keywords internal
+egestion_model_4 <- function(consumption, temperature, FA, FB) {
+  if (any(is.na(c(consumption, temperature, FA, FB))) || consumption <= 0) {
     return(0)
   }
-
-  # Seleccionar ecuación
-  if (EGEQ == 1) {
-    Eg <- egestion1(C = C, FA = FA)
-
-  } else if (EGEQ == 2) {
-    if (is.null(FB) || is.null(FG)) {
-      stop("FB y FG son requeridos para EGEQ = 2")
-    }
-    Eg <- egestion2(C = C, Temperature = Temperature, p = p,
-                    FA = FA, FB = FB, FG = FG)
-
-  } else if (EGEQ == 3) {
-    if (is.null(FB) || is.null(FG)) {
-      stop("FB y FG son requeridos para EGEQ = 3")
-    }
-    Eg <- egestion3(C = C, Temperature = Temperature, p = p,
-                    FA = FA, FB = FB, FG = FG,
-                    indigestible_fraction = indigestible_fraction)
-
-  } else if (EGEQ == 4) {
-    if (is.null(FB)) {
-      stop("FB es requerido para EGEQ = 4")
-    }
-    Eg <- egestion4(C = C, Temperature = Temperature, FA = FA, FB = FB)
-  }
-
-  # Validar salida
-  if (Eg < 0) {
-    warning("Egestion negativa calculada, estableciendo a 0")
-    Eg <- 0
-  }
-
-  if (Eg > C) {
-    warning("Egestion mayor que consumo, estableciendo a consumo")
-    Eg <- C
-  }
-
-  return(Eg)
+  
+  safe_temp <- clamp(temperature, 0, 50)
+  safe_FB <- clamp(FB, -5, 5)
+  
+  egestion <- FA * (safe_temp^safe_FB) * consumption
+  return(pmax(0, pmin(egestion, consumption)))
 }
 
 # ============================================================================
-# FUNCIONES DE EXCRECIÓN
+# FUNCIONES CORE DE EXCRECIÓN
 # ============================================================================
 
 #' Modelo de excreción 1 - Básico
 #'
 #' Modelo simple de excreción proporcional a la materia asimilada
 #'
-#' @param C Consumo (J/g)
-#' @param Eg Egestion (J/g)
+#' @param consumption Consumo (J/g)
+#' @param egestion Egestión (J/g)
 #' @param UA Fracción de excreción
 #' @return Excreción (J/g)
-#' @export
-excretion1 <- function(C, Eg, UA) {
-  U <- UA * (C - Eg)
-  return(U)
+#' @keywords internal
+excretion_model_1 <- function(consumption, egestion, UA) {
+  if (any(is.na(c(consumption, egestion, UA))) || consumption <= 0) {
+    return(0)
+  }
+  
+  assimilated <- pmax(0, consumption - egestion)
+  excretion <- UA * assimilated
+  
+  return(pmax(0, pmin(excretion, assimilated)))
 }
 
 #' Modelo de excreción 2 - Con dependencia de temperatura y alimentación
 #'
-#' Modelo que incluye efectos de temperatura y nivel de alimentación
-#'
-#' @param C Consumo (J/g)
-#' @param Temperature Temperatura del agua (°C)
-#' @param p Proporción del consumo máximo (p-value)
-#' @param Eg Egestion (J/g)
+#' @param consumption Consumo (J/g)
+#' @param egestion Egestión (J/g)
+#' @param temperature Temperatura del agua (°C)
+#' @param p_value Proporción del consumo máximo (p-value)
 #' @param UA Parámetro base de excreción
 #' @param UB Coeficiente de dependencia de temperatura
 #' @param UG Coeficiente de dependencia del nivel de alimentación
 #' @return Excreción (J/g)
-#' @export
-excretion2 <- function(C, Temperature, p, Eg, UA, UB, UG) {
-  U <- UA * (Temperature^UB) * exp(UG * p) * (C - Eg)
-  return(U)
+#' @keywords internal
+excretion_model_2 <- function(consumption, egestion, temperature, p_value, UA, UB, UG) {
+  if (any(is.na(c(consumption, egestion, temperature, p_value, UA, UB, UG))) || 
+      consumption <= 0) {
+    return(0)
+  }
+  
+  assimilated <- pmax(0, consumption - egestion)
+  if (assimilated <= 0) return(0)
+  
+  # Cálculos seguros
+  safe_temp <- clamp(temperature, 0, 50)
+  safe_p <- clamp(p_value, 0, 5)
+  safe_UB <- clamp(UB, -5, 5)
+  safe_UG <- clamp(UG, -5, 5)
+  
+  excretion <- UA * (safe_temp^safe_UB) * safe_exp(safe_UG * safe_p) * assimilated
+  return(pmax(0, pmin(excretion, assimilated)))
 }
 
 #' Modelo de excreción 3 - Variante del modelo 2
 #'
-#' Similar al modelo 2 pero con formulación ligeramente diferente
-#'
-#' @param C Consumo (J/g)
-#' @param Temperature Temperatura del agua (°C)
-#' @param p Proporción del consumo máximo (p-value)
-#' @param Eg Egestion (J/g)
+#' @param consumption Consumo (J/g)
+#' @param egestion Egestión (J/g)
+#' @param temperature Temperatura del agua (°C)
+#' @param p_value Proporción del consumo máximo (p-value)
 #' @param UA Parámetro base de excreción
 #' @param UB Coeficiente de dependencia de temperatura
 #' @param UG Coeficiente de dependencia del nivel de alimentación
 #' @return Excreción (J/g)
-#' @export
-excretion3 <- function(C, Temperature, p, Eg, UA, UB, UG) {
-  # Idéntico al modelo 2 en la implementación actual
-  U <- UA * (Temperature^UB) * exp(UG * p) * (C - Eg)
-  return(U)
+#' @keywords internal
+excretion_model_3 <- function(consumption, egestion, temperature, p_value, UA, UB, UG) {
+  # Idéntico al modelo 2 en esta implementación
+  return(excretion_model_2(consumption, egestion, temperature, p_value, UA, UB, UG))
 }
 
 #' Modelo de excreción 4 - Sin dependencia de alimentación
 #'
-#' Modelo que solo depende de temperatura
-#'
-#' @param C Consumo (J/g)
-#' @param Temperature Temperatura del agua (°C)
-#' @param Eg Egestion (J/g)
+#' @param consumption Consumo (J/g)
+#' @param egestion Egestión (J/g)
+#' @param temperature Temperatura del agua (°C)
 #' @param UA Parámetro base de excreción
 #' @param UB Coeficiente de dependencia de temperatura
 #' @return Excreción (J/g)
-#' @export
-excretion4 <- function(C, Temperature, Eg, UA, UB) {
-  U <- UA * (Temperature^UB) * (C - Eg)
-  return(U)
-}
-
-#' Función principal de excreción
-#'
-#' Calcula la excreción usando la ecuación especificada
-#'
-#' @param C Consumo (J/g)
-#' @param Eg Egestion (J/g)
-#' @param Temperature Temperatura del agua (°C)
-#' @param p Proporción del consumo máximo (p-value)
-#' @param EXEQ Número de ecuación de excreción (1-4)
-#' @param UA Parámetro base de excreción
-#' @param UB Coeficiente de dependencia de temperatura (opcional)
-#' @param UG Coeficiente de dependencia del nivel de alimentación (opcional)
-#' @return Excreción (J/g)
-#' @export
-#' @examples
-#' # Usando ecuación 1 (básica)
-#' excretion(C = 100, Eg = 15, Temperature = 20, p = 0.5,
-#'           EXEQ = 1, UA = 0.08)
-#'
-#' # Usando ecuación 2 (completa)
-#' excretion(C = 100, Eg = 15, Temperature = 20, p = 0.5,
-#'           EXEQ = 2, UA = 0.08, UB = 0.3, UG = 0.05)
-excretion <- function(C, Eg, Temperature, p, EXEQ, UA, UB = NULL, UG = NULL) {
-
-  # Validar entrada
-  if (!EXEQ %in% 1:4) {
-    stop("EXEQ debe ser 1, 2, 3, o 4")
-  }
-
-  if (C < 0 || Eg < 0) {
-    warning("Consumo o egestion negativos detectados")
+#' @keywords internal
+excretion_model_4 <- function(consumption, egestion, temperature, UA, UB) {
+  if (any(is.na(c(consumption, egestion, temperature, UA, UB))) || consumption <= 0) {
     return(0)
   }
-
-  if (Eg > C) {
-    warning("Egestion mayor que consumo")
-    return(0)
-  }
-
-  # Calcular materia asimilada
-  assimilated <- C - Eg
-
-  if (assimilated <= 0) {
-    return(0)
-  }
-
-  # Seleccionar ecuación
-  if (EXEQ == 1) {
-    U <- excretion1(C = C, Eg = Eg, UA = UA)
-
-  } else if (EXEQ == 2) {
-    if (is.null(UB) || is.null(UG)) {
-      stop("UB y UG son requeridos para EXEQ = 2")
-    }
-    U <- excretion2(C = C, Temperature = Temperature, p = p, Eg = Eg,
-                    UA = UA, UB = UB, UG = UG)
-
-  } else if (EXEQ == 3) {
-    if (is.null(UB) || is.null(UG)) {
-      stop("UB y UG son requeridos para EXEQ = 3")
-    }
-    U <- excretion3(C = C, Temperature = Temperature, p = p, Eg = Eg,
-                    UA = UA, UB = UB, UG = UG)
-
-  } else if (EXEQ == 4) {
-    if (is.null(UB)) {
-      stop("UB es requerido para EXEQ = 4")
-    }
-    U <- excretion4(C = C, Temperature = Temperature, Eg = Eg,
-                    UA = UA, UB = UB)
-  }
-
-  # Validar salida
-  if (U < 0) {
-    warning("Excreción negativa calculada, estableciendo a 0")
-    U <- 0
-  }
-
-  if (U > assimilated) {
-    warning("Excreción mayor que materia asimilada, estableciendo a materia asimilada")
-    U <- assimilated
-  }
-
-  return(U)
+  
+  assimilated <- pmax(0, consumption - egestion)
+  if (assimilated <= 0) return(0)
+  
+  safe_temp <- clamp(temperature, 0, 50)
+  safe_UB <- clamp(UB, -5, 5)
+  
+  excretion <- UA * (safe_temp^safe_UB) * assimilated
+  return(pmax(0, pmin(excretion, assimilated)))
 }
 
 # ============================================================================
-# FUNCIONES AUXILIARES Y DE VALIDACIÓN
+# FUNCIONES PRINCIPALES
 # ============================================================================
 
-#' Calcular eficiencia de asimilación
-#'
-#' Calcula la eficiencia con la que el alimento es asimilado
-#'
-#' @param C Consumo (J/g)
-#' @param Eg Egestion (J/g)
-#' @return Eficiencia de asimilación (fracción)
-#' @export
-calculate_assimilation_efficiency <- function(C, Eg) {
-  if (C <= 0) {
-    return(0)
-  }
 
-  efficiency <- (C - Eg) / C
-
-  # Asegurar que esté en rango válido
-  efficiency <- pmax(0, pmin(1, efficiency))
-
-  return(efficiency)
-}
-
-#' Calcular eficiencia de retención neta
-#'
-#' Calcula la eficiencia con la que la materia asimilada es retenida
-#'
-#' @param C Consumo (J/g)
-#' @param Eg Egestion (J/g)
-#' @param Ex Excreción (J/g)
-#' @return Eficiencia de retención neta (fracción)
-#' @export
-calculate_net_retention_efficiency <- function(C, Eg, Ex) {
-  if (C <= 0) {
-    return(0)
-  }
-
-  net_retained <- C - Eg - Ex
-  efficiency <- net_retained / C
-
-  # Asegurar que esté en rango válido
-  efficiency <- pmax(0, pmin(1, efficiency))
-
-  return(efficiency)
-}
-
-#' Validar parámetros de egestion y excreción
-#'
-#' Verifica que los parámetros estén en rangos biológicamente realistas
-#'
-#' @param FA Parámetro de egestion
-#' @param UA Parámetro de excreción
-#' @param FB Coeficiente de temperatura para egestion (opcional)
-#' @param UB Coeficiente de temperatura para excreción (opcional)
-#' @param FG Coeficiente de alimentación para egestion (opcional)
-#' @param UG Coeficiente de alimentación para excreción (opcional)
-#' @return Lista con validación y advertencias
-#' @export
-validate_egestion_excretion_params <- function(FA, UA, FB = NULL, UB = NULL,
-                                               FG = NULL, UG = NULL) {
-
-  warnings <- character()
-  valid <- TRUE
-
-  # Validar FA (fracción de egestion)
-  if (FA < 0 || FA > 1) {
-    warnings <- c(warnings, paste("FA fuera de rango típico (0-1):", FA))
-    if (FA < 0 || FA > 2) {
-      valid <- FALSE
-    }
-  }
-
-  # Validar UA (fracción de excreción)
-  if (UA < 0 || UA > 1) {
-    warnings <- c(warnings, paste("UA fuera de rango típico (0-1):", UA))
-    if (UA < 0 || UA > 2) {
-      valid <- FALSE
-    }
-  }
-
-  # Validar coeficientes de temperatura
-  if (!is.null(FB)) {
-    if (FB < -2 || FB > 3) {
-      warnings <- c(warnings, paste("FB fuera de rango típico (-2 a 3):", FB))
-    }
-  }
-
-  if (!is.null(UB)) {
-    if (UB < -2 || UB > 3) {
-      warnings <- c(warnings, paste("UB fuera de rango típico (-2 a 3):", UB))
-    }
-  }
-
-  # Validar coeficientes de alimentación
-  if (!is.null(FG)) {
-    if (abs(FG) > 2) {
-      warnings <- c(warnings, paste("FG fuera de rango típico (-2 a 2):", FG))
-    }
-  }
-
-  if (!is.null(UG)) {
-    if (abs(UG) > 2) {
-      warnings <- c(warnings, paste("UG fuera de rango típico (-2 a 2):", UG))
-    }
-  }
-
-  return(list(
-    valid = valid,
-    warnings = warnings,
-    n_warnings = length(warnings)
-  ))
-}
-
-#' Calcular balance energético para egestion y excreción
-#'
-#' Verifica que las pérdidas no excedan el consumo
-#'
-#' @param C Consumo (J/g)
-#' @param Eg Egestion (J/g)
-#' @param Ex Excreción (J/g)
-#' @param tolerance Tolerancia para el balance (fracción)
-#' @return Lista con información del balance
-#' @export
-check_egestion_excretion_balance <- function(C, Eg, Ex, tolerance = 0.01) {
-
-  total_losses <- Eg + Ex
-  loss_fraction <- total_losses / C
-
-  balanced <- loss_fraction <= (1 + tolerance)
-
-  available_for_metabolism <- C - Eg - Ex
-
-  return(list(
-    balanced = balanced,
-    consumption = C,
-    egestion = Eg,
-    excretion = Ex,
-    total_losses = total_losses,
-    loss_fraction = loss_fraction,
-    available_for_metabolism = available_for_metabolism,
-    assimilation_efficiency = calculate_assimilation_efficiency(C, Eg),
-    net_retention_efficiency = calculate_net_retention_efficiency(C, Eg, Ex)
-  ))
-}
-
-#' Ejemplo de uso combinado de egestion y excreción
-#'
-#' Función de demostración que muestra el uso típico
+#' Calcular tasa de egestión
 #'
 #' @param consumption Consumo (J/g)
 #' @param temperature Temperatura (°C)
-#' @param p_value Proporción del consumo máximo
-#' @param species_params Lista con parámetros de la especie
-#' @return Lista con resultados de egestion y excreción
-#' @export
-#' @examples
-#' \dontrun{
-#' params <- list(
-#'   EGEQ = 2, FA = 0.15, FB = 0.5, FG = 0.1,
-#'   EXEQ = 2, UA = 0.08, UB = 0.3, UG = 0.05
-#' )
+#' @param p_value P-value
+#' @param egestion_params Parámetros de egestión
+#' @return Tasa de egestión (J/g)
+#' @keywords internal
+calculate_egestion_rate <- function(consumption, temperature, p_value, egestion_params) {
+  return(calculate_egestion(consumption, temperature, p_value, egestion_params))
+}
+
+#' Calcular tasa de excreción
 #'
-#' resultado <- calculate_egestion_excretion_example(
-#'   consumption = 120,
-#'   temperature = 18,
-#'   p_value = 0.6,
-#'   species_params = params
-#' )
-#' print(resultado)
-#' }
-calculate_egestion_excretion_example <- function(consumption, temperature, p_value,
-                                                 species_params) {
+#' @param consumption Consumo (J/g)
+#' @param egestion Egestión (J/g)
+#' @param temperature Temperatura (°C)
+#' @param p_value P-value
+#' @param excretion_params Parámetros de excreción
+#' @return Tasa de excreción (J/g)
+#' @keywords internal
+calculate_excretion_rate <- function(consumption, egestion, temperature, p_value, excretion_params) {
+  return(calculate_excretion(consumption, egestion, temperature, p_value, excretion_params))
+}
 
-  # Calcular egestion
-  egestion_result <- egestion(
-    C = consumption,
-    Temperature = temperature,
-    p = p_value,
-    EGEQ = species_params$EGEQ,
-    FA = species_params$FA,
-    FB = species_params$FB,
-    FG = species_params$FG
-  )
+#' Calcular egestión diaria
+#'
+#' @param consumption Consumo (J/g)
+#' @param temperature Temperatura del agua (°C)
+#' @param p_value Proporción del consumo máximo (p-value)
+#' @param egestion_params Lista con parámetros de egestión
+#' @param indigestible_fraction Fracción indigerible (para modelo 3)
+#' @return Egestión (J/g)
+#' @export
+calculate_egestion <- function(consumption, temperature, p_value, egestion_params, 
+                               indigestible_fraction = 0) {
+  
+  # Validaciones básicas
+  if (is.null(egestion_params)) {
+    stop("egestion_params no puede ser NULL")
+  }
+  
+  if (!"FA" %in% names(egestion_params)) {
+    stop("Parámetro FA requerido para egestión")
+  }
+  
+  # Validar valores de entrada
+  consumption <- check_numeric_value(consumption, "consumption", min_val = 0)
+  temperature <- check_numeric_value(temperature, "temperature", min_val = -5, max_val = 50)
+  p_value <- check_numeric_value(p_value, "p_value", min_val = 0, max_val = 5)
+  
+  if (consumption == 0) return(0)
+  
+  # Determinar ecuación a usar
+  EGEQ <- egestion_params$EGEQ %||% 1
+  FA <- egestion_params$FA
+  
+  if (is.na(FA)) return(0)
+  
+  # Calcular egestión según ecuación
+  if (EGEQ == 1) {
+    egestion <- egestion_model_1(consumption, FA)
+    
+  } else if (EGEQ == 2) {
+    FB <- egestion_params$FB
+    FG <- egestion_params$FG
+    if (any(is.na(c(FB, FG)))) {
+      warning("FB y FG requeridos para EGEQ=2, usando modelo 1")
+      egestion <- egestion_model_1(consumption, FA)
+    } else {
+      egestion <- egestion_model_2(consumption, temperature, p_value, FA, FB, FG)
+    }
+    
+  } else if (EGEQ == 3) {
+    FB <- egestion_params$FB
+    FG <- egestion_params$FG
+    if (any(is.na(c(FB, FG)))) {
+      warning("FB y FG requeridos para EGEQ=3, usando modelo 1")
+      egestion <- egestion_model_1(consumption, FA)
+    } else {
+      egestion <- egestion_model_3(consumption, temperature, p_value, FA, FB, FG, 
+                                   indigestible_fraction)
+    }
+    
+  } else if (EGEQ == 4) {
+    FB <- egestion_params$FB
+    if (is.na(FB)) {
+      warning("FB requerido para EGEQ=4, usando modelo 1")
+      egestion <- egestion_model_1(consumption, FA)
+    } else {
+      egestion <- egestion_model_4(consumption, temperature, FA, FB)
+    }
+    
+  } else {
+    warning("Ecuación de egestión no válida: ", EGEQ, ". Usando modelo 1.")
+    egestion <- egestion_model_1(consumption, FA)
+  }
+  
+  return(egestion)
+}
 
-  # Calcular excreción
-  excretion_result <- excretion(
-    C = consumption,
-    Eg = egestion_result,
-    Temperature = temperature,
-    p = p_value,
-    EXEQ = species_params$EXEQ,
-    UA = species_params$UA,
-    UB = species_params$UB,
-    UG = species_params$UG
-  )
+#' Calcular excreción diaria
+#'
+#' @param consumption Consumo (J/g)
+#' @param egestion Egestión (J/g)
+#' @param temperature Temperatura del agua (°C)
+#' @param p_value Proporción del consumo máximo (p-value)
+#' @param excretion_params Lista con parámetros de excreción
+#' @return Excreción (J/g)
+#' @export
+calculate_excretion <- function(consumption, egestion, temperature, p_value, excretion_params) {
+  
+  # Validaciones básicas
+  if (is.null(excretion_params)) {
+    stop("excretion_params no puede ser NULL")
+  }
+  
+  if (!"UA" %in% names(excretion_params)) {
+    stop("Parámetro UA requerido para excreción")
+  }
+  
+  # Validar valores de entrada
+  consumption <- check_numeric_value(consumption, "consumption", min_val = 0)
+  egestion <- check_numeric_value(egestion, "egestion", min_val = 0)
+  temperature <- check_numeric_value(temperature, "temperature", min_val = -5, max_val = 50)
+  p_value <- check_numeric_value(p_value, "p_value", min_val = 0, max_val = 5)
+  
+  if (consumption == 0) return(0)
+  
+  # Asegurar que egestión no exceda consumo
+  egestion <- pmin(egestion, consumption)
+  
+  # Determinar ecuación a usar
+  EXEQ <- excretion_params$EXEQ %||% 1
+  UA <- excretion_params$UA
+  
+  if (is.na(UA)) return(0)
+  
+  # Calcular excreción según ecuación
+  if (EXEQ == 1) {
+    excretion <- excretion_model_1(consumption, egestion, UA)
+    
+  } else if (EXEQ == 2) {
+    UB <- excretion_params$UB
+    UG <- excretion_params$UG
+    if (any(is.na(c(UB, UG)))) {
+      warning("UB y UG requeridos para EXEQ=2, usando modelo 1")
+      excretion <- excretion_model_1(consumption, egestion, UA)
+    } else {
+      excretion <- excretion_model_2(consumption, egestion, temperature, p_value, UA, UB, UG)
+    }
+    
+  } else if (EXEQ == 3) {
+    UB <- excretion_params$UB
+    UG <- excretion_params$UG
+    if (any(is.na(c(UB, UG)))) {
+      warning("UB y UG requeridos para EXEQ=3, usando modelo 1")
+      excretion <- excretion_model_1(consumption, egestion, UA)
+    } else {
+      excretion <- excretion_model_3(consumption, egestion, temperature, p_value, UA, UB, UG)
+    }
+    
+  } else if (EXEQ == 4) {
+    UB <- excretion_params$UB
+    if (is.na(UB)) {
+      warning("UB requerido para EXEQ=4, usando modelo 1")
+      excretion <- excretion_model_1(consumption, egestion, UA)
+    } else {
+      excretion <- excretion_model_4(consumption, egestion, temperature, UA, UB)
+    }
+    
+  } else {
+    warning("Ecuación de excreción no válida: ", EXEQ, ". Usando modelo 1.")
+    excretion <- excretion_model_1(consumption, egestion, UA)
+  }
+  
+  return(excretion)
+}
 
-  # Verificar balance
-  balance <- check_egestion_excretion_balance(
-    C = consumption,
-    Eg = egestion_result,
-    Ex = excretion_result
-  )
 
+# ============================================================================
+# FUNCIONES DE UTILIDAD
+# ============================================================================
+
+#' Calcular eficiencias de asimilación y retención
+#'
+#' @param consumption Consumo (J/g)
+#' @param egestion Egestión (J/g)
+#' @param excretion Excreción (J/g)
+#' @return Lista con eficiencias calculadas
+#' @export
+calculate_efficiencies <- function(consumption, egestion, excretion) {
+  
+  if (consumption <= 0) {
+    return(list(
+      assimilation_efficiency = 0,
+      net_retention_efficiency = 0,
+      gross_efficiency = 0
+    ))
+  }
+  
+  assimilated <- consumption - egestion
+  net_retained <- assimilated - excretion
+  
   return(list(
-    consumption = consumption,
-    egestion = egestion_result,
-    excretion = excretion_result,
-    assimilated = consumption - egestion_result,
-    net_energy = consumption - egestion_result - excretion_result,
-    balance = balance
+    assimilation_efficiency = pmax(0, pmin(1, assimilated / consumption)),
+    net_retention_efficiency = pmax(0, pmin(1, net_retained / consumption)),
+    gross_efficiency = pmax(0, pmin(1, egestion / consumption))
   ))
 }
+

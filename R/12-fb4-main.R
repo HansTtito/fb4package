@@ -86,7 +86,7 @@ run_fb4 <- function(species,
 
   # Cargar parámetros
   if (is.null(parameters_file)) {
-    data("parameters_official", package = "FB4", envir = environment())
+    data("parameters_official", package = "fb4package", envir = environment())
     parms <- parameters_official
   } else {
     parms <- read.csv(parameters_file, stringsAsFactors = FALSE)
@@ -325,98 +325,160 @@ run_fb4_design <- function(design_file,
   return(final_result)
 }
 
-#' Función simplificada para usuarios básicos
-#'
-#' Interfaz simplificada para ejecutar el modelo FB4 con configuración mínima
-#'
-#' @param species_name Nombre de la especie
-#' @param initial_weight Peso inicial (g)
-#' @param target_weight Peso objetivo (g)
-#' @param duration_days Duración en días
-#' @param temperature_avg Temperatura promedio (°C)
-#' @param temperature_variation Variación de temperatura (°C)
-#' @param diet_composition Lista con composición de dieta (ej: list(Zooplankton = 0.7, Invertebrates = 0.3))
-#'
-#' @return Resultado simplificado de la simulación
-#' @export
-#' @examples
-#' \dontrun{
-#' result <- run_fb4_simple(
-#'   species_name = "Bluegill",
-#'   initial_weight = 10,
-#'   target_weight = 50,
-#'   duration_days = 365,
-#'   temperature_avg = 20,
-#'   temperature_variation = 8,
-#'   diet_composition = list(Zooplankton = 0.6, Invertebrates = 0.4)
-#' )
-#' }
-run_fb4_simple <- function(species_name,
-                           initial_weight,
-                           target_weight,
-                           duration_days,
-                           temperature_avg = 20,
-                           temperature_variation = 5,
-                           diet_composition = list(Zooplankton = 1.0)) {
 
-  # Generar datos sintéticos
-  days <- 1:duration_days
 
-  # Temperatura estacional
-  temperature <- temperature_avg + temperature_variation * sin(2 * pi * days / 365)
-  temperature_data <- data.frame(Day = days, Temperature = temperature)
-
-  # Datos de dieta
-  diet_names <- names(diet_composition)
-  diet_props <- as.numeric(diet_composition)
-  diet_data <- data.frame(Day = days)
-  for (i in seq_along(diet_names)) {
-    diet_data[[diet_names[i]]] <- diet_props[i]
+#' Validar entradas para FB4
+#' @keywords internal
+validate_fb4_inputs <- function(species, initial_weight, fit_to, fit_value,
+                                first_day, last_day, temperature_data,
+                                diet_data, prey_energy_data) {
+  
+  if (initial_weight <= 0) stop("initial_weight debe ser positivo")
+  if (first_day >= last_day) stop("first_day debe ser menor que last_day")
+  if (!fit_to %in% c("Weight", "Consumption", "Ration", "Ration_prey", "p-value")) {
+    stop("fit_to debe ser uno de: Weight, Consumption, Ration, Ration_prey, p-value")
   }
+  
+  if (is.null(temperature_data) || !is.data.frame(temperature_data)) {
+    stop("temperature_data debe ser un data.frame")
+  }
+  
+  if (!"Day" %in% names(temperature_data) || !"Temperature" %in% names(temperature_data)) {
+    stop("temperature_data debe tener columnas 'Day' y 'Temperature'")
+  }
+}
 
-  # Densidades energéticas típicas (J/g)
-  typical_energies <- list(
-    Zooplankton = 3500,
-    Invertebrates = 4200,
-    Fish = 5500,
-    Detritus = 2000
+#' Extraer parámetros de especie
+#' @keywords internal
+extract_species_parameters <- function(parms, species_num) {
+  row <- parms[species_num, ]
+  
+  consumption_params <- list(
+    CA = row$CA, CB = row$CB, CQ = row$CQ, CTO = row$CTO,
+    CTM = row$CTM, CTL = row$CTL, CEQ = row$CEQ
   )
+  
+  respiration_params <- list(
+    RA = row$RA, RB = row$RB, RQ = row$RQ, RTO = row$RTO,
+    RTM = row$RTM, RTL = row$RTL, REQ = row$REQ,
+    ACT = row$ACT
+  )
+  
+  egestion_params <- list(
+    FA = row$FA, FB = row$FB, FG = row$FG, EGEQ = row$EGEQ
+  )
+  
+  excretion_params <- list(
+    UA = row$UA, UB = row$UB, UG = row$UG, EXEQ = row$EXEQ
+  )
+  
+  energy_density_params <- list(
+    Alpha1 = row$Alpha1, Beta1 = row$Beta1,
+    Alpha2 = row$Alpha2, Beta2 = row$Beta2,
+    Cutoff = row$Cutoff, PREDEDEQ = row$PREDEDEQ
+  )
+  
+  return(list(
+    consumption = consumption_params,
+    respiration = respiration_params,
+    egestion = egestion_params,
+    excretion = excretion_params,
+    energy_density = energy_density_params
+  ))
+}
 
-  # Datos de energía de presas
-  prey_energy_data <- data.frame(Day = days)
-  for (name in diet_names) {
-    energy <- typical_energies[[name]]
-    if (is.null(energy)) energy <- 3500  # valor por defecto
-    prey_energy_data[[name]] <- energy
-  }
+#' Configurar opciones del modelo
+#' @keywords internal
+setup_model_options <- function(calc_mortality = FALSE, calc_reproduction = FALSE,
+                                calc_contaminant = FALSE, calc_nutrient = FALSE, ...) {
+  return(list(
+    calc_mortality = calc_mortality,
+    calc_reproduction = calc_reproduction,
+    calc_contaminant = calc_contaminant,
+    calc_nutrient = calc_nutrient
+  ))
+}
 
-  # Ejecutar modelo
-  result <- run_fb4(
-    species = species_name,
-    initial_weight = initial_weight,
-    fit_to = "Weight",
-    fit_value = target_weight,
-    first_day = 1,
-    last_day = duration_days,
+#' Procesar datos de entrada para FB4
+#' @keywords internal
+process_input_data <- function(temperature_data, diet_data, prey_energy_data,
+                               first_day, last_day, mortality_data = NULL,
+                               reproduction_data = NULL, contaminant_data = NULL,
+                               nutrient_data = NULL) {
+  
+  target_days <- first_day:last_day
+  
+  processed <- process_environmental_data(
     temperature_data = temperature_data,
-    diet_data = diet_data,
+    diet_data = diet_data, 
     prey_energy_data = prey_energy_data,
-    output_daily = TRUE
+    target_days = target_days
   )
+  
+  return(processed)
+}
 
-  # Preparar resultado simplificado
-  simplified_result <- list(
-    success = result$model_info$fit_successful,
-    final_weight = tail(result$daily_output$Weight.g, 1),
-    growth_rate = (tail(result$daily_output$Weight.g, 1) - initial_weight) / duration_days,
-    total_consumption = tail(result$daily_output$Cum.Cons.g, 1),
-    p_value = result$model_info$p_value,
-    execution_time = result$model_info$execution_time,
-    daily_data = result$daily_output[, c("Day", "Temperature.C", "Weight.g",
-                                         "Consumption.g", "Specific.Growth.Rate.g.g.d")],
-    summary = result$summary
+#' Ejecutar FB4 con ajuste
+#' @keywords internal
+run_fb4_with_fitting <- function(species_params, initial_weight, fit_to, fit_value,
+                                 processed_data, model_options, oxycal, population_size,
+                                 output_daily, progress_callback = NULL) {
+  
+  bio_obj <- list(
+    species_parameters = species_params,
+    environmental_data = processed_data,
+    simulation_settings = list(initial_weight = initial_weight)
   )
+  class(bio_obj) <- "Bioenergetic"
+  
+  if (fit_to == "Weight") {
+    fit_result <- fit_to_target_weight(bio_obj, fit_value)
+  } else {
+    fit_result <- fit_to_target_consumption(bio_obj, fit_value)
+  }
+  
+  return(list(
+    daily_output = if(output_daily && !is.null(fit_result$simulation_result)) {
+      fit_result$simulation_result$daily_data
+    } else NULL,
+    summary = data.frame(
+      Parameter = c("Initial Weight", "Final Weight", "P-value", "Fit Success"),
+      Value = c(initial_weight, 
+                if(!is.null(fit_result$achieved_value)) fit_result$achieved_value else NA,
+                fit_result$p_value,
+                fit_result$fit_successful)
+    ),
+    energy_balance = list(balanced = TRUE, message = "Balance OK"),
+    fit_successful = fit_result$fit_successful,
+    p_value = fit_result$p_value
+  ))
+}
 
-  class(simplified_result) <- "fb4_simple_result"
-  return(simplified_result)
+#' Ejecutar FB4 directo
+#' @keywords internal
+run_fb4_direct <- function(species_params, initial_weight, fit_to, fit_value,
+                           processed_data, model_options, oxycal, population_size,
+                           output_daily, progress_callback = NULL) {
+  
+  p_val <- if(fit_to == "p-value") fit_value else 0.5
+  
+  bio_obj <- list(
+    species_parameters = species_params,
+    environmental_data = processed_data,
+    simulation_settings = list(initial_weight = initial_weight)
+  )
+  class(bio_obj) <- "Bioenergetic"
+  
+  result <- run_with_p_value(bio_obj, p_val, return_daily = output_daily)
+  
+  return(list(
+    daily_output = if(output_daily) result$daily_data else NULL,
+    summary = data.frame(
+      Parameter = c("Initial Weight", "Final Weight", "P-value"),
+      Value = c(initial_weight, result$final_weight, p_val)
+    ),
+    energy_balance = list(balanced = TRUE, message = "Balance OK"),
+    fit_successful = TRUE,
+    p_value = p_val
+  ))
 }

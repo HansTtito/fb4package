@@ -4,21 +4,32 @@
 \alias{interpolate_time_series}
 \title{Interpolar series de tiempo}
 \usage{
-interpolate_time_series(data, value_col, target_days, method = "linear")
+interpolate_time_series(
+  data,
+  value_columns,
+  target_days,
+  method = "linear",
+  fill_na_method = "extend",
+  validate_input = TRUE
+)
 }
 \arguments{
-\item{data}{Data frame con datos}
+\item{data}{Data frame con columna Day y columnas de valores}
 
-\item{value_col}{Nombre de la columna con valores}
+\item{value_columns}{Vector con nombres de columnas a interpolar}
 
 \item{target_days}{Vector de días objetivo}
 
-\item{method}{Método de interpolación ("linear", "constant")}
+\item{method}{Método de interpolación ("linear", "constant", "spline")}
+
+\item{fill_na_method}{Método para llenar valores faltantes ("extend", "zero", "mean")}
+
+\item{validate_input}{Validar estructura de entrada}
 }
 \value{
-Vector interpolado
+Data frame con datos interpolados
 }
 \description{
-Función auxiliar para interpolar datos de series de tiempo
+Función robusta para interpolar datos temporales
 }
 \keyword{internal}
