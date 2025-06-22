@@ -75,7 +75,6 @@ calculate_daily_consumption <- function(current_weight, temperature, p_value = N
   ))
 }
 
-
 #' Calcular procesos metabólicos diarios
 #'
 #' Calcula egestion, excreción, respiración y SDA para un día
@@ -92,7 +91,7 @@ calculate_daily_metabolism <- function(consumption_energy, current_weight, tempe
                                        p_value, species_params, oxycal = 13560) {
   
   # Calcular egestion
-  egestion_energy <- calculate_egestion_rate(
+  egestion_energy <- calculate_egestion(
     consumption = consumption_energy,
     temperature = temperature,
     p_value = p_value,
@@ -100,7 +99,7 @@ calculate_daily_metabolism <- function(consumption_energy, current_weight, tempe
   )
   
   # Calcular excreción
-  excretion_energy <- calculate_excretion_rate(
+  excretion_energy <- calculate_excretion(
     consumption = consumption_energy,
     egestion = egestion_energy,
     temperature = temperature,
@@ -109,7 +108,7 @@ calculate_daily_metabolism <- function(consumption_energy, current_weight, tempe
   )
   
   # Calcular respiración
-  respiration_o2 <- calculate_respiration_rate(
+  respiration_o2 <- calculate_respiration(
     weight = current_weight,
     temperature = temperature,
     respiration_params = species_params$respiration
@@ -120,7 +119,7 @@ calculate_daily_metabolism <- function(consumption_energy, current_weight, tempe
   sda_energy <- calculate_sda(
     consumption = consumption_energy,
     egestion = egestion_energy,
-    sda_coefficient = species_params$respiration$SDA %||% 0.1
+    SDA_coeff = species_params$respiration$SDA %||% 0.1
   )
   
   return(list(
@@ -165,30 +164,7 @@ calculate_daily_growth <- function(current_weight, net_energy, spawn_energy,
   ))
 }
 
-#' Calcular pérdida por reproducción
-#'
-#' Calcula la energía y peso perdido por eventos reproductivos
-#'
-#' @param current_weight Peso actual (g)
-#' @param spawn_fraction Fracción de peso perdido en reproducción
-#' @param predator_energy_density Densidad energética del depredador (J/g)
-#' @return Lista con pérdidas reproductivas
-#' @keywords internal
-calculate_reproductive_loss <- function(current_weight, spawn_fraction, predator_energy_density) {
-  
-  if (is.na(spawn_fraction) || spawn_fraction <= 0) {
-    return(list(spawn_energy = 0, spawn_weight = 0))
-  }
-  
-  spawn_fraction <- clamp(spawn_fraction, 0, 1)
-  spawn_weight <- spawn_fraction * current_weight
-  spawn_energy <- spawn_weight * predator_energy_density
-  
-  return(list(
-    spawn_energy = spawn_energy,
-    spawn_weight = spawn_weight
-  ))
-}
+# NOTA: calculate_reproductive_loss se removió de aquí ya que existe en 08-mortality-reproduction.R
 
 # ============================================================================
 # FUNCIÓN PRINCIPAL DE SIMULACIÓN
@@ -295,7 +271,7 @@ run_bioenergetic_simulation <- function(bioenergetic_obj, p_value = NULL, ration
     predator_energy_density <- calculate_predator_energy_density(
       weight = current_weight,
       day = day,
-      energy_params = species_params$energy_density
+      predator_params = species_params$energy_density
     )
     
     # Calcular consumo del día
@@ -406,7 +382,6 @@ run_bioenergetic_simulation <- function(bioenergetic_obj, p_value = NULL, ration
 # FUNCIONES DE UTILIDAD PARA SIMULACIÓN
 # ============================================================================
 
-
 #' Calcular consumo máximo
 #'
 #' @param weight Peso del pez (g)
@@ -428,47 +403,6 @@ calculate_maximum_consumption <- function(weight, temperature, species_params) {
 #' @keywords internal
 calculate_daily_respiration <- function(weight, temperature, consumption, species_params) {
   return(calculate_respiration(temperature, weight, species_params$respiration, consumption))
-}
-
-
-#' Calcular densidad energética del depredador
-#'
-#' @param weight Peso actual (g)
-#' @param day Día de simulación
-#' @param energy_params Parámetros de densidad energética
-#' @return Densidad energética (J/g)
-#' @keywords internal
-calculate_predator_energy_density <- function(weight, day, energy_params) {
-  
-  # Ecuación por defecto si no se especifica
-  equation <- energy_params$equation %||% 3
-  
-  if (equation == 3) {
-    # ED = alpha * W^beta
-    alpha <- energy_params$alpha %||% 3500
-    beta <- energy_params$beta %||% 0.1
-    energy_density <- alpha * (weight^beta)
-    
-  } else if (equation == 2) {
-    # Ecuación lineal por segmentos
-    alpha1 <- energy_params$alpha1 %||% 3000
-    beta1 <- energy_params$beta1 %||% 10
-    alpha2 <- energy_params$alpha2 %||% 4000
-    beta2 <- energy_params$beta2 %||% 5
-    cutoff <- energy_params$cutoff %||% 50
-    
-    if (weight < cutoff) {
-      energy_density <- alpha1 + beta1 * weight
-    } else {
-      energy_density <- alpha2 + beta2 * weight
-    }
-    
-  } else {
-    # Densidad energética constante por defecto
-    energy_density <- energy_params$constant %||% 4000
-  }
-  
-  return(max(1000, energy_density))  # Mínimo biológico
 }
 
 #' Validar resultado de simulación
@@ -647,11 +581,11 @@ simulate_fish_growth <- function(species_name, initial_weight, temperature_data,
   bioenergetic_obj <- new_bioenergetic(species_name, initial_weight)
   
   # Agregar datos de temperatura
-  bioenergetic_obj <- add_temperature_data(bioenergetic_obj, temperature_data)
+  bioenergetic_obj <- set_environment(bioenergetic_obj, temperature_data)
   
   # Agregar datos de dieta si se proporcionan
   if (!is.null(diet_data)) {
-    bioenergetic_obj <- add_diet_data(bioenergetic_obj, diet_data)
+    bioenergetic_obj <- set_diet(bioenergetic_obj, diet_data)
   }
   
   # Agregar datos de reproducción si se proporcionan

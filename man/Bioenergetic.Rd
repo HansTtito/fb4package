@@ -5,7 +5,7 @@
 \title{Constructor para objetos Bioenergetic}
 \usage{
 Bioenergetic(
-  species_params = NULL,
+  species_params,
   environmental_data = NULL,
   diet_data = NULL,
   model_options = list(),

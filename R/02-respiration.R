@@ -17,6 +17,7 @@ NULL
 #' @return Factor de temperatura
 #' @keywords internal
 respiration_temp_eq1 <- function(temperature, RQ) {
+  
   if (is.na(temperature) || is.na(RQ)) return(0.001)
   
   # Limitar temperatura para evitar overflow
@@ -38,6 +39,7 @@ respiration_temp_eq1 <- function(temperature, RQ) {
 #' @return Factor de temperatura
 #' @keywords internal
 respiration_temp_eq2 <- function(temperature, RTM, RTO, RX) {
+  
   if (any(is.na(c(temperature, RTM, RTO, RX)))) return(0.001)
   
   if (temperature >= RTM) {
@@ -112,36 +114,8 @@ calculate_simple_activity <- function(ACT) {
 }
 
 # ============================================================================
-# FUNCIÓN PRINCIPAL DE RESPIRACIÓN
+# FUNCIÓN PRINCIPAL DE RESPIRACIÓN (ÚNICA VERSIÓN)
 # ============================================================================
-
-#' Calcular tasa de respiración
-#'
-#' @param weight Peso del pez (g)
-#' @param temperature Temperatura del agua (°C)
-#' @param respiration_params Parámetros de respiración
-#' @return Tasa de respiración (g O2/g/día)
-#' @keywords internal
-calculate_respiration_rate <- function(weight, temperature, respiration_params) {
-  
-  # Extraer parámetros básicos
-  RA <- respiration_params$RA %||% 0.003
-  RB <- respiration_params$RB %||% 0.8
-  
-  # Calcular respiración máxima
-  Rmax <- RA * weight^RB
-  
-  # Calcular factor de temperatura
-  ft <- calculate_temperature_factor_respiration(temperature, respiration_params)
-  
-  # Calcular factor de actividad
-  activity_factor <- calculate_activity_factor_respiration(weight, temperature, respiration_params)
-  
-  # Respiración total
-  total_respiration <- Rmax * ft * activity_factor
-  
-  return(pmax(0.001, total_respiration))
-}
 
 #' Calcular respiración diaria
 #'
@@ -206,7 +180,6 @@ calculate_respiration <- function(temperature, weight, respiration_params, consu
   
   return(pmax(0.001, total_respiration))
 }
-
 
 #' Calcular factor de temperatura para respiración
 #'
@@ -358,7 +331,6 @@ calculate_sda <- function(consumption_energy, egestion_energy, SDA_coeff) {
   
   return(pmax(0, sda))
 }
-
 
 # ============================================================================
 # FUNCIÓN PARA CONVERTIR RESPIRACIÓN A UNIDADES DE ENERGÍA

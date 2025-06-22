@@ -88,7 +88,7 @@ calculate_fat_by_subtraction <- function(total_weight, water_content, protein_co
 #' @return Densidad energética (J/g peso húmedo)
 #' @keywords internal
 calculate_energy_density <- function(fat_content, protein_content, total_weight, 
-                                     fat_energy = 39300, protein_energy = 23600) {
+                                     fat_energy = 36200, protein_energy = 23600) {
   
   if (total_weight <= 0) return(4500)  # Valor por defecto
   
@@ -367,3 +367,5 @@ update_body_composition <- function(old_weight, new_weight, old_composition = NU
   
   return(new_composition)
 }
+
+

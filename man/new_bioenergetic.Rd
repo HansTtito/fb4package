@@ -16,19 +16,19 @@ new_bioenergetic(
 )
 }
 \arguments{
-\item{species}{Nombre científico de la especie o número de índice}
+\item{species}{Nombre científico o índice de especie}
 
 \item{initial_weight}{Peso inicial (g)}
 
-\item{life_stage}{Estadio de vida (por defecto usa el primero disponible)}
+\item{life_stage}{Estadio de vida}
 
-\item{duration}{Duración en días}
+\item{duration}{Duración (días)}
 
 \item{temperature_avg}{Temperatura promedio (°C)}
 
-\item{temperature_variation}{Variación de temperatura (°C)}
+\item{temperature_variation}{Variación (°C)}
 
-\item{diet_composition}{Lista con composición de dieta}
+\item{diet_composition}{Composición de dieta}
 
 \item{...}{Argumentos adicionales}
 }

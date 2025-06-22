@@ -4,7 +4,7 @@
 \alias{interpolate_missing_days}
 \title{Interpolar datos faltantes por días}
 \usage{
-interpolate_missing_days(data, all_days, value_cols)
+interpolate_missing_days(data, all_days, value_cols, method = "linear")
 }
 \arguments{
 \item{data}{Data frame con datos}
@@ -12,6 +12,8 @@ interpolate_missing_days(data, all_days, value_cols)
 \item{all_days}{Vector con todos los días necesarios}
 
 \item{value_cols}{Columnas a interpolar}
+
+\item{method}{Método de interpolación: "linear" o "spline"}
 }
 \value{
 Data frame con datos completos

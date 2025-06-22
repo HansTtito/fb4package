@@ -38,6 +38,7 @@ consumption_temp_eq1 <- function(temperature, CQ) {
 #' @return Factor de temperatura
 #' @keywords internal
 consumption_temp_eq2 <- function(temperature, CTM, CTO, CX) {
+  
   if (any(is.na(c(temperature, CTM, CTO, CX)))) return(0)
   
   if (temperature >= CTM) {

@@ -4,6 +4,10 @@
 #' @aliases bioenergetic-classes
 NULL
 
+#' Operador de valor por defecto
+#' @keywords internal
+`%||%` <- function(a, b) if (!is.null(a)) a else b
+
 # ============================================================================
 # CLASE PRINCIPAL: Bioenergetic
 # ============================================================================
@@ -20,46 +24,40 @@ NULL
 #' @param simulation_settings Lista con configuración de la simulación
 #' @return Objeto de clase "Bioenergetic"
 #' @export
-Bioenergetic <- function(species_params = NULL,
+Bioenergetic <- function(species_params,
                          environmental_data = NULL,
                          diet_data = NULL,
                          model_options = list(),
                          simulation_settings = list()) {
+  stopifnot(!is.null(species_params))
   
-  # Validar entradas básicas
-  if (is.null(species_params)) {
-    stop("species_params es requerido")
-  }
-  
-  # Crear objeto
-  obj <- list(
-    species_params = species_params,
-    environmental_data = environmental_data,
-    diet_data = diet_data,
-    model_options = model_options,
-    simulation_settings = simulation_settings,
-    results = NULL,
-    fitted = FALSE
+  structure(
+    list(
+      species_params = species_params,
+      environmental_data = environmental_data,
+      diet_data = diet_data,
+      model_options = model_options,
+      simulation_settings = simulation_settings,
+      results = NULL,
+      fitted = FALSE
+    ),
+    class = c("Bioenergetic", "list")
   )
-  
-  # Asignar clases
-  class(obj) <- c("Bioenergetic", "list")
-  
-  # Validar el objeto
-  validate_bioenergetic(obj)
-  
-  return(obj)
 }
+
+# ============================================================================
+# CONSTRUCTOR SIMPLIFICADO
+# ============================================================================
 
 #' Constructor simplificado para modelos bioenergéticos
 #'
-#' @param species Nombre científico de la especie o número de índice
+#' @param species Nombre científico o índice de especie
 #' @param initial_weight Peso inicial (g)
-#' @param life_stage Estadio de vida (por defecto usa el primero disponible)
-#' @param duration Duración en días
+#' @param life_stage Estadio de vida
+#' @param duration Duración (días)
 #' @param temperature_avg Temperatura promedio (°C)
-#' @param temperature_variation Variación de temperatura (°C)
-#' @param diet_composition Lista con composición de dieta
+#' @param temperature_variation Variación (°C)
+#' @param diet_composition Composición de dieta
 #' @param ... Argumentos adicionales
 #' @return Objeto Bioenergetic
 #' @export
@@ -71,576 +69,238 @@ new_bioenergetic <- function(species,
                              temperature_variation = 5,
                              diet_composition = list(Zooplankton = 1.0),
                              ...) {
-  
-  # Cargar base de datos fish4_parameters
   if (!exists("fish4_parameters")) {
     data("fish4_parameters", package = "fb4package", envir = environment())
   }
   
-  # Determinar parámetros de especies
-  if (is.character(species)) {
-    if (!species %in% names(fish4_parameters)) {
-      available <- names(fish4_parameters)
-      stop("Especie '", species, "' no encontrada. Especies disponibles: ", 
-           paste(head(available, 10), collapse = ", "), 
-           if (length(available) > 10) " (y más...)" else "")
+  # Seleccionar especie
+  species_data <- if (is.character(species)) {
+    match <- fish4_parameters[[species]]
+    if (is.null(match)) {
+      stop("Especie no encontrada en fish4_parameters")
     }
-    species_data <- fish4_parameters[[species]]
-  } else if (is.numeric(species)) {
-    if (species < 1 || species > length(fish4_parameters)) {
-      stop("Índice de especie fuera de rango: ", species, 
-           ". Debe estar entre 1 y ", length(fish4_parameters))
-    }
-    species_data <- fish4_parameters[[species]]
+    match
+  } else if (is.numeric(species) && species >= 1 && species <= length(fish4_parameters)) {
+    fish4_parameters[[species]]
   } else {
-    stop("species debe ser un nombre científico (character) o un índice (numeric)")
+    stop("Especie debe ser nombre o índice válido")
   }
   
-  # Determinar estadio de vida
-  available_stages <- names(species_data$life_stages)
-  if (is.null(life_stage)) {
-    life_stage <- available_stages[1]
-    message("Usando estadio de vida: ", life_stage)
-  } else {
-    if (!life_stage %in% available_stages) {
-      stop("Estadio '", life_stage, "' no disponible para esta especie. ",
-           "Disponibles: ", paste(available_stages, collapse = ", "))
-    }
-  }
+  # Seleccionar estadio de vida
+  stages <- names(species_data$life_stages)
+  if (is.null(life_stage)) life_stage <- stages[1]
+  if (!life_stage %in% stages) stop("Estadio de vida inválido")
+  params <- species_data$life_stages[[life_stage]]
+  params$species_info <- species_data$species_info
   
-  # Extraer parámetros del estadio específico
-  species_params <- species_data$life_stages[[life_stage]]
-  
-  # Añadir información de la especie
-  species_params$species_info <- species_data$species_info
-  
-  # Crear datos ambientales sintéticos
+  # Temperatura simulada
   days <- 1:duration
   temperature <- temperature_avg + temperature_variation * sin(2 * pi * days / 365)
-  environmental_data <- list(
+  env <- list(
     temperature = data.frame(Day = days, Temperature = temperature),
     days = days,
     duration = duration
   )
   
-  # Crear datos de dieta sintéticos
+  # Dieta
   diet_names <- names(diet_composition)
   diet_props <- as.numeric(diet_composition)
-  
-  # Normalizar proporciones
   diet_props <- diet_props / sum(diet_props)
   
-  diet_df <- data.frame(Day = days)
-  energy_df <- data.frame(Day = days)
-  
-  # Energías típicas por tipo de presa (J/g)
   typical_energies <- list(
     Zooplankton = 3500, Invertebrates = 4200, Fish = 5500,
     Detritus = 2000, Benthos = 4000, Insects = 4500,
     Phytoplankton = 2500, Crustaceans = 4000, Mollusks = 3800
   )
   
+  diet_df <- energy_df <- data.frame(Day = days)
   for (i in seq_along(diet_names)) {
     diet_df[[diet_names[i]]] <- diet_props[i]
-    energy <- typical_energies[[diet_names[i]]] 
-    if (is.null(energy)) energy <- 3500  # valor por defecto
-    energy_df[[diet_names[i]]] <- energy
+    energy_df[[diet_names[i]]] <- typical_energies[[diet_names[i]]] %||% 3500
   }
   
-  # Configuración de simulación
-  simulation_settings <- list(
-    initial_weight = initial_weight,
-    duration = duration
-  )
+  sim <- list(initial_weight = initial_weight, duration = duration)
+  opts <- list(calc_mortality = FALSE, calc_reproduction = FALSE, 
+               calc_contaminant = FALSE, calc_nutrient = FALSE, output_daily = TRUE)
   
-  # Opciones del modelo
-  model_options <- list(
-    calc_mortality = FALSE,
-    calc_reproduction = FALSE,
-    calc_contaminant = FALSE,
-    calc_nutrient = FALSE,
-    output_daily = TRUE
-  )
-  
-  # Crear objeto
-  obj <- list(
-    species_parameters = species_params,
-    environmental_data = environmental_data,
-    simulation_settings = simulation_settings,
-    model_options = model_options
-  )
-  
-  class(obj) <- c("Bioenergetic", "list")
-  return(obj)
+  Bioenergetic(params, env, list(proportions = diet_df, energies = energy_df, prey_names = diet_names), opts, sim)
 }
 
 # ============================================================================
-# MÉTODOS BÁSICOS
+# MÉTODOS S3
 # ============================================================================
 
-#' Método print para objetos Bioenergetic
-#'
-#' @param x Objeto Bioenergetic
-#' @param ... Argumentos adicionales
 #' @export
 print.Bioenergetic <- function(x, ...) {
   cat("=== Modelo Bioenergético FB4 ===\n\n")
-  
-  # Información de la especie
-  if (!is.null(x$species_params$species_info)) {
-    if (!is.null(x$species_params$species_info$scientific_name)) {
-      cat("Especie:", x$species_params$species_info$scientific_name, "\n")
-    }
-    if (!is.null(x$species_params$species_info$common_name)) {
-      cat("Nombre común:", x$species_params$species_info$common_name, "\n")
-    }
-    if (!is.null(x$species_params$species_info$family)) {
-      cat("Familia:", x$species_params$species_info$family, "\n")
-    }
+  info <- x$species_params$species_info
+  if (!is.null(info)) {
+    cat("Especie:", info$scientific_name %||% "", "\n")
+    cat("Nombre común:", info$common_name %||% "", "\n")
+    cat("Familia:", info$family %||% "", "\n")
   }
-  
-  # Configuración de simulación
-  if (!is.null(x$simulation_settings)) {
-    cat("Peso inicial:", x$simulation_settings$initial_weight, "g\n")
-    cat("Duración:", x$simulation_settings$duration %||% "No especificada", "días\n")
-  }
-  
-  # Estado del modelo
-  cat("Estado: ")
-  if (x$fitted) {
-    cat("Ajustado")
-    if (!is.null(x$results)) {
-      cat(" | Resultados disponibles")
-    }
-  } else {
-    cat("No ajustado")
-  }
-  cat("\n")
-  
-  # Opciones habilitadas
-  enabled_options <- names(x$model_options)[sapply(x$model_options, isTRUE)]
-  if (length(enabled_options) > 0) {
-    cat("Sub-modelos habilitados:", paste(enabled_options, collapse = ", "), "\n")
-  }
-  
-  cat("\n")
+  cat("Peso inicial:", x$simulation_settings$initial_weight, "g\n")
+  cat("Duración:", x$simulation_settings$duration, "días\n")
+  cat("Estado:", if (x$fitted) "Ajustado" else "No ajustado", "\n")
+  mods <- names(Filter(isTRUE, x$model_options))
+  if (length(mods) > 0) cat("Sub-modelos habilitados:", paste(mods, collapse = ", "), "\n")
   invisible(x)
 }
 
-#' Método summary para objetos Bioenergetic
-#'
-#' @param object Objeto Bioenergetic
-#' @param ... Argumentos adicionales
 #' @export
 summary.Bioenergetic <- function(object, ...) {
-  
-  cat("=== Resumen del Modelo Bioenergético ===\n\n")
-  
-  # Información básica
   print(object)
-  
-  # Parámetros de especies (resumen)
-  cat("=== Parámetros de Especies ===\n")
-  if (!is.null(object$species_params$consumption)) {
-    if (!is.null(object$species_params$consumption$CEQ)) {
-      cat("Ecuación de consumo:", object$species_params$consumption$CEQ, "\n")
-    }
-  }
-  if (!is.null(object$species_params$respiration)) {
-    if (!is.null(object$species_params$respiration$REQ)) {
-      cat("Ecuación de respiración:", object$species_params$respiration$REQ, "\n")
-    }
-  }
-  
-  # Datos ambientales
-  cat("\n=== Datos Ambientales ===\n")
-  if (!is.null(object$environmental_data$temperature)) {
-    temp_data <- object$environmental_data$temperature$Temperature
-    cat("Temperatura - Min:", round(min(temp_data, na.rm = TRUE), 1), "°C")
-    cat(" | Max:", round(max(temp_data, na.rm = TRUE), 1), "°C")
-    cat(" | Media:", round(mean(temp_data, na.rm = TRUE), 1), "°C\n")
-  }
-  
-  # Datos de dieta
-  cat("\n=== Composición de Dieta ===\n")
-  if (!is.null(object$diet_data$prey_names)) {
-    cat("Tipos de presa:", paste(object$diet_data$prey_names, collapse = ", "), "\n")
-  }
-  
-  # Resultados si están disponibles
-  if (!is.null(object$results)) {
-    cat("\n=== Resultados ===\n")
-    if (!is.null(object$results$summary)) {
-      print(object$results$summary)
-    } else if (!is.null(object$results$daily_output)) {
-      cat("Datos diarios disponibles con", nrow(object$results$daily_output), "registros\n")
-    }
-  }
-  
+  cat("\n=== Parámetros ===\n")
+  cat("Ecuación de consumo:", get_parameter_value(object$species_params, "CEQ") %||% "NA", "\n")
+  cat("Ecuación de respiración:", get_parameter_value(object$species_params, "REQ") %||% "NA", "\n")
+  cat("\n=== Temperatura ===\n")
+  temps <- object$environmental_data$temperature$Temperature
+  cat("Min:", min(temps), "| Max:", max(temps), "| Media:", mean(temps), "°C\n")
+  cat("\n=== Dieta ===\n")
+  cat("Presas:", paste(object$diet_data$prey_names, collapse = ", "), "\n")
   invisible(object)
 }
 
 # ============================================================================
-# MÉTODOS DE CONFIGURACIÓN ESENCIALES
+# CONFIGURACIÓN
 # ============================================================================
 
-#' Configurar datos ambientales
-#'
-#' @param x Objeto Bioenergetic
-#' @param temperature_data Data frame con columnas Day y Temperature
-#' @return Objeto Bioenergetic modificado
 #' @export
-set_environment <- function(x, temperature_data) {
-  UseMethod("set_environment")
-}
+set_environment <- function(x, temperature_data) UseMethod("set_environment")
 
 #' @export
 set_environment.Bioenergetic <- function(x, temperature_data) {
-  
-  # Validar estructura
-  if (!is.data.frame(temperature_data)) {
-    stop("temperature_data debe ser un data.frame")
-  }
-  
-  required_cols <- c("Day", "Temperature")
-  missing_cols <- setdiff(required_cols, names(temperature_data))
-  if (length(missing_cols) > 0) {
-    stop("Columnas faltantes en temperature_data: ", paste(missing_cols, collapse = ", "))
-  }
-  
+  stopifnot(is.data.frame(temperature_data), all(c("Day", "Temperature") %in% names(temperature_data)))
   x$environmental_data$temperature <- temperature_data
   x$environmental_data$duration <- max(temperature_data$Day)
-  
-  # Resetear estado de ajuste
-  x$fitted <- FALSE
-  x$results <- NULL
-  
-  return(x)
+  x$fitted <- FALSE; x$results <- NULL
+  x
 }
 
-#' Configurar datos de dieta
-#'
-#' @param x Objeto Bioenergetic
-#' @param diet_proportions Data frame con proporciones de dieta
-#' @param prey_energies Data frame con energías de presas
-#' @return Objeto Bioenergetic modificado
 #' @export
-set_diet <- function(x, diet_proportions, prey_energies) {
-  UseMethod("set_diet")
-}
+set_diet <- function(x, diet_proportions, prey_energies) UseMethod("set_diet")
 
 #' @export
 set_diet.Bioenergetic <- function(x, diet_proportions, prey_energies) {
-  
-  # Validar estructura básica
-  if (!is.data.frame(diet_proportions) || !is.data.frame(prey_energies)) {
-    stop("Ambos argumentos deben ser data.frames")
-  }
-  
-  if (!"Day" %in% names(diet_proportions) || !"Day" %in% names(prey_energies)) {
-    stop("Ambos data.frames deben tener columna 'Day'")
-  }
-  
-  # Verificar que tengan las mismas columnas de presas
-  diet_prey_cols <- setdiff(names(diet_proportions), "Day")
-  energy_prey_cols <- setdiff(names(prey_energies), "Day")
-  
-  if (length(diet_prey_cols) == 0 || length(energy_prey_cols) == 0) {
-    stop("Debe haber al menos una columna de presa además de 'Day'")
-  }
-  
-  if (!identical(sort(diet_prey_cols), sort(energy_prey_cols))) {
-    stop("Las columnas de presas deben ser iguales en ambos data frames")
-  }
-  
-  x$diet_data$proportions <- diet_proportions
-  x$diet_data$energies <- prey_energies
-  x$diet_data$prey_names <- diet_prey_cols
-  
-  # Resetear estado
-  x$fitted <- FALSE
-  x$results <- NULL
-  
-  return(x)
+  stopifnot(all(c("Day") %in% names(diet_proportions)),
+            all(c("Day") %in% names(prey_energies)))
+  prey_cols <- setdiff(names(diet_proportions), "Day")
+  stopifnot(identical(sort(prey_cols), sort(setdiff(names(prey_energies), "Day"))))
+  x$diet_data <- list(proportions = diet_proportions, energies = prey_energies, prey_names = prey_cols)
+  x$fitted <- FALSE; x$results <- NULL
+  x
 }
 
 # ============================================================================
-# MÉTODOS DE EJECUCIÓN SIMPLIFICADOS
+# SIMULACIÓN
 # ============================================================================
 
-#' Simular modelo bioenergético
-#'
-#' @param x Objeto Bioenergetic
-#' @param ... Argumentos adicionales pasados al simulador
-#' @return Objeto Bioenergetic con resultados
 #' @export
-simulate <- function(x, ...) {
-  UseMethod("simulate")
-}
+simulate <- function(x, ...) UseMethod("simulate")
 
 #' @export
 simulate.Bioenergetic <- function(x, ...) {
-  
-  # Validar que tenemos todos los datos necesarios
-  if (is.null(x$environmental_data$temperature)) {
-    stop("Datos de temperatura requeridos. Use set_environment()")
-  }
-  
-  if (is.null(x$diet_data$proportions) || is.null(x$diet_data$energies)) {
-    stop("Datos de dieta requeridos. Use set_diet()")
-  }
-  
-  # Aquí iría la llamada a tu función de simulación FB4
-  # Por ahora, creo resultados simulados para testing
+  stopifnot(!is.null(x$environmental_data$temperature), !is.null(x$diet_data$proportions))
   
   days <- x$environmental_data$temperature$Day
-  n_days <- length(days)
-  
-  # Simular crecimiento simple
-  initial_weight <- x$simulation_settings$initial_weight
-  weights <- numeric(n_days)
-  weights[1] <- initial_weight
-  
-  # Crecimiento simple basado en temperatura
-  temps <- x$environmental_data$temperature$Temperature
-  for (i in 2:n_days) {
-    growth_rate <- pmax(0, (temps[i] - 5) / 20 * 0.02)  # Crecimiento simple
-    weights[i] <- weights[i-1] * (1 + growth_rate)
+  temp <- x$environmental_data$temperature$Temperature
+  w <- numeric(length(days)); w[1] <- x$simulation_settings$initial_weight
+  for (i in 2:length(days)) {
+    rate <- pmax(0, (temp[i] - 5) / 20 * 0.02)
+    w[i] <- w[i-1] * (1 + rate)
   }
   
-  # Crear resultados sintéticos
   daily_output <- data.frame(
     Day = days,
-    Temperature = temps,
-    Weight.g = weights,
-    Consumption = weights * 0.05,  # 5% del peso corporal
-    Respiration = weights * 0.02,   # 2% del peso corporal
-    Growth = c(0, diff(weights))
+    Temperature = temp,
+    Weight.g = w,
+    Consumption = w * 0.05,
+    Respiration = w * 0.02,
+    Growth = c(0, diff(w))
   )
   
-  results <- list(
+  x$results <- list(
     daily_output = daily_output,
     summary = list(
-      initial_weight = initial_weight,
-      final_weight = weights[n_days],
-      total_growth = weights[n_days] - initial_weight,
-      duration = n_days
+      initial_weight = w[1],
+      final_weight = w[length(w)],
+      total_growth = w[length(w)] - w[1],
+      duration = length(w)
     ),
     fit_successful = TRUE
   )
-  
-  # Guardar resultados
-  x$results <- results
   x$fitted <- TRUE
-  
-  return(x)
+  x
 }
 
 # ============================================================================
-# FUNCIONES DE UTILIDAD
+# UTILIDADES
 # ============================================================================
 
-#' Verificar si un objeto es de clase Bioenergetic
-#'
-#' @param x Objeto a verificar
-#' @return TRUE si es Bioenergetic, FALSE si no
 #' @export
-is.Bioenergetic <- function(x) {
-  inherits(x, "Bioenergetic")
-}
+is.Bioenergetic <- function(x) inherits(x, "Bioenergetic")
 
-#' Extraer resultados de un objeto Bioenergetic
-#'
-#' @param x Objeto Bioenergetic
-#' @param component Componente a extraer ("daily_output", "summary", "all")
-#' @return Resultados extraídos
 #' @export
-get_results <- function(x, component = "all") {
-  UseMethod("get_results")
-}
+get_results <- function(x, component = "all") UseMethod("get_results")
 
 #' @export
 get_results.Bioenergetic <- function(x, component = "all") {
-  
-  if (!x$fitted) {
-    stop("Modelo no ha sido ajustado. Use simulate() primero.")
-  }
-  
-  if (component == "all") {
-    return(x$results)
-  } else if (component == "daily_output") {
-    return(x$results$daily_output)
-  } else if (component == "summary") {
-    return(x$results$summary)
-  } else {
-    if (component %in% names(x$results)) {
-      return(x$results[[component]])
-    } else {
-      stop("Componente '", component, "' no encontrado. ",
-           "Disponibles: ", paste(names(x$results), collapse = ", "))
-    }
-  }
+  stopifnot(x$fitted)
+  if (component == "all") return(x$results)
+  if (!component %in% names(x$results)) stop("Componente no encontrado")
+  x$results[[component]]
 }
 
-#' Listar especies disponibles en la base de datos
-#'
-#' @param fish4_db Base de datos fish4_parameters (opcional)
-#' @param family Filtrar por familia (opcional)
-#' @return Vector con nombres de especies
 #' @export
 list_species <- function(fish4_db = NULL, family = NULL) {
-  
-  # Cargar base de datos si no se proporciona
   if (is.null(fish4_db)) {
-    if (exists("fish4_parameters")) {
-      fish4_db <- fish4_parameters
-    } else if (file.exists("fish4_parameters.RData")) {
-      load("fish4_parameters.RData")
-      fish4_db <- fish4_parameters
-    } else {
-      stop("Base de datos fish4_parameters no encontrada")
-    }
+    if (exists("fish4_parameters")) fish4_db <- fish4_parameters
+    else if (file.exists("fish4_parameters.RData")) {
+      load("fish4_parameters.RData"); fish4_db <- fish4_parameters
+    } else stop("Base de datos no encontrada")
   }
-  
-  species_names <- names(fish4_db)
-  
+  sp <- names(fish4_db)
   if (!is.null(family)) {
-    # Filtrar por familia
-    families <- sapply(fish4_db, function(x) {
-      if (!is.null(x$species_info$family)) {
-        return(x$species_info$family)
-      } else {
-        return(NA)
-      }
-    })
-    species_names <- species_names[families == family & !is.na(families)]
+    fams <- sapply(fish4_db, function(x) x$species_info$family %||% NA)
+    sp <- sp[fams == family & !is.na(fams)]
   }
-  
-  return(species_names)
+  sp
 }
 
-#' Obtener información de una especie
-#'
-#' @param species Nombre científico de la especie
-#' @param fish4_db Base de datos fish4_parameters (opcional)
-#' @return Lista con información de la especie
 #' @export
 species_info <- function(species, fish4_db = NULL) {
-  
-  # Cargar base de datos si no se proporciona
   if (is.null(fish4_db)) {
-    if (exists("fish4_parameters")) {
-      fish4_db <- fish4_parameters
-    } else if (file.exists("fish4_parameters.RData")) {
-      load("fish4_parameters.RData")
-      fish4_db <- fish4_parameters
-    } else {
-      stop("Base de datos fish4_parameters no encontrada")
-    }
+    if (exists("fish4_parameters")) fish4_db <- fish4_parameters
+    else if (file.exists("fish4_parameters.RData")) {
+      load("fish4_parameters.RData"); fish4_db <- fish4_parameters
+    } else stop("Base de datos no encontrada")
   }
-  
-  if (!species %in% names(fish4_db)) {
-    stop("Especie '", species, "' no encontrada")
-  }
-  
-  species_data <- fish4_db[[species]]
-  
-  info <- list(
+  stopifnot(species %in% names(fish4_db))
+  sp <- fish4_db[[species]]
+  list(
     scientific_name = species,
-    species_info = species_data$species_info,
-    available_life_stages = names(species_data$life_stages),
-    sources = species_data$sources
+    species_info = sp$species_info,
+    available_life_stages = names(sp$life_stages),
+    sources = sp$sources
   )
-  
-  return(info)
 }
 
-
-
-#' Obtener valor de parámetro
 #' @keywords internal
-get_parameter_value <- function(species_params, parameter_name) {
-  # Buscar en todas las categorías
-  for (category in names(species_params)) {
-    if (parameter_name %in% names(species_params[[category]])) {
-      return(species_params[[category]][[parameter_name]])
+get_parameter_value <- function(params, param) {
+  for (cat in names(params)) {
+    if (param %in% names(params[[cat]])) return(params[[cat]][[param]])
+  }
+  NULL
+}
+
+#' @keywords internal
+set_parameter_value <- function(params, param, value) {
+  for (cat in names(params)) {
+    if (param %in% names(params[[cat]])) {
+      params[[cat]][[param]] <- value
+      return(params)
     }
   }
-  return(NULL)
-}
-
-#' Establecer valor de parámetro
-#' @keywords internal
-set_parameter_value <- function(species_params, parameter_name, value) {
-  # Buscar en todas las categorías y actualizar
-  for (category in names(species_params)) {
-    if (parameter_name %in% names(species_params[[category]])) {
-      species_params[[category]][[parameter_name]] <- value
-      return(species_params)
-    }
-  }
-  
-  # Si no se encuentra, añadir a consumption por defecto
-  species_params$consumption[[parameter_name]] <- value
-  return(species_params)
-}
-
-
-
-#' Agregar datos de temperatura a objeto Bioenergetic
-#'
-#' @param bio_obj Objeto Bioenergetic
-#' @param temperature_data Data frame con columnas Day y Temperature
-#' @return Objeto Bioenergetic modificado
-#' @export
-add_temperature_data <- function(bio_obj, temperature_data) {
-  
-  if (!is.data.frame(temperature_data)) {
-    stop("temperature_data debe ser un data.frame")
-  }
-  
-  required_cols <- c("Day", "Temperature")
-  missing_cols <- setdiff(required_cols, names(temperature_data))
-  if (length(missing_cols) > 0) {
-    stop("Columnas faltantes: ", paste(missing_cols, collapse = ", "))
-  }
-  
-  bio_obj$environmental_data$temperature <- temperature_data
-  bio_obj$environmental_data$duration <- max(temperature_data$Day)
-  
-  return(bio_obj)
-}
-
-#' Agregar datos de dieta a objeto Bioenergetic
-#'
-#' @param bio_obj Objeto Bioenergetic
-#' @param diet_data Data frame con proporciones de dieta
-#' @return Objeto Bioenergetic modificado
-#' @export
-add_diet_data <- function(bio_obj, diet_data) {
-  
-  if (!is.data.frame(diet_data)) {
-    stop("diet_data debe ser un data.frame")
-  }
-  
-  if (!"Day" %in% names(diet_data)) {
-    stop("diet_data debe tener columna 'Day'")
-  }
-  
-  prey_cols <- setdiff(names(diet_data), "Day")
-  if (length(prey_cols) == 0) {
-    stop("diet_data debe tener al menos una columna de presa")
-  }
-  
-  # Crear energías por defecto
-  energy_data <- diet_data[, "Day", drop = FALSE]
-  for (prey in prey_cols) {
-    energy_data[[prey]] <- 4000  # J/g por defecto
-  }
-  
-  bio_obj$environmental_data$diet <- diet_data
-  bio_obj$environmental_data$prey_energy <- energy_data
-  
-  return(bio_obj)
+  stop("Parámetro '", param, "' no encontrado en ninguna categoría.")
 }
 

@@ -10,7 +10,7 @@ validate_species_params(species_params)
 \item{species_params}{Lista con parámetros de especies}
 }
 \value{
-Lista con resultados de validación
+Lista con campos: valid (bool), errors, warnings
 }
 \description{
 Validar parámetros de especies para FB4

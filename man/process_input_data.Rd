@@ -38,6 +38,8 @@ process_input_data(
 \item{first_day}{Primer día de simulación}
 
 \item{last_day}{Último día de simulación}
+
+\item{interp_method}{Método de interpolación (por defecto "linear")}
 }
 \value{
 Lista con datos procesados
