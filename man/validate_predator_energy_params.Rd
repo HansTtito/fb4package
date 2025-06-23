@@ -4,12 +4,18 @@
 \alias{validate_predator_energy_params}
 \title{Validar parámetros de densidad energética}
 \usage{
-validate_predator_energy_params(predator_params, weight_range = c(1, 1000))
+validate_predator_energy_params(
+  predator_params,
+  weight_range = c(1, 1000),
+  energy_data = NULL
+)
 }
 \arguments{
 \item{predator_params}{Lista con parámetros}
 
 \item{weight_range}{Rango de pesos para probar}
+
+\item{energy_data}{Vector de datos de energía (opcional)}
 }
 \value{
 Lista con resultados de validación

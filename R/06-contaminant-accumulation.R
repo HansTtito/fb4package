@@ -40,6 +40,7 @@ contaminant_model_1 <- function(consumption, prey_concentrations, transfer_effic
     uptake = uptake,
     new_burden = pmax(0, new_burden)
   ))
+  
 }
 
 #' Modelo de contaminantes 2 - Con eliminación dependiente de T y peso
@@ -85,6 +86,7 @@ contaminant_model_2 <- function(consumption, weight, temperature, prey_concentra
     uptake = uptake,
     new_burden = pmax(0, new_burden)
   ))
+  
 }
 
 #' Modelo de contaminantes 3 - Arnot & Gobas (2004)
@@ -113,6 +115,7 @@ contaminant_model_3 <- function(respiration_o2, consumption, weight, temperature
   # Validar parámetros requeridos
   required_params <- c(gill_efficiency, fish_water_partition, water_concentration, 
                        dissolved_fraction, do_saturation)
+  
   if (any(is.na(required_params))) {
     warning("Parámetros faltantes para modelo 3, usando modelo 2")
     return(contaminant_model_2(consumption, weight, temperature, prey_concentrations,
@@ -156,6 +159,7 @@ contaminant_model_3 <- function(respiration_o2, consumption, weight, temperature
     uptake_food = uptake_food,
     new_burden = pmax(0, new_burden)
   ))
+  
 }
 
 # ============================================================================
@@ -407,56 +411,3 @@ validate_contaminant_params <- function(contaminant_params) {
   return(validation)
 }
 
-#' Generar parámetros de ejemplo para contaminantes
-#'
-#' @param contaminant_type Tipo de contaminante ("mercury", "pcb", "generic")
-#' @param model_equation Ecuación de modelo (1, 2, o 3)
-#' @param n_prey Número de tipos de presa
-#' @return Lista con parámetros de ejemplo
-#' @export
-generate_example_contaminant_params <- function(contaminant_type = "mercury", model_equation = 2, n_prey = 2) {
-  
-  params <- list(CONTEQ = model_equation)
-  
-  if (contaminant_type == "mercury") {
-    params$prey_concentrations <- c(0.5, 1.2)[1:n_prey]  # μg/g
-    params$assimilation_efficiency <- rep(0.85, n_prey)
-    params$transfer_efficiency <- rep(0.95, n_prey)
-    
-    if (model_equation == 3) {
-      params$gill_efficiency <- 0.3
-      params$fish_water_partition <- 10000
-      params$water_concentration <- 0.0001  # mg/L
-      params$dissolved_fraction <- 0.9
-      params$do_saturation <- 0.9
-    }
-    
-  } else if (contaminant_type == "pcb") {
-    params$prey_concentrations <- c(2.0, 4.5)[1:n_prey]  # μg/g
-    params$assimilation_efficiency <- rep(0.70, n_prey)
-    params$transfer_efficiency <- rep(0.90, n_prey)
-    
-    if (model_equation == 3) {
-      params$gill_efficiency <- 0.8
-      params$fish_water_partition <- 100000
-      params$water_concentration <- 0.00001  # mg/L
-      params$dissolved_fraction <- 0.3
-      params$do_saturation <- 0.9
-    }
-    
-  } else {  # generic
-    params$prey_concentrations <- rep(1.0, n_prey)
-    params$assimilation_efficiency <- rep(0.75, n_prey)
-    params$transfer_efficiency <- rep(0.90, n_prey)
-    
-    if (model_equation == 3) {
-      params$gill_efficiency <- 0.5
-      params$fish_water_partition <- 1000
-      params$water_concentration <- 0.001  # mg/L
-      params$dissolved_fraction <- 0.5
-      params$do_saturation <- 0.9
-    }
-  }
-  
-  return(params)
-}

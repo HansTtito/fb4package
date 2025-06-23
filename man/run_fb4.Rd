@@ -2,98 +2,50 @@
 % Please edit documentation in R/12-fb4-main.R
 \name{run_fb4}
 \alias{run_fb4}
-\title{Ejecutar el modelo bioenergético FB4}
+\title{Generic Function for Fish Bioenergetics 4.0 Model Execution}
 \usage{
-run_fb4(
-  species,
-  initial_weight,
-  fit_to = "Weight",
-  fit_value,
-  first_day = 1,
-  last_day,
-  temperature_data,
-  diet_data,
-  prey_energy_data,
-  oxycal = 13560,
-  population_size = 1,
-  mortality_data = NULL,
-  reproduction_data = NULL,
-  contaminant_data = NULL,
-  nutrient_data = NULL,
-  parameters_file = NULL,
-  output_daily = TRUE,
-  progress_callback = NULL,
-  ...
-)
+run_fb4(x, ...)
 }
 \arguments{
-\item{species}{Número de especie (fila en parámetros) o nombre de especie}
+\item{x}{Object to use for simulation (e.g., Bioenergetic object)}
 
-\item{initial_weight}{Peso inicial del pez (g)}
-
-\item{fit_to}{Tipo de ajuste: "Weight", "Consumption", "Ration", "Ration_prey", "p-value"}
-
-\item{fit_value}{Valor objetivo para el ajuste}
-
-\item{first_day}{Primer día de la simulación}
-
-\item{last_day}{Último día de la simulación}
-
-\item{temperature_data}{Vector o archivo con datos de temperatura}
-
-\item{diet_data}{Datos de proporciones de dieta}
-
-\item{prey_energy_data}{Datos de densidad energética de presas}
-
-\item{oxycal}{Coeficiente oxicalórico (J/g O2), por defecto 13560}
-
-\item{population_size}{Número de individuos en la población, por defecto 1}
-
-\item{mortality_data}{Datos de mortalidad (opcional)}
-
-\item{reproduction_data}{Datos de reproducción (opcional)}
-
-\item{contaminant_data}{Datos de contaminantes (opcional)}
-
-\item{nutrient_data}{Datos de nutrientes (opcional)}
-
-\item{parameters_file}{Archivo con parámetros de especies}
-
-\item{output_daily}{Incluir salida diaria (TRUE/FALSE)}
-
-\item{progress_callback}{Función callback para mostrar progreso}
-
-\item{...}{Parámetros adicionales}
+\item{...}{Additional arguments passed to specific methods}
 }
 \value{
-Lista con resultados de la simulación incluyendo:
-  \item{daily_output}{Resultados diarios (si output_daily = TRUE)}
-  \item{summary}{Resumen de la simulación}
-  \item{parameters_used}{Parámetros utilizados}
-  \item{energy_balance}{Información del balance energético}
-  \item{model_info}{Información del modelo (versión, tiempo de ejecución, etc.)}
+Object of class 'fb4_result' with simulation results
 }
 \description{
-Función principal para ejecutar simulaciones del modelo bioenergético de peces FB4.
-Permite simular crecimiento, consumo, metabolismo y acumulación de contaminantes.
+Generic function that allows executing Fish Bioenergetics 4.0 model simulations
+with different types of input objects. This provides a flexible interface
+that can be extended to support various data input formats.
+}
+\details{
+This generic function dispatches to specific methods based on object class:
+\itemize{
+  \item{Bioenergetic: }{Uses run_fb4.Bioenergetic()}
+  \item{Others: }{Future methods for other classes}
+}
+
+The function provides a consistent interface regardless of the input object type,
+making it easier to integrate with different data workflows and analysis pipelines.
 }
 \examples{
 \dontrun{
-# Ejemplo básico
-temperature <- data.frame(Day = 1:365, Temperature = 15 + 5*sin(2*pi*(1:365)/365))
-diet <- data.frame(Day = 1:365, Zooplankton = 0.7, Invertebrates = 0.3)
-prey_energy <- data.frame(Day = 1:365, Zooplankton = 3500, Invertebrates = 4200)
-
-result <- run_fb4(
-  species = 1,
-  initial_weight = 10,
-  fit_to = "Weight",
-  fit_value = 50,
-  first_day = 1,
-  last_day = 365,
-  temperature_data = temperature,
-  diet_data = diet,
-  prey_energy_data = prey_energy
+# With Bioenergetic object
+bio_obj <- new_bioenergetic(
+  species = "Salmo salar",
+  initial_weight = 15,
+  duration = 200,
+  temperature_avg = 12
 )
+result <- run_fb4(bio_obj, fit_to = "Weight", fit_value = 50)
+
+# Check result structure
+str(result)
+plot(result)
 }
+
+}
+\seealso{
+\code{\link{run_fb4.Bioenergetic}}, \code{\link{new_bioenergetic}}
 }

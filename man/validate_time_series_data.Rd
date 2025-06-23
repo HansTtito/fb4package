@@ -2,7 +2,7 @@
 % Please edit documentation in R/00-utils.R
 \name{validate_time_series_data}
 \alias{validate_time_series_data}
-\title{Validar datos de series de tiempo}
+\title{Validate Time Series Data}
 \usage{
 validate_time_series_data(
   data,
@@ -12,18 +12,34 @@ validate_time_series_data(
 )
 }
 \arguments{
-\item{data}{Datos a validar}
+\item{data}{Data to validate}
 
-\item{data_name}{Nombre del conjunto de datos (para mensajes de error)}
+\item{data_name}{Name of the dataset (for error messages)}
 
-\item{required_cols}{Columnas requeridas}
+\item{required_cols}{Required column names}
 
-\item{min_cols}{Número mínimo de columnas}
+\item{min_cols}{Minimum number of columns}
 }
 \value{
-NULL (lanza error si inválido)
+NULL (throws error if invalid)
 }
 \description{
-Validar datos de series de tiempo
+Validates time series data structure and content for use in FB4 simulations.
+Checks for required columns, data types, and temporal consistency.
+}
+\details{
+Performs comprehensive validation including:
+\itemize{
+  \item{Structure validation (data.frame, non-empty)}
+  \item{Required column presence}
+  \item{Day column validation (numeric, finite, ascending)}
+  \item{Duplicate detection}
+}
+}
+\examples{
+\dontrun{
+temp_data <- data.frame(Day = 1:10, Temperature = 15:24)
+validate_time_series_data(temp_data, "temperature", c("Day", "Temperature"))
+}
 }
 \keyword{internal}

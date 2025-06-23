@@ -157,7 +157,7 @@ calculate_consumption <- function(temperature, weight, p_value, consumption_para
   
   # Calcular factor de temperatura según ecuación
   ft <- calculate_temperature_factor_consumption(temperature, consumption_params)
-  
+
   # Retornar según método solicitado
   if (method == "maximum") {
     return(Cmax * ft)

@@ -10,7 +10,9 @@ calculate_daily_metabolism(
   temperature,
   p_value,
   species_params,
-  oxycal = 13560
+  oxycal = 13560,
+  diet_proportions = NULL,
+  indigestible_fractions = NULL
 )
 }
 \arguments{

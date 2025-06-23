@@ -2,7 +2,8 @@
 % Please edit documentation in R/00-utils.R
 \name{utils}
 \alias{utils}
-\title{Funciones Utilitarias para el Modelo FB4}
+\title{Utility Functions for FB4 Model}
 \description{
-Funciones Utilitarias para el Modelo FB4
+Collection of utility functions for the Fish Bioenergetics 4.0 model,
+including mathematical operators, validation functions, and data processing helpers.
 }

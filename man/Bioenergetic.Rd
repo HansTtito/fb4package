@@ -2,7 +2,7 @@
 % Please edit documentation in R/14-bioenergetic-classes.R
 \name{Bioenergetic}
 \alias{Bioenergetic}
-\title{Constructor para objetos Bioenergetic}
+\title{Constructor for Bioenergetic Objects}
 \usage{
 Bioenergetic(
   species_params,
@@ -13,20 +13,59 @@ Bioenergetic(
 )
 }
 \arguments{
-\item{species_params}{Lista con parámetros de la especie}
+\item{species_params}{List with species parameters organized by categories}
 
-\item{environmental_data}{Lista con datos ambientales (temperatura, etc.)}
+\item{environmental_data}{List with environmental data (temperature, etc.)}
 
-\item{diet_data}{Lista con datos de dieta y energía de presas}
+\item{diet_data}{List with diet and prey energy data}
 
-\item{model_options}{Lista con opciones del modelo}
+\item{model_options}{List with model configuration options}
 
-\item{simulation_settings}{Lista con configuración de la simulación}
+\item{simulation_settings}{List with simulation configuration}
 }
 \value{
-Objeto de clase "Bioenergetic"
+Object of class "Bioenergetic"
 }
 \description{
-Crea un objeto de clase Bioenergetic que encapsula todos los componentes
-del modelo bioenergético de peces.
+Creates a Bioenergetic class object that encapsulates all components
+of the fish bioenergetic model for streamlined simulation management.
+}
+\details{
+The Bioenergetic object serves as a comprehensive container for all
+bioenergetic model components:
+
+\strong{Required Components:}
+\itemize{
+  \item{species_params: }{Parameter sets for consumption, respiration, etc.}
+}
+
+\strong{Optional Components:}
+\itemize{
+  \item{environmental_data: }{Temperature and other environmental variables}
+  \item{diet_data: }{Diet composition and prey energy densities}
+  \item{model_options: }{Sub-model toggles and advanced settings}
+  \item{simulation_settings: }{Initial conditions and duration}
+}
+
+The object maintains state information including fit status and results,
+allowing for iterative model development and parameter refinement.
+}
+\examples{
+\dontrun{
+# Create species parameters
+params <- list(
+  consumption = list(CA = 0.303, CB = -0.275, CQ = 3, CTO = 15, CTM = 25, CTL = 28),
+  respiration = list(RA = 0.0548, RB = -0.299, RQ = 2, RTO = 5, RTM = 25, RTL = 35)
+)
+
+# Create bioenergetic object
+bio_obj <- Bioenergetic(
+  species_params = params,
+  simulation_settings = list(initial_weight = 10, duration = 365)
+)
+}
+
+}
+\seealso{
+\code{\link{new_bioenergetic}}, \code{\link{run_fb4.Bioenergetic}}
 }

@@ -127,29 +127,32 @@ calculate_simple_activity <- function(ACT) {
 #' @param consumption Consumo para calcular SDA (opcional)
 #' @return Respiración (g O2/g pez/día)
 #' @export
-calculate_respiration <- function(temperature, weight, respiration_params, consumption = 0) {
+calculate_respiration <- function(temperature, weight, respiration_params) {
   
   # Validaciones básicas
   if (is.null(respiration_params)) {
     stop("respiration_params no puede ser NULL")
   }
   
-  required_basic <- c("RA", "RB", "REQ")
+  required_basic <- c("RA", "RB", "RQ", "RTO", "RTM", "RTL")
   missing_basic <- setdiff(required_basic, names(respiration_params))
   if (length(missing_basic) > 0) {
     stop("Parámetros básicos faltantes: ", paste(missing_basic, collapse = ", "))
   }
   
-  # Validar valores de entrada (usando función interna)
+  # Validar valores de entrada
   weight <- check_numeric_value(weight, "weight", min_val = 0.001)
   temperature <- check_numeric_value(temperature, "temperature", min_val = -5, max_val = 50)
   
   # Extraer parámetros básicos
-  RA <- respiration_params$RA
-  RB <- respiration_params$RB
-  REQ <- respiration_params$REQ %||% 1
+  RA <- as.numeric(respiration_params$RA)
+  RB <- as.numeric(respiration_params$RB)
+  RQ <- as.numeric(respiration_params$RQ)
+  RTO <- as.numeric(respiration_params$RTO)
+  RTM <- as.numeric(respiration_params$RTM)
+  RTL <- as.numeric(respiration_params$RTL)
   
-  if (is.na(RA) || is.na(RB)) {
+  if (any(is.na(c(RA, RB, RQ, RTO, RTM, RTL)))) {
     return(0.001)  # Valor mínimo
   }
   
@@ -162,24 +165,17 @@ calculate_respiration <- function(temperature, weight, respiration_params, consu
   # Calcular factor de actividad
   activity_factor <- calculate_activity_factor_respiration(weight, temperature, respiration_params)
   
-  # Calcular respiración básica
-  basic_respiration <- Rmax * ft * activity_factor
-  
-  # Agregar SDA si hay consumo
-  if (consumption > 0 && !is.null(respiration_params$SDA)) {
-    sda_factor <- 1 + respiration_params$SDA * consumption
-    total_respiration <- basic_respiration * sda_factor
-  } else {
-    total_respiration <- basic_respiration
-  }
+  # Respiración total
+  total_respiration <- Rmax * ft * activity_factor
   
   # Asegurar que el resultado sea válido
-  if (is.na(total_respiration) || !is.finite(total_respiration)) {
+  if (is.na(total_respiration) || !is.finite(total_respiration) || total_respiration <= 0) {
     return(0.001)
   }
   
-  return(pmax(0.001, total_respiration))
+  return(total_respiration)
 }
+
 
 #' Calcular factor de temperatura para respiración
 #'

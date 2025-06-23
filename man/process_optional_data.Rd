@@ -13,7 +13,7 @@ process_optional_data(
 )
 }
 \arguments{
-\item{environmental_data}{Resultado de process_environmental_data}
+\item{environmental_data}{Resultado de process_input_data}
 
 \item{reproduction_data}{Data frame con datos de reproducción (opcional)}
 

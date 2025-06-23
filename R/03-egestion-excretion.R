@@ -65,6 +65,7 @@ egestion_model_2 <- function(consumption, temperature, p_value, FA, FB, FG) {
 #' @keywords internal
 egestion_model_3 <- function(consumption, temperature, p_value, FA, FB, FG, 
                              indigestible_fraction = 0) {
+  
   if (any(is.na(c(consumption, temperature, p_value, FA, FB, FG))) || consumption <= 0) {
     return(0)
   }
@@ -84,7 +85,9 @@ egestion_model_3 <- function(consumption, temperature, p_value, FA, FB, FG,
   PF <- clamp(PF, 0, 1)
   
   egestion <- PF * consumption
+  
   return(pmax(0, pmin(egestion, consumption)))
+  
 }
 
 #' Modelo de egestión 4 - Elliott (1976) sin p-value
@@ -207,31 +210,6 @@ excretion_model_4 <- function(consumption, egestion, temperature, UA, UB) {
 # FUNCIONES PRINCIPALES
 # ============================================================================
 
-
-#' Calcular tasa de egestión
-#'
-#' @param consumption Consumo (J/g)
-#' @param temperature Temperatura (°C)
-#' @param p_value P-value
-#' @param egestion_params Parámetros de egestión
-#' @return Tasa de egestión (J/g)
-#' @keywords internal
-calculate_egestion_rate <- function(consumption, temperature, p_value, egestion_params) {
-  return(calculate_egestion(consumption, temperature, p_value, egestion_params))
-}
-
-#' Calcular tasa de excreción
-#'
-#' @param consumption Consumo (J/g)
-#' @param egestion Egestión (J/g)
-#' @param temperature Temperatura (°C)
-#' @param p_value P-value
-#' @param excretion_params Parámetros de excreción
-#' @return Tasa de excreción (J/g)
-#' @keywords internal
-calculate_excretion_rate <- function(consumption, egestion, temperature, p_value, excretion_params) {
-  return(calculate_excretion(consumption, egestion, temperature, p_value, excretion_params))
-}
 
 #' Calcular egestión diaria
 #'

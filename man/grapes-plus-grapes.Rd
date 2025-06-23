@@ -2,11 +2,25 @@
 % Please edit documentation in R/00-utils.R
 \name{\%+\%}
 \alias{\%+\%}
-\title{Operador de concatenación de strings}
+\title{String Concatenation Operator}
 \usage{
 a \%+\% b
 }
+\arguments{
+\item{a}{First string}
+
+\item{b}{Second string}
+}
+\value{
+Concatenated string
+}
 \description{
-Operador de concatenación de strings
+Convenience operator for concatenating strings without separator.
+Equivalent to paste0(a, b).
+}
+\examples{
+\dontrun{
+"Hello" \%+\% " World"  # Returns "Hello World"
+}
 }
 \keyword{internal}

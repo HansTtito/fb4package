@@ -2,7 +2,7 @@
 % Please edit documentation in R/14-bioenergetic-classes.R
 \name{new_bioenergetic}
 \alias{new_bioenergetic}
-\title{Constructor simplificado para modelos bioenergéticos}
+\title{Simplified Constructor for Bioenergetic Models}
 \usage{
 new_bioenergetic(
   species,
@@ -16,25 +16,70 @@ new_bioenergetic(
 )
 }
 \arguments{
-\item{species}{Nombre científico o índice de especie}
+\item{species}{Scientific name or species index}
 
-\item{initial_weight}{Peso inicial (g)}
+\item{initial_weight}{Initial weight in grams}
 
-\item{life_stage}{Estadio de vida}
+\item{life_stage}{Life stage identifier}
 
-\item{duration}{Duración (días)}
+\item{duration}{Simulation duration in days}
 
-\item{temperature_avg}{Temperatura promedio (°C)}
+\item{temperature_avg}{Average temperature in °C}
 
-\item{temperature_variation}{Variación (°C)}
+\item{temperature_variation}{Temperature variation in °C}
 
-\item{diet_composition}{Composición de dieta}
+\item{diet_composition}{Diet composition as named list}
 
-\item{...}{Argumentos adicionales}
+\item{...}{Additional arguments}
 }
 \value{
-Objeto Bioenergetic
+Bioenergetic object with generated data
 }
 \description{
-Constructor simplificado para modelos bioenergéticos
+Creates a Bioenergetic object with sensible defaults and automatic
+data generation for quick model setup and prototyping.
+}
+\details{
+This function provides a user-friendly interface for creating bioenergetic
+models with minimal input requirements. It automatically:
+
+\strong{Temperature Generation:}
+\itemize{
+  \item{Creates sinusoidal temperature patterns}
+  \item{Simulates seasonal variation}
+  \item{Uses biologically realistic ranges}
+}
+
+\strong{Diet Processing:}
+\itemize{
+  \item{Normalizes diet proportions to sum to 1.0}
+  \item{Assigns typical energy densities for common prey types}
+  \item{Supports custom prey categories}
+}
+
+\strong{Parameter Selection:}
+\itemize{
+  \item{Retrieves species-specific parameters from database}
+  \item{Selects appropriate life stage parameters}
+  \item{Validates parameter completeness}
+}
+}
+\examples{
+\dontrun{
+# Simple salmon model
+salmon_model <- new_bioenergetic(
+  species = "Oncorhynchus tshawytscha",
+  initial_weight = 15,
+  duration = 365,
+  temperature_avg = 12,
+  diet_composition = list(Fish = 0.7, Zooplankton = 0.3)
+)
+
+# Run simulation
+result <- run_fb4(salmon_model, fit_to = "Weight", fit_value = 100)
+}
+
+}
+\seealso{
+\code{\link{Bioenergetic}}, \code{\link{list_species}}, \code{\link{species_info}}
 }

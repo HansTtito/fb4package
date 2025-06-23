@@ -2,7 +2,8 @@
 % Please edit documentation in R/14-bioenergetic-classes.R
 \name{bioenergetic-classes}
 \alias{bioenergetic-classes}
-\title{Clases S3 para el Modelo Bioenergético FB4}
+\title{S3 Classes for FB4 Bioenergetic Model}
 \description{
-Clases S3 para el Modelo Bioenergético FB4
+S3 class system for the Fish Bioenergetics 4.0 model, providing structured
+data containers and methods for bioenergetic simulations and results.
 }

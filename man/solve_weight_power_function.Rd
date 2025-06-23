@@ -2,7 +2,7 @@
 % Please edit documentation in R/04-predator-energy-density.R
 \name{solve_weight_power_function}
 \alias{solve_weight_power_function}
-\title{Resolver peso final para función potencia}
+\title{Resolver peso final para función potencia (PREDEDEQ = 1 y 3)}
 \usage{
 solve_weight_power_function(initial_weight, net_energy, Alpha1, Beta1)
 }
@@ -19,6 +19,6 @@ solve_weight_power_function(initial_weight, net_energy, Alpha1, Beta1)
 Peso final
 }
 \description{
-Resolver peso final para función potencia
+Resolver peso final para función potencia (PREDEDEQ = 1 y 3)
 }
 \keyword{internal}

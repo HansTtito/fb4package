@@ -134,8 +134,7 @@ calculate_body_composition <- function(weight,
   fat_content <- calculate_fat_by_subtraction(weight, water_content, protein_content, ash_content)
   
   # Calcular densidad energética
-  energy_density <- calculate_energy_density(fat_content, protein_content, weight, 
-                                             fat_energy, protein_energy)
+  energy_density <- calculate_energy_density(fat_content, protein_content, weight, fat_energy, protein_energy)
   
   # Calcular fracciones
   water_frac <- water_content / weight
@@ -223,32 +222,6 @@ analyze_composition_by_size <- function(weight_range = c(1, 500),
   return(result_df)
 }
 
-#' Estimar densidad energética simplificada
-#'
-#' Función simplificada para estimar densidad energética cuando no se necesita
-#' composición corporal completa
-#'
-#' @param weight Peso del pez (g)
-#' @param water_fraction Fracción de agua
-#' @return Densidad energética (J/g)
-#' @export
-estimate_energy_density_simple <- function(weight, water_fraction = 0.728) {
-  
-  # Validar entradas
-  weight <- check_numeric_value(weight, "weight", min_val = 0.001)
-  water_fraction <- check_numeric_value(water_fraction, "water_fraction", min_val = 0.4, max_val = 0.9)
-  
-  # Cálculo rápido basado en agua
-  water_content <- water_fraction * weight
-  protein_content <- calculate_protein_from_water(water_content)
-  ash_content <- calculate_ash_from_water(water_content)
-  fat_content <- calculate_fat_by_subtraction(weight, water_content, protein_content, ash_content)
-  
-  # Energías estándar
-  energy_density <- calculate_energy_density(fat_content, protein_content, weight)
-  
-  return(energy_density)
-}
 
 # ============================================================================
 # FUNCIONES DE VALIDACIÓN
@@ -316,21 +289,6 @@ validate_body_composition <- function(composition) {
   return(validation)
 }
 
-# ============================================================================
-# FUNCIONES DE CONVERSIÓN PARA MODELOS FB4
-# ============================================================================
-
-#' Estimar fracción lipídica para modelos de contaminantes
-#'
-#' @param weight Peso del pez (g)
-#' @param water_fraction Fracción de agua
-#' @return Fracción lipídica
-#' @export
-estimate_lipid_fraction <- function(weight, water_fraction = 0.728) {
-  
-  composition <- calculate_body_composition(weight, water_fraction)
-  return(composition$fat_fraction)
-}
 
 # ============================================================================
 # FUNCIONES ESPECÍFICAS PARA SIMULACIONES FB4

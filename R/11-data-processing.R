@@ -5,7 +5,7 @@
 NULL
 
 # ============================================================================
-# FUNCIONES CORE DE INTERPOLACIÓN
+# FUNCIÓN PRINCIPAL DE INTERPOLACIÓN
 # ============================================================================
 
 #' Interpolar series de tiempo
@@ -114,162 +114,98 @@ interpolate_time_series <- function(data, value_columns, target_days,
   return(result)
 }
 
-
-#' Interpolar datos de dieta
-#'
-#' Especializada para datos de proporciones de dieta
-#'
-#' @param diet_data Data frame con proporciones de dieta por día
-#' @param target_days Vector de días objetivo
-#' @param normalize Normalizar proporciones para que sumen 1
-#' @return Data frame con dieta interpolada
-#' @keywords internal
-interpolate_diet_data <- function(diet_data, target_days, normalize = TRUE) {
-  
-  # Identificar columnas de presa (todas excepto Day)
-  prey_columns <- setdiff(names(diet_data), "Day")
-  
-  if (length(prey_columns) == 0) {
-    stop("No se encontraron columnas de presa en diet_data")
-  }
-  
-  # Interpolar proporciones
-  interpolated <- interpolate_time_series(
-    data = diet_data,
-    value_columns = prey_columns,
-    target_days = target_days,
-    method = "linear",
-    fill_na_method = "extend"
-  )
-  
-  # Normalizar proporciones si se solicita
-  if (normalize) {
-    prop_matrix <- as.matrix(interpolated[, prey_columns, drop = FALSE])
-    
-    # Asegurar valores no negativos
-    prop_matrix[prop_matrix < 0] <- 0
-    
-    # Normalizar filas para que sumen 1
-    row_sums <- rowSums(prop_matrix)
-    zero_sum_rows <- row_sums == 0
-    
-    if (any(zero_sum_rows)) {
-      warning("Algunas filas tienen suma cero, asignando proporciones uniformes")
-      prop_matrix[zero_sum_rows, ] <- 1 / ncol(prop_matrix)
-      row_sums[zero_sum_rows] <- 1
-    }
-    
-    prop_matrix <- prop_matrix / row_sums
-    interpolated[, prey_columns] <- prop_matrix
-  }
-  
-  return(interpolated)
-}
-
 # ============================================================================
-# FUNCIONES DE PROCESAMIENTO PRINCIPAL
+# FUNCIÓN PRINCIPAL DE PROCESAMIENTO DE DATOS DE ENTRADA
 # ============================================================================
 
-#' Procesar datos ambientales básicos
+#' Procesar datos de entrada para el modelo
 #'
-#' Procesa temperatura, dieta y energías de presa
-#'
-#' @param temperature_data Data frame con datos de temperatura
-#' @param diet_data Data frame con proporciones de dieta (opcional)
-#' @param prey_energy_data Data frame con energías de presa (opcional)
-#' @param target_days Vector de días para simulación
-#' @return Lista con datos ambientales procesados
+#' @param temperature_data Data frame con columnas Day y Temperature
+#' @param diet_data Data frame con proporciones de dieta
+#' @param prey_energy_data Data frame con energías de presas
+#' @param first_day Primer día de simulación
+#' @param last_day Último día de simulación
+#' @param interp_method Método de interpolación (por defecto "linear")
+#' @param fill_na_method Método para rellenar NA ("extend" o "zero")
+#' @return Lista con datos procesados
 #' @export
-process_environmental_data <- function(temperature_data, diet_data = NULL, 
-                                       prey_energy_data = NULL, target_days) {
+process_input_data <- function(temperature_data, diet_data, prey_energy_data, 
+                               first_day = 1, last_day = NULL, interp_method = "linear",
+                               fill_na_method = "extend") {
   
-  # Validar datos de temperatura
-  if (is.null(temperature_data)) {
-    stop("temperature_data es requerido")
+  if (is.null(last_day)) {
+    last_day <- max(temperature_data$Day)
   }
   
-  target_days <- sort(unique(target_days))
-  n_days <- length(target_days)
+  if (first_day >= last_day || first_day < 1) {
+    stop("Rango de días inválido: first_day debe ser < last_day y >= 1")
+  }
   
-  # Procesar temperatura
-  temp_result <- interpolate_time_series(
-    data = temperature_data,
+  validate_time_series_data(temperature_data, "temperature_data", c("Day", "Temperature"))
+  validate_time_series_data(diet_data, "diet_data", "Day", min_cols = 2)
+  validate_time_series_data(prey_energy_data, "prey_energy_data", "Day", min_cols = 2)
+  validate_diet_consistency(diet_data, prey_energy_data)
+  
+  temp_filtered   <- temperature_data[temperature_data$Day >= first_day & temperature_data$Day <= last_day, ]
+  diet_filtered   <- diet_data[diet_data$Day >= first_day & diet_data$Day <= last_day, ]
+  energy_filtered <- prey_energy_data[prey_energy_data$Day >= first_day & prey_energy_data$Day <= last_day, ]
+  
+  if (nrow(temp_filtered) == 0) stop("No hay datos de temperatura en el rango especificado")
+  if (nrow(diet_filtered) == 0) stop("No hay datos de dieta en el rango especificado")
+  
+  all_days <- seq(first_day, last_day, by = 1)
+  
+  temp_complete <- interpolate_time_series(
+    data = temp_filtered,
     value_columns = "Temperature",
-    target_days = target_days,
-    method = "linear"
+    target_days = all_days,
+    method = interp_method,
+    fill_na_method = fill_na_method,
+    validate_input = TRUE
   )
   
-  result <- list(
-    days = target_days,
-    n_days = n_days,
-    temperature = temp_result
+  diet_complete <- interpolate_time_series(
+    data = diet_filtered,
+    value_columns = setdiff(names(diet_filtered), "Day"),
+    target_days = all_days,
+    method = interp_method,
+    fill_na_method = fill_na_method,
+    validate_input = TRUE
   )
   
-  # Procesar datos de dieta si se proporcionan
-  if (!is.null(diet_data)) {
-    diet_result <- interpolate_diet_data(diet_data, target_days, normalize = TRUE)
-    prey_names <- setdiff(names(diet_result), "Day")
-    
-    result$diet <- diet_result
-    result$prey_names <- prey_names
-    result$n_prey <- length(prey_names)
-    
-    # Procesar energías de presa
-    if (!is.null(prey_energy_data)) {
-      # Verificar que las columnas de presa coincidan
-      energy_prey_cols <- intersect(prey_names, names(prey_energy_data))
-      
-      if (length(energy_prey_cols) == 0) {
-        warning("No hay coincidencia entre presas en diet_data y prey_energy_data")
-        # Usar energías por defecto
-        energy_result <- data.frame(Day = target_days)
-        for (prey in prey_names) {
-          energy_result[[prey]] <- 4000  # J/g por defecto
-        }
-      } else {
-        energy_result <- interpolate_time_series(
-          data = prey_energy_data,
-          value_columns = energy_prey_cols,
-          target_days = target_days,
-          method = "linear"
-        )
-        
-        # Agregar energías por defecto para presas faltantes
-        missing_prey <- setdiff(prey_names, energy_prey_cols)
-        for (prey in missing_prey) {
-          energy_result[[prey]] <- 4000  # J/g por defecto
-        }
-      }
-      
-      result$prey_energy <- energy_result
-    } else {
-      # Crear energías por defecto
-      energy_result <- data.frame(Day = target_days)
-      for (prey in prey_names) {
-        energy_result[[prey]] <- 4000  # J/g por defecto
-      }
-      result$prey_energy <- energy_result
-    }
-  } else {
-    # Configuración mínima: una presa genérica
-    result$prey_names <- "generic_prey"
-    result$n_prey <- 1
-    
-    diet_result <- data.frame(Day = target_days, generic_prey = 1.0)
-    energy_result <- data.frame(Day = target_days, generic_prey = 4000)
-    
-    result$diet <- diet_result
-    result$prey_energy <- energy_result
-  }
+  energy_complete <- interpolate_time_series(
+    data = energy_filtered,
+    value_columns = setdiff(names(energy_filtered), "Day"),
+    target_days = all_days,
+    method = interp_method,
+    fill_na_method = fill_na_method,
+    validate_input = TRUE
+  )
   
-  return(result)
+  prey_names <- setdiff(names(diet_data), "Day")
+  
+  return(list(
+    days = all_days,
+    n_days = length(all_days),
+    temperature = temp_complete,
+    diet = diet_complete,
+    prey_energy = energy_complete,
+    prey_names = prey_names,
+    first_day = first_day,
+    last_day = last_day,
+    duration = length(all_days)
+  ))
 }
+
+# ============================================================================
+# PROCESAMIENTO DE DATOS OPCIONALES
+# ============================================================================
 
 #' Procesar datos opcionales
 #'
 #' Procesa datos de reproducción, mortalidad, contaminantes y nutrientes
 #'
-#' @param environmental_data Resultado de process_environmental_data
+#' @param environmental_data Resultado de process_input_data
 #' @param reproduction_data Data frame con datos de reproducción (opcional)
 #' @param mortality_data Data frame con datos de mortalidad (opcional)
 #' @param contaminant_data Lista con datos de contaminantes (opcional)
@@ -524,53 +460,7 @@ process_nutrient_data_simple <- function(nutrient_data, target_days, prey_names)
 }
 
 # ============================================================================
-# FUNCIONES DE ALTO NIVEL
-# ============================================================================
-
-#' Procesar todos los datos de entrada
-#'
-#' Función principal para procesar todos los tipos de datos
-#'
-#' @param temperature_data Data frame con datos de temperatura
-#' @param simulation_days Vector de días para simulación
-#' @param diet_data Data frame con proporciones de dieta (opcional)
-#' @param prey_energy_data Data frame con energías de presa (opcional)
-#' @param reproduction_data Data frame con datos de reproducción (opcional)
-#' @param mortality_data Data frame con datos de mortalidad (opcional)
-#' @param contaminant_data Lista con datos de contaminantes (opcional)
-#' @param nutrient_data Lista con datos de nutrientes (opcional)
-#' @return Lista con todos los datos procesados
-#' @export
-process_all_input_data <- function(temperature_data, simulation_days,
-                                   diet_data = NULL, prey_energy_data = NULL,
-                                   reproduction_data = NULL, mortality_data = NULL,
-                                   contaminant_data = NULL, nutrient_data = NULL) {
-  
-  # Procesar datos ambientales básicos
-  env_data <- process_environmental_data(
-    temperature_data = temperature_data,
-    diet_data = diet_data,
-    prey_energy_data = prey_energy_data,
-    target_days = simulation_days
-  )
-  
-  # Procesar datos opcionales
-  optional_data <- process_optional_data(
-    environmental_data = env_data,
-    reproduction_data = reproduction_data,
-    mortality_data = mortality_data,
-    contaminant_data = contaminant_data,
-    nutrient_data = nutrient_data
-  )
-  
-  # Combinar resultados
-  result <- c(env_data, optional_data)
-  
-  return(result)
-}
-
-# ============================================================================
-# FUNCIONES DE VALIDACIÓN
+# FUNCIONES DE VALIDACIÓN DE DATOS PROCESADOS
 # ============================================================================
 
 #' Validar datos procesados
@@ -699,422 +589,499 @@ validate_processed_data <- function(processed_data) {
   return(validation)
 }
 
-#' Generar resumen de datos procesados
+
+
+# ============================================================================
+# FUNCIONES PARA VALIDACIÓN DE BALANCE ENERGÉTICO
+# ============================================================================
+
+#' Validar balance energético como FB4 original
 #'
-#' Crea un resumen descriptivo de los datos procesados
-#'
-#' @param processed_data Lista con datos procesados
-#' @return Data frame con resumen
+#' @param simulation_result Resultado de la simulación
+#' @param tolerance Tolerancia para considerar balance válido
+#' @return Lista con información del balance energético
 #' @export
-summarize_processed_data <- function(processed_data) {
+validate_energy_balance_fb4 <- function(simulation_result, tolerance = 1e-6) {
+  
+  if (is.null(simulation_result$daily_output)) {
+    return(list(
+      balanced = TRUE,
+      message = "Sin datos diarios para validar balance",
+      relative_error = 0
+    ))
+  }
+  
+  daily_data <- simulation_result$daily_output
+  
+  # Calcular energías inicial y final
+  initial_weight <- daily_data$Weight.g[1]
+  final_weight <- tail(daily_data$Weight.g, 1)
+  
+  # Calcular densidades energéticas (asumiendo que están en los datos diarios)
+  if ("Predator.Energy.Density.J.g" %in% names(daily_data)) {
+    initial_ed <- daily_data$Predator.Energy.Density.J.g[1]
+    final_ed <- tail(daily_data$Predator.Energy.Density.J.g, 1)
+  } else {
+    # Si no están disponibles, usar valores por defecto
+    initial_ed <- 5000
+    final_ed <- 5000
+  }
+  
+  initial_body_energy <- initial_weight * initial_ed
+  final_body_energy <- final_weight * final_ed
+  
+  # Calcular energías acumuladas
+  total_consumption <- sum(daily_data$Consumption.J.g.d * daily_data$Weight.g, na.rm = TRUE)
+  total_respiration <- sum(daily_data$Respiration.J.g.d * daily_data$Weight.g, na.rm = TRUE)
+  total_egestion <- sum(daily_data$Egestion.J.g.d * daily_data$Weight.g, na.rm = TRUE)
+  total_excretion <- sum(daily_data$Excretion.J.g.d * daily_data$Weight.g, na.rm = TRUE)
+  total_sda <- sum(daily_data$SDA.J.g.d * daily_data$Weight.g, na.rm = TRUE)
+  
+  # Energía de reproducción si está disponible
+  total_spawn <- 0
+  if ("Spawn.Energy.J.g.d" %in% names(daily_data)) {
+    total_spawn <- sum(daily_data$Spawn.Energy.J.g.d * daily_data$Weight.g, na.rm = TRUE)
+  }
+  
+  # Balance energético: Energía inicial + Consumo = Energía final + Respiración + Egestión + Excreción + SDA + Reproducción
+  energy_in <- initial_body_energy + total_consumption
+  energy_out <- final_body_energy + total_respiration + total_egestion + total_excretion + total_sda + total_spawn
+  
+  energy_difference <- abs(energy_in - energy_out)
+  relative_error <- if (energy_in > 0) energy_difference / energy_in else 0
+  
+  balanced <- relative_error < tolerance
+  
+  return(list(
+    balanced = balanced,
+    message = if (balanced) "Balance energético OK" else "Advertencia: Balance energético no válido",
+    relative_error = relative_error,
+    energy_difference = energy_difference,
+    energy_in = energy_in,
+    energy_out = energy_out,
+    components = list(
+      initial_body_energy = initial_body_energy,
+      final_body_energy = final_body_energy,
+      total_consumption = total_consumption,
+      total_respiration = total_respiration,
+      total_egestion = total_egestion,
+      total_excretion = total_excretion,
+      total_sda = total_sda,
+      total_spawn = total_spawn
+    )
+  ))
+}
+
+# ============================================================================
+# FUNCIONES PARA RESULTADOS DE AJUSTE FB4
+# ============================================================================
+
+#' Validar resultado de ajuste FB4
+#'
+#' @param fit_result Resultado de función de ajuste FB4
+#' @return Lista con información de validación
+#' @export
+validate_fb4_fit_result <- function(fit_result) {
+  
+  validation <- list(
+    valid = TRUE,
+    warnings = character(),
+    errors = character(),
+    recommendations = character()
+  )
+  
+  # Verificar estructura básica
+  required_fields <- c("fit_successful", "p_value", "fit_iterations")
+  missing_fields <- setdiff(required_fields, names(fit_result))
+  
+  if (length(missing_fields) > 0) {
+    validation$errors <- c(validation$errors, 
+                           paste("Campos faltantes:", paste(missing_fields, collapse = ", ")))
+    validation$valid <- FALSE
+  }
+  
+  # Verificar convergencia
+  if ("fit_successful" %in% names(fit_result)) {
+    if (!fit_result$fit_successful) {
+      validation$warnings <- c(validation$warnings, "El ajuste no convergió")
+      validation$recommendations <- c(validation$recommendations, 
+                                      "Considerar aumentar max_iterations o ajustar tolerance")
+    }
+  }
+  
+  # Verificar p-value
+  if ("p_value" %in% names(fit_result)) {
+    p_val <- fit_result$p_value
+    if (p_val <= 0.001) {
+      validation$warnings <- c(validation$warnings, "p-value muy bajo (posible subalimentación)")
+      validation$recommendations <- c(validation$recommendations, 
+                                      "Revisar parámetros de consumo o condiciones ambientales")
+    } else if (p_val >= 4.999) {
+      validation$warnings <- c(validation$warnings, "p-value muy alto (posible sobrealimentación)")
+      validation$recommendations <- c(validation$recommendations, 
+                                      "Revisar objetivo de ajuste o parámetros metabólicos")
+    }
+  }
+  
+  # Verificar error final
+  if ("fit_error" %in% names(fit_result)) {
+    if (!is.na(fit_result$fit_error)) {
+      if (fit_result$fit_error > 0.1) {
+        validation$warnings <- c(validation$warnings, "Error de ajuste alto")
+        validation$recommendations <- c(validation$recommendations, 
+                                        "Considerar disminuir tolerance o revisar datos de entrada")
+      }
+    }
+  }
+  
+  # Verificar balance energético si está disponible
+  if ("energy_balance" %in% names(fit_result)) {
+    if (!fit_result$energy_balance$balanced) {
+      validation$warnings <- c(validation$warnings, "Balance energético no válido")
+      validation$recommendations <- c(validation$recommendations, 
+                                      "Revisar cálculos metabólicos y parámetros de especies")
+    }
+  }
+  
+  return(validation)
+}
+
+#' Generar resumen detallado de ajuste FB4
+#'
+#' @param fit_result Resultado de función de ajuste FB4
+#' @return Data frame con resumen detallado
+#' @export
+summarize_fb4_fit_result <- function(fit_result) {
   
   summary_data <- data.frame(
-    Component = character(),
-    Description = character(),
+    Parameter = character(),
     Value = character(),
+    Status = character(),
     stringsAsFactors = FALSE
   )
   
-  # Información básica
-  if ("n_days" %in% names(processed_data)) {
-    summary_data <- rbind(summary_data,
-                          data.frame(Component = "Simulation",
-                                     Description = "Number of days",
-                                     Value = processed_data$n_days))
+  # Información básica del ajuste
+  if ("p_value" %in% names(fit_result)) {
+    status <- if (fit_result$p_value <= 0.001) "Bajo" else if (fit_result$p_value >= 4.999) "Alto" else "Normal"
+    summary_data <- rbind(summary_data, 
+                          data.frame(Parameter = "P-value", 
+                                     Value = round(fit_result$p_value, 4),
+                                     Status = status))
   }
   
-  if ("days" %in% names(processed_data)) {
-    day_range <- range(processed_data$days)
+  if ("fit_successful" %in% names(fit_result)) {
+    status <- if (fit_result$fit_successful) "Éxito" else "Fallo"
     summary_data <- rbind(summary_data,
-                          data.frame(Component = "Simulation",
-                                     Description = "Day range",
-                                     Value = paste(day_range[1], "-", day_range[2])))
+                          data.frame(Parameter = "Convergencia",
+                                     Value = fit_result$fit_successful,
+                                     Status = status))
   }
   
-  # Información de temperatura
-  if ("temperature" %in% names(processed_data)) {
-    temps <- processed_data$temperature$Temperature
-    temp_range <- range(temps, na.rm = TRUE)
-    temp_mean <- mean(temps, na.rm = TRUE)
-    
+  if ("fit_iterations" %in% names(fit_result)) {
+    status <- if (fit_result$fit_iterations < 10) "Rápido" else if (fit_result$fit_iterations > 20) "Lento" else "Normal"
     summary_data <- rbind(summary_data,
-                          data.frame(Component = "Temperature",
-                                     Description = "Range (°C)",
-                                     Value = paste(round(temp_range[1], 1), "-", round(temp_range[2], 1))))
-    
-    summary_data <- rbind(summary_data,
-                          data.frame(Component = "Temperature",
-                                     Description = "Mean (°C)",
-                                     Value = round(temp_mean, 1)))
+                          data.frame(Parameter = "Iteraciones",
+                                     Value = fit_result$fit_iterations,
+                                     Status = status))
   }
   
-  # Información de dieta
-  if ("prey_names" %in% names(processed_data)) {
+  if ("fit_error" %in% names(fit_result)) {
+    status <- if (is.na(fit_result$fit_error)) "N/A" else if (fit_result$fit_error < 0.001) "Excelente" else if (fit_result$fit_error < 0.01) "Bueno" else "Regular"
     summary_data <- rbind(summary_data,
-                          data.frame(Component = "Diet",
-                                     Description = "Number of prey types",
-                                     Value = length(processed_data$prey_names)))
-    
-    summary_data <- rbind(summary_data,
-                          data.frame(Component = "Diet",
-                                     Description = "Prey types",
-                                     Value = paste(processed_data$prey_names, collapse = ", ")))
+                          data.frame(Parameter = "Error final",
+                                     Value = if (is.na(fit_result$fit_error)) "N/A" else round(fit_result$fit_error, 6),
+                                     Status = status))
   }
   
-  # Información de módulos opcionales
-  optional_modules <- c("reproduction", "mortality", "contaminant", "nutrient")
-  for (module in optional_modules) {
-    if (module %in% names(processed_data)) {
-      summary_data <- rbind(summary_data,
-                            data.frame(Component = "Optional modules",
-                                       Description = paste(module, "data"),
-                                       Value = "Available"))
-    }
+  # Información de la simulación
+  if ("final_weight" %in% names(fit_result)) {
+    summary_data <- rbind(summary_data,
+                          data.frame(Parameter = "Peso final (g)",
+                                     Value = round(fit_result$final_weight, 2),
+                                     Status = ""))
+  }
+  
+  if ("total_consumption" %in% names(fit_result)) {
+    summary_data <- rbind(summary_data,
+                          data.frame(Parameter = "Consumo total (g)",
+                                     Value = round(fit_result$total_consumption, 2),
+                                     Status = ""))
+  }
+  
+  # Balance energético
+  if ("energy_balance" %in% names(fit_result)) {
+    status <- if (fit_result$energy_balance$balanced) "Válido" else "Advertencia"
+    summary_data <- rbind(summary_data,
+                          data.frame(Parameter = "Balance energético",
+                                     Value = fit_result$energy_balance$message,
+                                     Status = status))
   }
   
   return(summary_data)
 }
 
 # ============================================================================
-# FUNCIONES DE UTILIDAD
+# FUNCIONES PARA OBJETOS BIOENERGETIC
 # ============================================================================
 
-#' Crear datos de temperatura de ejemplo
-#'
-#' Genera datos de temperatura sintéticos para pruebas
-#'
-#' @param days Vector de días
-#' @param mean_temp Temperatura media (°C)
-#' @param amplitude Amplitud de variación estacional (°C)
-#' @param noise Nivel de ruido diario (°C)
-#' @return Data frame con datos de temperatura
-#' @export
-create_example_temperature_data <- function(days, mean_temp = 20, amplitude = 10, noise = 2) {
+#' Validar entradas para FB4 con objeto Bioenergetic
+#' @keywords internal
+validate_fb4_bioenergetic_inputs <- function(bio_obj, fit_to, fit_value, 
+                                             first_day, last_day) {
   
-  n_days <- length(days)
+  if (first_day >= last_day) {
+    stop("first_day debe ser menor que last_day")
+  }
   
-  # Patrón estacional (sinusoidal)
-  seasonal_pattern <- mean_temp + amplitude * sin(2 * pi * (days - 80) / 365)
+  if (!fit_to %in% c("Weight", "Consumption", "Ration", "Ration_prey", "p-value")) {
+    stop("fit_to debe ser uno de: Weight, Consumption, Ration, Ration_prey, p-value")
+  }
   
-  # Agregar ruido diario
-  if (noise > 0) {
-    daily_noise <- rnorm(n_days, mean = 0, sd = noise)
-    temperatures <- seasonal_pattern + daily_noise
+  # Verificar que los días solicitados estén disponibles en los datos
+  temp_days <- bio_obj$environmental_data$temperature$Day
+  if (first_day < min(temp_days) || last_day > max(temp_days)) {
+    stop("Los días solicitados exceden el rango de datos de temperatura disponibles")
+  }
+  
+  diet_days <- bio_obj$diet_data$proportions$Day
+  if (first_day < min(diet_days) || last_day > max(diet_days)) {
+    stop("Los días solicitados exceden el rango de datos de dieta disponibles")
+  }
+}
+
+#' Procesar datos desde objeto Bioenergetic
+#' @keywords internal
+process_bioenergetic_data <- function(bio_obj, first_day, last_day) {
+  
+  target_days <- first_day:last_day
+  
+  # Procesar temperatura
+  temp_df <- bio_obj$environmental_data$temperature
+  temp_subset <- temp_df[temp_df$Day %in% target_days, ]
+  temp_subset <- temp_subset[order(temp_subset$Day), ]
+  
+  if (nrow(temp_subset) != length(target_days)) {
+    warning("Algunos días de temperatura faltantes, se usará interpolación")
+    # Interpolación simple
+    full_temp <- approx(temp_subset$Day, temp_subset$Temperature, 
+                        xout = target_days, rule = 2)$y
   } else {
-    temperatures <- seasonal_pattern
+    full_temp <- temp_subset$Temperature
   }
   
-  # Limitar a rangos realistas
-  temperatures <- clamp(temperatures, -5, 45)
+  # Procesar dieta
+  diet_props <- bio_obj$diet_data$proportions
+  diet_energies <- bio_obj$diet_data$energies
+  prey_names <- bio_obj$diet_data$prey_names
   
-  return(data.frame(
-    Day = days,
-    Temperature = temperatures
-  ))
-}
-
-#' Crear datos de dieta de ejemplo
-#'
-#' Genera datos de dieta sintéticos para pruebas
-#'
-#' @param days Vector de días
-#' @param prey_names Vector con nombres de presas
-#' @param seasonal_variation Incluir variación estacional
-#' @return Data frame con proporciones de dieta
-#' @export
-create_example_diet_data <- function(days, prey_names = c("zooplankton", "insects"), 
-                                     seasonal_variation = TRUE) {
+  # Subconjunto de días
+  diet_subset <- diet_props[diet_props$Day %in% target_days, ]
+  energy_subset <- diet_energies[diet_energies$Day %in% target_days, ]
   
-  n_days <- length(days)
-  n_prey <- length(prey_names)
+  # Ordenar por día
+  diet_subset <- diet_subset[order(diet_subset$Day), ]
+  energy_subset <- energy_subset[order(energy_subset$Day), ]
   
-  diet_data <- data.frame(Day = days)
+  # Extraer solo las columnas de presas (sin Day)
+  diet_matrix <- as.matrix(diet_subset[, prey_names, drop = FALSE])
+  energy_matrix <- as.matrix(energy_subset[, prey_names, drop = FALSE])
   
-  if (seasonal_variation && n_prey >= 2) {
-    # Variación estacional entre presas
-    for (i in seq_along(prey_names)) {
-      # Cada presa tiene un pico estacional diferente
-      peak_day <- 90 + (i - 1) * (365 / n_prey)
-      seasonal_component <- 0.3 + 0.4 * exp(-((days - peak_day) / 60)^2)
-      
-      # Normalizar y agregar ruido
-      base_proportion <- 1 / n_prey
-      variation <- seasonal_component * 0.3
-      proportions <- base_proportion + variation + rnorm(n_days, 0, 0.05)
-      
-      diet_data[[prey_names[i]]] <- pmax(0.01, proportions)
-    }
-    
-    # Normalizar proporciones
-    prop_matrix <- as.matrix(diet_data[, prey_names])
-    row_sums <- rowSums(prop_matrix)
-    diet_data[, prey_names] <- prop_matrix / row_sums
-    
-  } else {
-    # Proporciones uniformes
-    for (prey in prey_names) {
-      diet_data[[prey]] <- 1 / n_prey
-    }
-  }
-  
-  return(diet_data)
-}
-
-#' Crear datos de energía de presa de ejemplo
-#'
-#' Genera datos de energía de presa sintéticos
-#'
-#' @param days Vector de días
-#' @param prey_names Vector con nombres de presas
-#' @param base_energies Vector con energías base por presa (J/g)
-#' @param seasonal_variation Incluir variación estacional
-#' @return Data frame con energías de presa
-#' @export
-create_example_prey_energy_data <- function(days, prey_names, 
-                                            base_energies = NULL, seasonal_variation = FALSE) {
-  
-  n_days <- length(days)
-  n_prey <- length(prey_names)
-  
-  # Energías base por defecto
-  if (is.null(base_energies)) {
-    base_energies <- c(3500, 4500, 4000, 5000)[1:n_prey]  # J/g típicas
-  } else if (length(base_energies) != n_prey) {
-    stop("Longitud de base_energies debe coincidir con prey_names")
-  }
-  
-  energy_data <- data.frame(Day = days)
-  
-  for (i in seq_along(prey_names)) {
-    base_energy <- base_energies[i]
-    
-    if (seasonal_variation) {
-      # Variación estacional (típicamente mayor energía en verano/otoño)
-      seasonal_factor <- 1 + 0.2 * sin(2 * pi * (days - 200) / 365)
-      daily_noise <- rnorm(n_days, 1, 0.05)
-      energies <- base_energy * seasonal_factor * daily_noise
-    } else {
-      # Energía constante con pequeño ruido
-      energies <- rnorm(n_days, base_energy, base_energy * 0.02)
-    }
-    
-    # Limitar a rangos realistas
-    energies <- clamp(energies, 1000, 8000)
-    energy_data[[prey_names[i]]] <- energies
-  }
-  
-  return(energy_data)
-}
-
-
-#' Función de alto nivel para procesamiento completo
-#'
-#' Procesa y valida todos los datos de entrada de forma integrada
-#'
-#' @param input_data Lista con todos los datos de entrada
-#' @param simulation_days Vector de días para simulación
-#' @param validate_data Ejecutar validaciones automáticas
-#' @return Lista con datos procesados y validación
-#' @export
-process_and_validate_data <- function(input_data, simulation_days, validate_data = TRUE) {
-  
-  # Verificar datos mínimos requeridos
-  if (!"temperature" %in% names(input_data)) {
-    stop("Datos de temperatura requeridos")
-  }
-  
-  # Extraer componentes
-  temperature_data <- input_data$temperature
-  diet_data <- input_data$diet %||% NULL
-  prey_energy_data <- input_data$prey_energy %||% NULL
-  reproduction_data <- input_data$reproduction %||% NULL
-  mortality_data <- input_data$mortality %||% NULL
-  contaminant_data <- input_data$contaminant %||% NULL
-  nutrient_data <- input_data$nutrient %||% NULL
-  
-  # Verificar compatibilidad si se solicita
-  if (validate_data) {
-    compatibility <- check_data_compatibility(temperature_data, diet_data, prey_energy_data)
-    if (!compatibility$compatible) {
-      stop("Datos incompatibles: ", paste(compatibility$errors, collapse = "; "))
-    }
-    if (length(compatibility$warnings) > 0) {
-      warning("Advertencias de compatibilidad: ", paste(compatibility$warnings, collapse = "; "))
-    }
-  }
-  
-  # Procesar todos los datos
-  processed_data <- process_all_input_data(
-    temperature_data = temperature_data,
-    simulation_days = simulation_days,
-    diet_data = diet_data,
-    prey_energy_data = prey_energy_data,
-    reproduction_data = reproduction_data,
-    mortality_data = mortality_data,
-    contaminant_data = contaminant_data,
-    nutrient_data = nutrient_data
-  )
-  
-  # Validar datos procesados si se solicita
-  validation_result <- NULL
-  if (validate_data) {
-    validation_result <- validate_processed_data(processed_data)
-    if (!validation_result$valid) {
-      stop("Errores en datos procesados: ", paste(validation_result$errors, collapse = "; "))
-    }
-    if (length(validation_result$warnings) > 0) {
-      warning("Advertencias en datos procesados: ", paste(validation_result$warnings, collapse = "; "))
-    }
-  }
-  
-  # Crear resumen
-  data_summary <- summarize_processed_data(processed_data)
+  # Normalizar proporciones de dieta por día
+  row_sums <- rowSums(diet_matrix, na.rm = TRUE)
+  diet_matrix <- diet_matrix / ifelse(row_sums == 0, 1, row_sums)
   
   return(list(
-    processed_data = processed_data,
-    validation = validation_result,
-    summary = data_summary,
-    input_compatibility = if (validate_data) compatibility else NULL
+    temperature = full_temp,
+    diet_proportions = diet_matrix,
+    prey_energies = energy_matrix,
+    duration = length(target_days),
+    prey_names = prey_names,
+    first_day = first_day,
+    last_day = last_day
   ))
 }
 
+#' Configurar opciones del modelo desde objeto Bioenergetic
+#' @keywords internal
+setup_model_options_from_bioenergetic <- function(bio_obj, ...) {
+  
+  # Opciones por defecto
+  default_options <- list(
+    calc_mortality = FALSE,
+    calc_reproduction = FALSE,
+    calc_contaminant = FALSE,
+    calc_nutrient = FALSE
+  )
+  
+  # Combinar con opciones del objeto si existen
+  if (!is.null(bio_obj$model_options)) {
+    default_options <- modifyList(default_options, bio_obj$model_options)
+  }
+  
+  # Sobrescribir con argumentos adicionales
+  extra_args <- list(...)
+  if (length(extra_args) > 0) {
+    valid_options <- names(default_options)
+    extra_options <- extra_args[names(extra_args) %in% valid_options]
+    default_options <- modifyList(default_options, extra_options)
+  }
+  
+  return(default_options)
+}
 
-#' Análisis de sensibilidad simple
+#' Validar objeto Bioenergetic para FB4
+#' @keywords internal
+validate_bioenergetic_object <- function(bio_obj) {
+  
+  # Verificar componentes esenciales
+  required_components <- c("species_params", "environmental_data", 
+                           "diet_data", "simulation_settings")
+  missing <- setdiff(required_components, names(bio_obj))
+  if (length(missing) > 0) {
+    stop("Objeto Bioenergetic falta componentes: ", paste(missing, collapse = ", "))
+  }
+  
+  # Verificar parámetros de especie
+  required_param_categories <- c("consumption", "respiration", "egestion", 
+                                 "excretion", "predator")
+  missing_params <- setdiff(required_param_categories, names(bio_obj$species_params))
+  if (length(missing_params) > 0) {
+    stop("species_params falta categorías: ", paste(missing_params, collapse = ", "))
+  }
+  
+  # Verificar datos ambientales
+  if (is.null(bio_obj$environmental_data$temperature) || 
+      !is.data.frame(bio_obj$environmental_data$temperature)) {
+    stop("environmental_data debe contener un data.frame 'temperature'")
+  }
+  
+  temp_df <- bio_obj$environmental_data$temperature
+  if (!all(c("Day", "Temperature") %in% names(temp_df))) {
+    stop("temperature data.frame debe tener columnas 'Day' y 'Temperature'")
+  }
+  
+  # Verificar datos de dieta
+  if (is.null(bio_obj$diet_data$proportions) || 
+      !is.data.frame(bio_obj$diet_data$proportions)) {
+    stop("diet_data debe contener un data.frame 'proportions'")
+  }
+  
+  if (is.null(bio_obj$diet_data$energies) || 
+      !is.data.frame(bio_obj$diet_data$energies)) {
+    stop("diet_data debe contener un data.frame 'energies'")
+  }
+  
+  # Verificar configuración de simulación
+  if (is.null(bio_obj$simulation_settings$initial_weight) || 
+      bio_obj$simulation_settings$initial_weight <= 0) {
+    stop("simulation_settings debe contener initial_weight > 0")
+  }
+}
+
+# ============================================================================
+# FUNCIONES HEREDADAS PARA COMPATIBILIDAD (FUNCIONES SIMPLIFICADAS)
+# ============================================================================
+
+#' Procesar archivos de entrada para FB4 (versión simplificada)
 #'
-#' Evalúa cómo cambios en un parámetro afectan el resultado
-#'
-#' @param bioenergetic_obj Objeto de clase Bioenergetic
-#' @param parameter_name Nombre del parámetro a analizar
-#' @param parameter_range Vector con valores a probar
-#' @param output_metrics Métricas a evaluar
-#' @return Data frame con resultados del análisis
+#' @param temperature_data Data frame con Day y Temperature
+#' @param diet_data Data frame con Day y proporciones de presa
+#' @param prey_energy_data Data frame con Day y energías de presa
+#' @param first_day Primer día de simulación
+#' @param last_day Último día de simulación
+#' @return Lista con datos procesados para FB4
 #' @export
-analyze_parameter_sensitivity <- function(bioenergetic_obj, parameter_name, 
-                                          parameter_range, 
-                                          output_metrics = c("final_weight", "total_consumption")) {
+process_fb4_input_files <- function(temperature_data, diet_data, prey_energy_data,
+                                    first_day, last_day) {
   
-  if (!is.Bioenergetic(bioenergetic_obj)) {
-    stop("Objeto debe ser de clase Bioenergetic")
+  # Validar datos de temperatura
+  if (is.null(temperature_data) || !all(c("Day", "Temperature") %in% names(temperature_data))) {
+    stop("temperature_data debe tener columnas 'Day' y 'Temperature'")
   }
   
-  # Inicializar resultados
-  results <- data.frame(
-    parameter_value = parameter_range,
-    stringsAsFactors = FALSE
-  )
+  # Filtrar por rango de días
+  temp_filtered <- temperature_data[
+    temperature_data$Day >= first_day & temperature_data$Day <= last_day, 
+  ]
   
-  # Añadir columnas para métricas
-  for (metric in output_metrics) {
-    results[[metric]] <- NA
+  if (nrow(temp_filtered) == 0) {
+    stop("No hay datos de temperatura para el rango de días especificado")
   }
   
-  # Valor base del parámetro
-  baseline_value <- get_parameter_value(bioenergetic_obj$species_parameters, parameter_name)
+  # Crear secuencia completa de días
+  all_days <- first_day:last_day
+  duration <- length(all_days)
   
-  # Ejecutar simulaciones
-  for (i in seq_along(parameter_range)) {
-    param_value <- parameter_range[i]
+  # Interpolar temperatura para días faltantes
+  temperature <- approx(temp_filtered$Day, temp_filtered$Temperature, 
+                        xout = all_days, method = "linear", rule = 2)$y
+  
+  # Procesar datos de dieta
+  if (!is.null(diet_data)) {
+    diet_filtered <- diet_data[diet_data$Day >= first_day & diet_data$Day <= last_day, ]
     
-    # Crear objeto temporal con parámetro modificado
-    temp_obj <- bioenergetic_obj
-    temp_obj$species_parameters <- set_parameter_value(
-      temp_obj$species_parameters, parameter_name, param_value
-    )
+    # Obtener columnas de proporciones (excluyendo 'Day')
+    prop_cols <- names(diet_filtered)[names(diet_filtered) != "Day"]
     
-    # Ejecutar simulación
-    sim_result <- tryCatch({
-      run_bioenergetic_simulation_core(
-        initial_weight = temp_obj$simulation_settings$initial_weight,
-        p_value = 0.5,
-        species_params = temp_obj$species_parameters,
-        environmental_data = temp_obj$environmental_data,
-        return_daily = FALSE
-      )
-    }, error = function(e) NULL)
+    # Crear matriz de proporciones interpoladas
+    diet_proportions <- matrix(0, nrow = duration, ncol = length(prop_cols))
+    colnames(diet_proportions) <- prop_cols
     
-    # Guardar resultados
-    if (!is.null(sim_result)) {
-      if ("final_weight" %in% output_metrics) {
-        results$final_weight[i] <- sim_result$final_weight
-      }
-      if ("total_consumption" %in% output_metrics) {
-        results$total_consumption[i] <- sim_result$total_consumption
-      }
+    for (i in seq_along(prop_cols)) {
+      col_data <- diet_filtered[, prop_cols[i]]
+      diet_proportions[, i] <- approx(diet_filtered$Day, col_data, 
+                                      xout = all_days, method = "linear", rule = 2)$y
     }
-  }
-  
-  # Calcular sensibilidades relativas
-  baseline_idx <- which.min(abs(parameter_range - baseline_value))
-  if (length(baseline_idx) > 0) {
-    for (metric in output_metrics) {
-      if (metric %in% names(results)) {
-        baseline_metric <- results[[metric]][baseline_idx]
-        if (!is.na(baseline_metric) && baseline_metric != 0) {
-          sensitivity_col <- paste0(metric, "_relative_change")
-          results[[sensitivity_col]] <- ((results[[metric]] - baseline_metric) / baseline_metric) * 100
-        }
-      }
-    }
-  }
-  
-  return(results)
-}
-
-
-
-#' Verificar compatibilidad entre datasets
-#' @keywords internal
-check_data_compatibility <- function(temperature_data, diet_data = NULL, prey_energy_data = NULL) {
-  
-  compatibility <- list(
-    compatible = TRUE,
-    warnings = character(),
-    errors = character()
-  )
-  
-  if (!"Day" %in% names(temperature_data) || !"Temperature" %in% names(temperature_data)) {
-    compatibility$errors <- c(compatibility$errors, "temperature_data debe tener columnas 'Day' y 'Temperature'")
-    compatibility$compatible <- FALSE
-  }
-  
-  if (!is.null(diet_data) && "Day" %in% names(diet_data)) {
-    temp_days <- range(temperature_data$Day, na.rm = TRUE)
-    diet_days <- range(diet_data$Day, na.rm = TRUE)
     
-    if (diet_days[1] > temp_days[2] || diet_days[2] < temp_days[1]) {
-      compatibility$warnings <- c(compatibility$warnings, "Rangos de días no se superponen entre temperatura y dieta")
-    }
+    # Normalizar proporciones para que sumen 1
+    row_sums <- rowSums(diet_proportions, na.rm = TRUE)
+    diet_proportions <- diet_proportions / pmax(row_sums, 1e-10)
+  } else {
+    # Si no hay datos de dieta, asumir una presa con proporción 1
+    diet_proportions <- matrix(1, nrow = duration, ncol = 1)
+    colnames(diet_proportions) <- "Prey1"
   }
   
-  if (!is.null(diet_data) && !is.null(prey_energy_data)) {
-    diet_prey <- setdiff(names(diet_data), "Day")
-    energy_prey <- setdiff(names(prey_energy_data), "Day")
+  # Procesar datos de energía de presa
+  if (!is.null(prey_energy_data)) {
+    energy_filtered <- prey_energy_data[
+      prey_energy_data$Day >= first_day & prey_energy_data$Day <= last_day, 
+    ]
     
-    if (!identical(sort(diet_prey), sort(energy_prey))) {
-      compatibility$errors <- c(compatibility$errors, "Columnas de presas no coinciden entre diet_data y prey_energy_data")
-      compatibility$compatible <- FALSE
+    # Obtener columnas de energía (excluyendo 'Day')
+    energy_cols <- names(energy_filtered)[names(energy_filtered) != "Day"]
+    
+    # Crear matriz de energías interpoladas
+    prey_energies <- matrix(0, nrow = duration, ncol = length(energy_cols))
+    colnames(prey_energies) <- energy_cols
+    
+    for (i in seq_along(energy_cols)) {
+      col_data <- energy_filtered[, energy_cols[i]]
+      prey_energies[, i] <- approx(energy_filtered$Day, col_data, 
+                                   xout = all_days, method = "linear", rule = 2)$y
     }
+  } else {
+    # Si no hay datos de energía, usar valor por defecto
+    prey_energies <- matrix(4000, nrow = duration, ncol = ncol(diet_proportions))
+    colnames(prey_energies) <- colnames(diet_proportions)
   }
   
-  return(compatibility)
-}
-
-#' Obtener valor diario de datos temporales
-#' @keywords internal
-get_daily_value <- function(data_vector, day) {
-  if (is.data.frame(data_vector)) {
-    if ("Day" %in% names(data_vector)) {
-      idx <- which(data_vector$Day == day)
-      if (length(idx) > 0) {
-        value_cols <- setdiff(names(data_vector), "Day")
-        return(data_vector[idx[1], value_cols[1]])
-      }
-    }
-    return(NA)
-  } else if (is.vector(data_vector)) {
-    if (day <= length(data_vector)) {
-      return(data_vector[day])
-    }
+  # Verificar consistencia entre dieta y energías
+  if (ncol(diet_proportions) != ncol(prey_energies)) {
+    warning("Número de presas en dieta y energías no coincide. Ajustando...")
+    
+    # Tomar el mínimo número de columnas
+    min_cols <- min(ncol(diet_proportions), ncol(prey_energies))
+    diet_proportions <- diet_proportions[, 1:min_cols, drop = FALSE]
+    prey_energies <- prey_energies[, 1:min_cols, drop = FALSE]
   }
-  return(NA)
+  
+  return(list(
+    temperature = temperature,
+    diet_proportions = diet_proportions,
+    prey_energies = prey_energies,
+    duration = duration,
+    first_day = first_day,
+    last_day = last_day
+  ))
 }

@@ -2,19 +2,34 @@
 % Please edit documentation in R/00-utils.R
 \name{validate_basic_params}
 \alias{validate_basic_params}
-\title{Validar parámetros básicos del modelo}
+\title{Validate Basic Model Parameters}
 \usage{
 validate_basic_params(initial_weight, duration)
 }
 \arguments{
-\item{initial_weight}{Peso inicial}
+\item{initial_weight}{Initial weight in grams}
 
-\item{duration}{Duración en días}
+\item{duration}{Duration in days}
 }
 \value{
-NULL (lanza error si inválido)
+NULL (throws error if invalid)
 }
 \description{
-Validar parámetros básicos del modelo
+Validates fundamental model parameters for biological feasibility
+and computational practicality.
+}
+\details{
+Checks that:
+\itemize{
+  \item{Initial weight is positive and numeric}
+  \item{Duration is positive and numeric}
+  \item{Duration is not excessively long (performance warning)}
+}
+}
+\examples{
+\dontrun{
+validate_basic_params(10.5, 365)  # Valid
+validate_basic_params(-5, 100)    # Error: negative weight
+}
 }
 \keyword{internal}

@@ -2,19 +2,36 @@
 % Please edit documentation in R/00-utils.R
 \name{validate_diet_consistency}
 \alias{validate_diet_consistency}
-\title{Validar consistencia entre datos de dieta y energía}
+\title{Validate Consistency Between Diet and Energy Data}
 \usage{
 validate_diet_consistency(diet_data, energy_data)
 }
 \arguments{
-\item{diet_data}{Data frame con proporciones de dieta}
+\item{diet_data}{Data frame with diet proportions}
 
-\item{energy_data}{Data frame con energías de presas}
+\item{energy_data}{Data frame with prey energies}
 }
 \value{
-NULL (lanza error si inconsistente)
+NULL (throws error if inconsistent)
 }
 \description{
-Validar consistencia entre datos de dieta y energía
+Validates consistency between diet composition and prey energy density data,
+ensuring they have matching prey species and valid values.
+}
+\details{
+Validation includes:
+\itemize{
+  \item{Matching prey species columns between datasets}
+  \item{Diet proportions sum approximately to 1.0}
+  \item{No negative diet proportions}
+  \item{All prey energies are positive}
+}
+}
+\examples{
+\dontrun{
+diet <- data.frame(Day = 1:5, fish = 0.6, zooplankton = 0.4)
+energy <- data.frame(Day = 1:5, fish = 4000, zooplankton = 2500)
+validate_diet_consistency(diet, energy)
+}
 }
 \keyword{internal}
