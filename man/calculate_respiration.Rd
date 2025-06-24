@@ -4,7 +4,12 @@
 \alias{calculate_respiration}
 \title{Calcular respiración diaria}
 \usage{
-calculate_respiration(temperature, weight, respiration_params)
+calculate_respiration(
+  temperature,
+  weight,
+  respiration_params,
+  activity_params = NULL
+)
 }
 \arguments{
 \item{temperature}{Temperatura del agua (°C)}
@@ -13,7 +18,7 @@ calculate_respiration(temperature, weight, respiration_params)
 
 \item{respiration_params}{Lista con parámetros de respiración}
 
-\item{consumption}{Consumo para calcular SDA (opcional)}
+\item{activity_params}{Lista con parámetros de actividad}
 }
 \value{
 Respiración (g O2/g pez/día)

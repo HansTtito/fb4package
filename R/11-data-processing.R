@@ -873,18 +873,22 @@ process_bioenergetic_data <- function(bio_obj, first_day, last_day) {
   diet_props <- bio_obj$diet_data$proportions
   diet_energies <- bio_obj$diet_data$energies
   prey_names <- bio_obj$diet_data$prey_names
+  prey_indigestible <- bio_obj$diet_data$indigestible
   
   # Subconjunto de días
   diet_subset <- diet_props[diet_props$Day %in% target_days, ]
   energy_subset <- diet_energies[diet_energies$Day %in% target_days, ]
+  prey_indigestible_subset <- prey_indigestible[prey_indigestible$Day %in% target_days, ]
   
   # Ordenar por día
   diet_subset <- diet_subset[order(diet_subset$Day), ]
   energy_subset <- energy_subset[order(energy_subset$Day), ]
+  prey_indigestible_subset <- prey_indigestible_subset[order(prey_indigestible_subset$Day), ]
   
   # Extraer solo las columnas de presas (sin Day)
   diet_matrix <- as.matrix(diet_subset[, prey_names, drop = FALSE])
   energy_matrix <- as.matrix(energy_subset[, prey_names, drop = FALSE])
+  prey_indigestible_matrix <- as.matrix(prey_indigestible_subset[, prey_names, drop = FALSE])
   
   # Normalizar proporciones de dieta por día
   row_sums <- rowSums(diet_matrix, na.rm = TRUE)
@@ -894,6 +898,7 @@ process_bioenergetic_data <- function(bio_obj, first_day, last_day) {
     temperature = full_temp,
     diet_proportions = diet_matrix,
     prey_energies = energy_matrix,
+    prey_indigestible = prey_indigestible_matrix,
     duration = length(target_days),
     prey_names = prey_names,
     first_day = first_day,

@@ -119,7 +119,8 @@ calculate_daily_metabolism <- function(consumption_energy, current_weight, tempe
   respiration_o2 <- calculate_respiration(
     weight = current_weight,
     temperature = temperature,
-    respiration_params = species_params$respiration
+    respiration_params = species_params$respiration,
+    activity_params = species_params$activity
   )
   respiration_energy <- respiration_o2 * oxycal
   
@@ -134,7 +135,7 @@ calculate_daily_metabolism <- function(consumption_energy, current_weight, tempe
     egestion_energy = egestion_energy,
     excretion_energy = excretion_energy,
     respiration_energy = respiration_energy,
-    respiration_o2 = respiration_o2,
+    respiration_o2 = (respiration_energy + sda_energy)/oxycal,
     sda_energy = sda_energy,
     net_energy = consumption_energy - egestion_energy - excretion_energy - respiration_energy - sda_energy
   ))

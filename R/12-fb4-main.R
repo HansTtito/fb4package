@@ -609,6 +609,7 @@ run_fb4_simulation_complete <- function(initial_weight, p_value, species_params,
   n_days <- processed_data$duration
   first_day <- processed_data$first_day
   last_day <- processed_data$last_day
+  day_indigestible <- processed_data$prey_indigestible
   
   # Interpolate predator energy density
   energy_data <- interpolate_predator_energy_density(
@@ -631,10 +632,6 @@ run_fb4_simulation_complete <- function(initial_weight, p_value, species_params,
   
   for (day in 1:n_days) {
     
-    temp <- temperature[day]
-    day_diet_props <- processed_data$diet_proportions[day, ]
-    day_indigestible <- processed_data$indigestible_fractions[day, ]
-    
     # 1. Calculate mean prey energy for this day
     mean_prey_energy <- calculate_daily_mean_prey_energy(
       diet_proportions[day, ], prey_energies[day, ]
@@ -648,7 +645,7 @@ run_fb4_simulation_complete <- function(initial_weight, p_value, species_params,
     # 3. DAILY CONSUMPTION
     consumption_result <- calculate_daily_consumption(
       current_weight = current_weight,
-      temperature = temp,
+      temperature = temperature[day],
       p_value = p_value,
       method = "p_value",
       consumption_params = species_params$consumption,
@@ -659,12 +656,12 @@ run_fb4_simulation_complete <- function(initial_weight, p_value, species_params,
     metabolism_result <- calculate_daily_metabolism(
       consumption_energy = consumption_result$consumption_energy,
       current_weight = current_weight,
-      temperature = temp,
+      temperature = temperature[day],
       p_value = consumption_result$effective_p,
       species_params = species_params,
       oxycal = oxycal,
-      diet_proportions = day_diet_props,          
-      indigestible_fractions = day_indigestible   
+      diet_proportions = diet_proportions[day,],          
+      indigestible_fractions = day_indigestible[day,]   
     )
     
     # 5. REPRODUCTION LOSSES

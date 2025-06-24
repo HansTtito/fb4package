@@ -4,7 +4,12 @@
 \alias{calculate_activity_factor_respiration}
 \title{Calcular factor de actividad para respiración}
 \usage{
-calculate_activity_factor_respiration(weight, temperature, respiration_params)
+calculate_activity_factor_respiration(
+  weight,
+  temperature,
+  respiration_params,
+  activity_params = NULL
+)
 }
 \arguments{
 \item{weight}{Peso del pez (g)}
@@ -12,6 +17,8 @@ calculate_activity_factor_respiration(weight, temperature, respiration_params)
 \item{temperature}{Temperatura del agua (°C)}
 
 \item{respiration_params}{Lista con parámetros de respiración}
+
+\item{activity_params}{Lista con parámetros de actividad}
 }
 \value{
 Factor de actividad
