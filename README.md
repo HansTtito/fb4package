@@ -84,8 +84,8 @@ bio_obj <- Bioenergetic(
 )
 
 # Set predator energy density parameters
-bio_obj$species_params <- set_parameter_value(bio_obj$species_params, "ED_ini", predator_energy_data$ED_ini)
-bio_obj$species_params <- set_parameter_value(bio_obj$species_params, "ED_end", predator_energy_data$ED_end)
+bio_obj$species_params <- set_parameter_value(bio_obj$species_params, "ED_ini", 6308.570)
+bio_obj$species_params <- set_parameter_value(bio_obj$species_params, "ED_end", 6320.776)
 
 
 # Run simulation with automatic fitting to target weight
