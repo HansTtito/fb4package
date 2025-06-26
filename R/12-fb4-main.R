@@ -213,7 +213,7 @@ run_fb4.Bioenergetic <- function(bio_obj,
       version = "1.1.4b",
       execution_time = elapsed_time[3],
       timestamp = Sys.time(),
-      fit_successful = result$fit_successful,
+      fit_successful = result$fit_info$fit_successful,
       p_value = result$p_value
     ),
     bioenergetic_object = bio_obj  # Reference to original object
