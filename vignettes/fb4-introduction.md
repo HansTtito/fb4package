@@ -8,10 +8,6 @@ The **FB4 Package** is an R-based implementation of fish bioenergetics modeling,
 
 Fish bioenergetics modeling has been a widely used tool in fisheries management and research for decades. The approach provides a sound, theoretical tool for quantifying energy allocation in fishes by partitioning consumed energy into three basic components: (1) metabolism, (2) wastes, and (3) growth. The models are particularly valuable for estimating growth or food consumption rates and are especially attractive for estimating feeding rates of free-ranging fishes.
 
-## Evolution of Fish Bioenergetics Software
-
-The development of this package addresses the need for modern, maintainable bioenergetics modeling software. Although popular, currently available software (i.e., Fish Bioenergetics 3.0) has not been updated in over 20 years and is incompatible with newer operating systems (i.e., 64-bit). Moreover, since the release of Fish Bioenergetics 3.0 in 1997, the number of published bioenergetics models has increased appreciably from 56 to 105 models representing 73 species.
-
 ## Technical Implementation
 
 Building on the foundation of the original FB4 application, this R package provides:
