@@ -4,7 +4,13 @@
 \alias{set_diet.Bioenergetic}
 \title{Set Diet Data for Bioenergetic Objects}
 \usage{
-\method{set_diet}{Bioenergetic}(x, diet_proportions, prey_energies, indigestible_prey = NULL)
+set_diet.Bioenergetic(
+  x,
+  diet_proportions,
+  prey_energies,
+  indigestible_prey = NULL,
+  normalize_diet = TRUE
+)
 }
 \arguments{
 \item{x}{Bioenergetic object}
@@ -12,30 +18,53 @@
 \item{diet_proportions}{Data frame with daily diet proportions}
 
 \item{prey_energies}{Data frame with daily prey energy densities}
+
+\item{indigestible_prey}{Data frame with indigestible proportions (optional)}
+
+\item{normalize_diet}{Logical, whether to normalize diet proportions to sum to 1 (default TRUE)}
 }
 \value{
 Updated Bioenergetic object with new diet data
 }
 \description{
 Updates the diet data component of a Bioenergetic object with
-new diet composition and prey energy information.
+new diet composition and prey energy information. Automatically validates,
+interpolates missing days, and normalizes diet proportions.
 }
 \details{
 Both data frames must:
 \itemize{
-  \item{Contain a "Day" column with matching values}
+  \item{Contain a "Day" column}
   \item{Have identical prey species columns}
   \item{Use consistent prey naming between datasets}
 }
 
-Diet proportions should sum to approximately 1.0 for each day.
+The function automatically:
+\itemize{
+  \item{Validates diet and energy data structure and values}
+  \item{Interpolates missing days to create complete daily series}
+  \item{Normalizes diet proportions to sum to 1.0 each day (if normalize_diet = TRUE)}
+  \item{Creates default indigestible data with zero percent if not provided}
+  \item{Reports any processing performed}
+}
+
+Diet proportions should be non-negative values.
 Prey energies should be positive values in J/g.
 }
 \examples{
 \dontrun{
 bio_obj <- new_bioenergetic("Salmo salar", 10)
+
+# Complete daily data
 diet_props <- data.frame(Day = 1:365, fish = 0.6, zooplankton = 0.4)
 prey_energy <- data.frame(Day = 1:365, fish = 5000, zooplankton = 3000)
 bio_obj <- set_diet(bio_obj, diet_props, prey_energy)
+
+# Sparse data - will be automatically interpolated and normalized
+sparse_diet <- data.frame(Day = c(1, 100, 200), fish = c(0.5, 0.8, 0.3), 
+                         zooplankton = c(0.4, 0.15, 0.6))
+sparse_energy <- data.frame(Day = c(1, 100, 200), fish = c(5000, 5200, 4800), 
+                           zooplankton = c(3000, 3100, 2900))
+bio_obj <- set_diet(bio_obj, sparse_diet, sparse_energy)
 }
 }

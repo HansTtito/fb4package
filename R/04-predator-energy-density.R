@@ -99,7 +99,7 @@ predator_energy_eq3 <- function(weight, Alpha1, Beta1) {
 #' @param energy_data Vector con datos de densidad energética por día (para ecuación 1)
 #' @return Densidad energética (J/g)
 #' @export
-calculate_predator_energy_density <- function(weight, day = 1, predator_params, energy_data = NULL) {
+calculate_predator_energy_density <- function(weight, day = 1, predator_params) {
   
   # Validaciones básicas
   if (is.null(predator_params)) {
@@ -110,63 +110,54 @@ calculate_predator_energy_density <- function(weight, day = 1, predator_params, 
   weight <- check_numeric_value(weight, "weight", min_val = 0.001)
   day <- check_numeric_value(day, "day", min_val = 1)
   
-  # Si existen ED_ini y ED_end, usar interpolación diaria
-  if (!is.null(predator_params$ED_ini) && !is.null(predator_params$ED_end)) {
-    duration <- 365  # Duración estándar
-    proportion <- (day - 1) / max(1, duration - 1)
-    energy_density <- predator_params$ED_ini + 
-      (predator_params$ED_end - predator_params$ED_ini) * proportion
-    return(clamp(energy_density, 1000, 15000))
-  }
-  
-  # Determinar ecuación a usar
-  PREDEDEQ <- predator_params$PREDEDEQ %||% 1
+  # Determinar ecuación a usar (PREDEDEQ primero)
+  PREDEDEQ <- predator_params$PREDEDEQ
   
   # Calcular densidad energética según ecuación
   if (PREDEDEQ == 1) {
-    energy_density <- predator_energy_eq1(weight, day, energy_data)
+    
+    # Opción 2: Usar ED_ini/ED_end para interpolación
+    ED_ini <- predator_params$ED_ini
+    ED_end <- predator_params$ED_end
+    energy_data <- predator_params$ED_data
+    
+    # Opción 1: Usar ED_data si está disponible
+    if (!is.null(energy_data) && length(energy_data) > 0) {
+      return(predator_energy_eq1(weight, day, energy_data))
+    }
+  
+    
+    if (!is.null(ED_ini) && !is.null(ED_end) && !is.na(ED_ini) && !is.na(ED_end)) {
+      # Interpolación lineal simple (asumiendo duración estándar)
+      duration <- predator_params$duration %||% 365
+      proportion <- pmin(1, pmax(0, (day - 1) / max(1, duration - 1)))
+      energy_density <- ED_ini + (ED_end - ED_ini) * proportion
+      return(clamp(energy_density, 1000, 15000))
+    }
+    
+    # Opción 3: Error si no hay datos
+    stop("PREDEDEQ=1 requiere ED_data O ambos ED_ini y ED_end")
     
   } else if (PREDEDEQ == 2) {
+    # Función lineal por segmentos
     Alpha1 <- predator_params$Alpha1
-    Beta1  <- predator_params$Beta1
+    Beta1 <- predator_params$Beta1
     Alpha2 <- predator_params$Alpha2
-    Beta2  <- predator_params$Beta2
+    Beta2 <- predator_params$Beta2
     Cutoff <- predator_params$Cutoff
     
-    if (any(is.na(c(Alpha1, Beta1, Cutoff)))) {
-      warning("Parámetros insuficientes para PREDEDEQ=2, usando ecuación 3")
-      Alpha1 <- Alpha1 %||% 4500
-      Beta1  <- Beta1 %||% 0
-      energy_density <- predator_energy_eq3(weight, Alpha1, Beta1)
-    } else {
-      energy_density <- predator_energy_eq2(weight, Alpha1, Beta1, Alpha2, Beta2, Cutoff)
-    }
+    return(predator_energy_eq2(weight, Alpha1, Beta1, Alpha2, Beta2, Cutoff))
     
   } else if (PREDEDEQ == 3) {
+    # Función potencia
     Alpha1 <- predator_params$Alpha1
-    Beta1  <- predator_params$Beta1
+    Beta1 <- predator_params$Beta1
     
-    if (any(is.na(c(Alpha1, Beta1)))) {
-      warning("Parámetros insuficientes para PREDEDEQ=3, usando valor por defecto")
-      energy_density <- 4500
-    } else {
-      energy_density <- predator_energy_eq3(weight, Alpha1, Beta1)
-    }
+    return(predator_energy_eq3(weight, Alpha1, Beta1))
     
   } else {
-    warning("Ecuación de densidad energética no válida: ", PREDEDEQ, ". Usando ecuación 3.")
-    Alpha1 <- predator_params$Alpha1 %||% 4500
-    Beta1  <- predator_params$Beta1 %||% 0
-    energy_density <- predator_energy_eq3(weight, Alpha1, Beta1)
+    stop("PREDEDEQ debe ser 1, 2, o 3")
   }
-  
-  # Validación final
-  if (is.na(energy_density) || !is.finite(energy_density) || energy_density <= 0) {
-    warning("Densidad energética inválida calculada, usando valor por defecto")
-    energy_density <- 4500
-  }
-  
-  return(energy_density)
 }
 
 # ============================================================================
@@ -303,7 +294,7 @@ solve_weight_iterative <- function(target_energy, predator_params, day = 1, init
 #' @return Lista con peso final y cambio de peso
 #' @export
 calculate_final_weight_fb4 <- function(initial_weight, net_energy, spawn_energy = 0, 
-                                       species_params_predator, day = 1, energy_data = NULL) {
+                                       predator_params, day = 1, energy_data = NULL) {
   
   # Validación básica
   initial_weight <- check_numeric_value(initial_weight, "initial_weight", min_val = 0.001)
@@ -313,16 +304,8 @@ calculate_final_weight_fb4 <- function(initial_weight, net_energy, spawn_energy 
   # Energía neta después de reproducción
   net_energy_after_spawn <- net_energy - spawn_energy
   
-  # Obtener parámetros
-  PREDEDEQ <- as.numeric(species_params_predator$PREDEDEQ %||% 1)
-  Alpha1 <- as.numeric(species_params_predator$Alpha1)
-  Beta1 <- as.numeric(species_params_predator$Beta1)
-  Cutoff <- as.numeric(species_params_predator$Cutoff)
-  Alpha2 <- as.numeric(species_params_predator$Alpha2)
-  Beta2 <- as.numeric(species_params_predator$Beta2)
-  
   # Calcular energía corporal inicial
-  initial_ed <- calculate_predator_energy_density(initial_weight, day, species_params_predator, energy_data)
+  initial_ed <- calculate_predator_energy_density(initial_weight, day, predator_params)
   initial_body_energy <- initial_weight * initial_ed
   target_energy <- initial_body_energy + net_energy_after_spawn
   
@@ -335,41 +318,33 @@ calculate_final_weight_fb4 <- function(initial_weight, net_energy, spawn_energy 
     ))
   }
   
+  # Obtener PREDEDEQ
+  PREDEDEQ <- predator_params$PREDEDEQ
+  
   # Calcular peso final según PREDEDEQ
   if (PREDEDEQ == 1) {
-    final_energy_density_for_calc <- calculate_predator_energy_density(initial_weight, day + 1, species_params_predator, energy_data)
-    # Para PREDEDEQ=1, usar datos interpolados (densidad energética constante por día)
-    final_weight <- target_energy / final_energy_density_for_calc
+    # Para PREDEDEQ=1, densidad energética puede cambiar día a día
+    final_energy_density <- calculate_predator_energy_density(initial_weight, day + 1, predator_params)
+    final_weight <- target_energy / final_energy_density
     
   } else if (PREDEDEQ == 2) {
     # Densidad energética lineal por segmentos
-    final_weight <- solve_weight_linear_segments(target_energy, species_params_predator)
+    final_weight <- solve_weight_linear_segments(target_energy, predator_params)
     
   } else if (PREDEDEQ == 3) {
     # Densidad energética como función potencia del peso
+    Alpha1 <- predator_params$Alpha1
+    Beta1 <- predator_params$Beta1
     
-    if (initial_weight >= Cutoff) {
-      # Usar parámetros Alpha1, Beta1
-      final_weight <- solve_weight_power_function(
-        initial_weight = initial_weight,
-        net_energy = net_energy_after_spawn,
-        Alpha1 = Alpha1,
-        Beta1 = Beta1
-      )
-    } else {
-      # Usar parámetros Alpha2, Beta2
-      final_weight <- solve_weight_power_function(
-        initial_weight = initial_weight,
-        net_energy = net_energy_after_spawn,
-        Alpha1 = Alpha2,
-        Beta2 = Beta2
-      )
-    }
+    final_weight <- solve_weight_power_function(
+      initial_weight = initial_weight,
+      net_energy = net_energy_after_spawn,
+      Alpha1 = Alpha1,
+      Beta1 = Beta1
+    )
     
   } else {
-    # Método iterativo como respaldo
-    warning("PREDEDEQ no reconocido (", PREDEDEQ, "), usando método iterativo")
-    final_weight <- solve_weight_iterative(target_energy, species_params_predator, day, initial_weight)
+    stop("PREDEDEQ debe ser 1, 2, o 3")
   }
   
   # Validación final
@@ -379,7 +354,7 @@ calculate_final_weight_fb4 <- function(initial_weight, net_energy, spawn_energy 
   }
   
   # Calcular densidad energética final
-  final_ed <- calculate_predator_energy_density(final_weight, day, species_params_predator, energy_data)
+  final_ed <- calculate_predator_energy_density(final_weight, day, predator_params)
   
   return(list(
     final_weight = final_weight,
@@ -387,6 +362,7 @@ calculate_final_weight_fb4 <- function(initial_weight, net_energy, spawn_energy 
     weight_change = final_weight - initial_weight
   ))
 }
+
 
 # ============================================================================
 # FUNCIONES DE UTILIDAD Y VALIDACIÓN
@@ -420,7 +396,7 @@ validate_predator_energy_params <- function(predator_params, weight_range = c(1,
   
   for (weight in test_weights) {
     tryCatch({
-      ed <- calculate_predator_energy_density(weight, 1, predator_params, energy_data)
+      ed <- calculate_predator_energy_density(weight, 1, predator_params)
       
       if (ed < 1000) {
         validation$warnings <- c(validation$warnings, 

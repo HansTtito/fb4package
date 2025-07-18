@@ -4,12 +4,7 @@
 \alias{calculate_respiration}
 \title{Calcular respiración diaria}
 \usage{
-calculate_respiration(
-  temperature,
-  weight,
-  respiration_params,
-  activity_params = NULL
-)
+calculate_respiration(temperature, weight, respiration_params, activity_params)
 }
 \arguments{
 \item{temperature}{Temperatura del agua (°C)}

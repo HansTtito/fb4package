@@ -12,64 +12,10 @@ run_fb4_simulation_with_ration(
   processed_data,
   model_options,
   oxycal = 13560,
-  population_size = 1,
   output_daily = TRUE
 )
 }
-\arguments{
-\item{initial_weight}{Initial weight in grams}
-
-\item{ration_type}{Type of ration: "percent" or "grams"}
-
-\item{ration_value}{Ration value}
-
-\item{species_params}{List with species parameters}
-
-\item{processed_data}{Processed input data}
-
-\item{model_options}{Model options}
-
-\item{oxycal}{Oxycalorific coefficient, default 13560}
-
-\item{population_size}{Population size, default 1}
-
-\item{output_daily}{Logical, whether to include daily output}
-}
-\value{
-List with simulation results
-}
 \description{
-Function that executes daily simulation when a specific ration
-is specified instead of a fixed p-value. Uses modular functions
-for improved clarity and consistency.
-}
-\details{
-This function dynamically calculates the p-value each day based on the
-specified ration and current fish weight. Uses modular functions
-for greater clarity and consistency.
-
-\strong{Ration Types:}
-\itemize{
-  \item{"percent": }{Ration as percentage of body weight (variable absolute amount)}
-  \item{"grams": }{Fixed daily ration in grams (constant absolute amount)}
-}
-
-The function automatically handles the conversion between ration specifications
-and p-values, which are used internally by the bioenergetic calculations.
-This provides a more intuitive interface for users familiar with
-aquaculture or experimental feeding protocols.
-}
-\examples{
-\dontrun{
-# Internal function - not called directly by users
-result <- run_fb4_simulation_with_ration(
-  initial_weight = 20,
-  ration_type = "percent",
-  ration_value = 0.03,  # 3\% of body weight
-  species_params = my_params,
-  processed_data = my_data,
-  model_options = my_options
-)
-}
+FB4 Simulation with Specific Ration
 }
 \keyword{internal}

@@ -4,7 +4,7 @@
 \alias{set_environment.Bioenergetic}
 \title{Set Environmental Data for Bioenergetic Objects}
 \usage{
-\method{set_environment}{Bioenergetic}(x, temperature_data)
+set_environment.Bioenergetic(x, temperature_data)
 }
 \arguments{
 \item{x}{Bioenergetic object}
@@ -16,13 +16,21 @@ Updated Bioenergetic object with new environmental data
 }
 \description{
 Updates the environmental data component of a Bioenergetic object
-with new temperature information.
+with new temperature information. Automatically validates and completes
+the temperature series if needed.
 }
 \details{
 The temperature data frame must contain:
 \itemize{
   \item{Day: }{Numeric sequence of simulation days}
   \item{Temperature: }{Temperature values in °C}
+}
+
+The function automatically:
+\itemize{
+  \item{Validates temperature data structure and values}
+  \item{Interpolates missing days to create complete daily series}
+  \item{Reports any interpolation performed}
 }
 
 Setting new environmental data resets the fitted status and clears
@@ -33,5 +41,9 @@ any existing results, as the model needs to be re-run.
 bio_obj <- new_bioenergetic("Salmo salar", 10)
 temp_data <- data.frame(Day = 1:100, Temperature = 15 + 5*sin(1:100/50))
 bio_obj <- set_environment(bio_obj, temp_data)
+
+# With sparse data - will be automatically interpolated
+sparse_temp <- data.frame(Day = c(1, 50, 100), Temperature = c(10, 15, 20))
+bio_obj <- set_environment(bio_obj, sparse_temp)
 }
 }

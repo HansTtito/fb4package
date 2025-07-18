@@ -15,17 +15,5 @@
 Throws an error with information about supported classes
 }
 \description{
-Default method for run_fb4 generic function. This method is called
-when no specific method exists for the given object class.
-}
-\details{
-This method provides helpful error messages when users attempt to use
-run_fb4 with unsupported object types, guiding them toward supported
-alternatives.
-}
-\examples{
-\dontrun{
-# This will throw an error
-run_fb4(data.frame(x = 1:10))
-}
+Default Method for run_fb4
 }

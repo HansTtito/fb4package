@@ -15,16 +15,9 @@
 Invisibly returns the input object
 }
 \description{
-Provides a concise summary of a Bioenergetic object's contents and status.
+Provides a concise overview of a Bioenergetic object's status and completeness.
 }
 \details{
-Displays key information including species identification, simulation
-settings, fit status, and enabled sub-models. Provides a quick overview
-for model verification and debugging.
-}
-\examples{
-\dontrun{
-bio_obj <- new_bioenergetic("Salmo salar", 10, duration = 200)
-print(bio_obj)  # or simply: bio_obj
-}
+Shows essential information for quick verification including species
+identification, basic simulation settings, and component availability.
 }

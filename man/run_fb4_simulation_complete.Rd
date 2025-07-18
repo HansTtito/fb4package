@@ -11,65 +11,10 @@ run_fb4_simulation_complete(
   processed_data,
   model_options,
   oxycal = 13560,
-  population_size = 1,
   output_daily = TRUE
 )
 }
-\arguments{
-\item{initial_weight}{Initial weight in grams}
-
-\item{p_value}{Proportion of maximum consumption}
-
-\item{species_params}{Species parameters}
-
-\item{processed_data}{Processed environmental data}
-
-\item{model_options}{Model options}
-
-\item{oxycal}{Oxycalorific coefficient, default 13560}
-
-\item{population_size}{Number of individuals, default 1}
-
-\item{output_daily}{Return daily output, default TRUE}
-}
-\value{
-List with complete simulation results
-}
 \description{
-Improved version of the complete Fish Bioenergetics 4.0 simulation
-using modular functions for metabolism and growth calculations.
-This is the core simulation engine that processes day-by-day calculations.
-}
-\details{
-This function performs the core bioenergetic calculations on a daily basis:
-
-\strong{Daily Calculations:}
-\itemize{
-  \item{Consumption: }{Based on temperature, weight, and p-value}
-  \item{Egestion: }{Waste energy from consumed food}
-  \item{Excretion: }{Nitrogenous waste energy}
-  \item{Respiration: }{Metabolic energy costs}
-  \item{SDA: }{Specific Dynamic Action (cost of digestion)}
-  \item{Reproduction: }{Spawning energy losses (if applicable)}
-  \item{Growth: }{Energy allocated to somatic growth}
-}
-
-\strong{Energy Balance:}
-Growth = Consumption - Egestion - Excretion - Respiration - SDA - Reproduction
-
-The simulation uses temperature-dependent rates and allometric scaling
-relationships to account for size and environmental effects.
-}
-\examples{
-\dontrun{
-# Internal function - not called directly by users
-result <- run_fb4_simulation_complete(
-  initial_weight = 10,
-  p_value = 0.5,
-  species_params = my_params,
-  processed_data = my_data,
-  model_options = my_options
-)
-}
+Complete FB4 Simulation
 }
 \keyword{internal}

@@ -4,12 +4,7 @@
 \alias{calculate_predator_energy_density}
 \title{Calcular densidad energética del depredador}
 \usage{
-calculate_predator_energy_density(
-  weight,
-  day = 1,
-  predator_params,
-  energy_data = NULL
-)
+calculate_predator_energy_density(weight, day = 1, predator_params)
 }
 \arguments{
 \item{weight}{Peso del pez (g)}

@@ -11,11 +11,9 @@
   first_day = 1,
   last_day = NULL,
   oxycal = 13560,
-  population_size = 1,
   output_daily = TRUE,
   tolerance = 0.001,
   max_iterations = 25,
-  progress_callback = NULL,
   ...
 )
 }
@@ -32,15 +30,11 @@
 
 \item{oxycal}{Oxycalorific coefficient (J/g O2), default 13560}
 
-\item{population_size}{Initial population size, default 1}
-
 \item{output_daily}{Logical, whether to include daily output, default TRUE}
 
 \item{tolerance}{Tolerance for iterative fitting, default 0.001}
 
 \item{max_iterations}{Maximum number of iterations, default 25}
-
-\item{progress_callback}{Progress callback function (optional)}
 
 \item{...}{Additional arguments}
 }
@@ -50,71 +44,4 @@ Object of class 'fb4_result' with simulation results
 \description{
 Main function to execute Fish Bioenergetics 4.0 model simulations
 using a Bioenergetic class object that already contains all necessary parameters.
-This method provides a streamlined interface for running bioenergetic simulations
-with pre-configured species parameters, environmental data, and diet information.
-}
-\details{
-This function uses a Bioenergetic object that must contain:
-\itemize{
-  \item{species_params: }{Species parameters organized by categories (consumption, metabolism, predator)}
-  \item{environmental_data: }{Temperature data with Day and Temperature columns}
-  \item{diet_data: }{Diet proportions and prey energy densities}
-  \item{simulation_settings: }{Initial configuration including initial weight and duration}
-}
-
-Available fitting methods:
-\itemize{
-  \item{"Weight": }{Fit to achieve target final weight (g)}
-  \item{"Consumption": }{Fit to achieve target total consumption (g)}
-  \item{"p-value": }{Run with fixed proportion of maximum consumption (0-1)}
-  \item{"Ration": }{Run with fixed ration as percentage of body weight (0-100)}
-  \item{"Ration_prey": }{Run with fixed daily ration in grams}
-}
-
-The simulation uses a daily time step and accounts for:
-temperature-dependent metabolism, size-dependent consumption rates,
-egestion, excretion, specific dynamic action (SDA), respiration,
-and optional spawning energy losses.
-}
-\examples{
-\dontrun{
-# Create bioenergetic object
-bio_obj <- new_bioenergetic(
-  species = "Oncorhynchus tshawytscha",
-  initial_weight = 10,
-  duration = 365,
-  temperature_avg = 15,
-  diet_composition = list(anchoveta = 0.4, sardina = 0.6)
-)
-
-# Execute simulation fitting to final weight
-result <- run_fb4(
-  bio_obj = bio_obj,
-  fit_to = "Weight",
-  fit_value = 50
-)
-
-# Execute simulation with fixed p-value
-result <- run_fb4(
-  bio_obj = bio_obj,
-  fit_to = "p-value",
-  fit_value = 0.5
-)
-
-# Execute simulation with percentage ration
-result <- run_fb4(
-  bio_obj = bio_obj,
-  fit_to = "Ration",
-  fit_value = 3.0  # 3\% of body weight per day
-)
-}
-
-}
-\references{
-Hanson, P.C., T.B. Johnson, D.E. Schindler, and J.F. Kitchell. 1997.
-Fish Bioenergetics 3.0. University of Wisconsin Sea Grant Institute,
-Madison, WI.
-}
-\seealso{
-\code{\link{new_bioenergetic}}, \code{\link{validate_bioenergetic_object}}
 }

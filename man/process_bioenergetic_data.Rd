@@ -2,11 +2,28 @@
 % Please edit documentation in R/11-data-processing.R
 \name{process_bioenergetic_data}
 \alias{process_bioenergetic_data}
-\title{Procesar datos desde objeto Bioenergetic}
+\title{Process Bioenergetic object data for simulation}
 \usage{
 process_bioenergetic_data(bio_obj, first_day, last_day)
+
+process_bioenergetic_data(bio_obj, first_day, last_day)
+}
+\arguments{
+\item{bio_obj}{Bioenergetic object (must be pre-validated)}
+
+\item{first_day}{First simulation day}
+
+\item{last_day}{Last simulation day}
+}
+\value{
+List with processed data ready for simulation
+
+List with processed data ready for simulation
 }
 \description{
-Procesar datos desde objeto Bioenergetic
+Converts a Bioenergetic object into the data structures required for FB4 simulation.
+Performs interpolation, normalization, and formatting of all temporal data.
+
+Converts a Bioenergetic object into the data structures required for FB4 simulation.
+Performs interpolation, normalization, and formatting of all temporal data.
 }
-\keyword{internal}

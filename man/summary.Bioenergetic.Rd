@@ -15,16 +15,10 @@
 Invisibly returns the input object
 }
 \description{
-Provides detailed information about a Bioenergetic object including
-parameters, environmental conditions, and diet composition.
+Provides detailed information about all components of a Bioenergetic object
+including parameter values, data ranges, and validation status.
 }
 \details{
-Extends the print method with additional technical details useful
-for model validation and parameter verification.
-}
-\examples{
-\dontrun{
-bio_obj <- new_bioenergetic("Salmo salar", 10)
-summary(bio_obj)
-}
+Shows comprehensive information for model verification and debugging,
+including statistical summaries of environmental and diet data.
 }

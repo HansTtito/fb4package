@@ -22,11 +22,6 @@ The **fb4package** provides a modern R-based implementation of fish bioenergetic
 # Install from GitHub (development version)
 devtools::install_github("HansTtito/fb4package")
 
-# Load package
-library(fb4package)
-
-# View introduction vignette for detailed background
-vignette("fb4-introduction")
 ```
 
 ## Quick Start

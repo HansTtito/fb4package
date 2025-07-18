@@ -11,54 +11,10 @@ run_fb4_with_ration_percent(
   processed_data,
   model_options,
   oxycal = 13560,
-  population_size = 1,
   output_daily = TRUE
 )
 }
-\arguments{
-\item{species_params}{List with species parameters}
-
-\item{initial_weight}{Initial weight in grams}
-
-\item{ration_percent}{Ration as percentage of body weight (0-100)}
-
-\item{processed_data}{Processed input data}
-
-\item{model_options}{Model options}
-
-\item{oxycal}{Oxycalorific coefficient, default 13560}
-
-\item{population_size}{Population size, default 1}
-
-\item{output_daily}{Logical, whether to include daily output}
-}
-\value{
-List with simulation results
-}
 \description{
-Executes the simulation using a specific ration as percentage
-of daily body weight. Does not require iterative fitting.
-The actual ration varies with fish weight throughout the simulation.
-}
-\details{
-The ration is calculated as: daily_ration = (ration_percent/100) * current_weight
-The p-value is calculated dynamically each day based on this ration.
-This approach is common in aquaculture and experimental studies where
-feeding rates are expressed as percentage of body weight.
-
-As the fish grows, the absolute amount of food consumed increases
-proportionally, which is more realistic than fixed gram amounts.
-}
-\examples{
-\dontrun{
-# Internal function - not called directly by users
-result <- run_fb4_with_ration_percent(
-  species_params = my_params,
-  initial_weight = 10,
-  ration_percent = 3.0,  # 3\% of body weight
-  processed_data = my_data,
-  model_options = my_options
-)
-}
+Execute FB4 with Ration as Percentage of Body Weight
 }
 \keyword{internal}

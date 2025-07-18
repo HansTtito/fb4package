@@ -36,6 +36,6 @@ calculate_daily_consumption(
 Lista con consumo específico y energético
 }
 \description{
-Calcula el consumo diario basado en el método especificado
+Calcular consumo diario
 }
 \keyword{internal}

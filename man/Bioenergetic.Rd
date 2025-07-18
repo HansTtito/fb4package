@@ -6,8 +6,10 @@
 \usage{
 Bioenergetic(
   species_params,
+  species_info = NULL,
   environmental_data = NULL,
   diet_data = NULL,
+  reproduction_data = NULL,
   model_options = list(),
   simulation_settings = list()
 )
@@ -15,9 +17,13 @@ Bioenergetic(
 \arguments{
 \item{species_params}{List with species parameters organized by categories}
 
+\item{species_info}{List with species identification information}
+
 \item{environmental_data}{List with environmental data (temperature, etc.)}
 
 \item{diet_data}{List with diet and prey energy data}
+
+\item{reproduction_data}{List with reproduction parameters (optional)}
 
 \item{model_options}{List with model configuration options}
 
@@ -29,6 +35,7 @@ Object of class "Bioenergetic"
 \description{
 Creates a Bioenergetic class object that encapsulates all components
 of the fish bioenergetic model for streamlined simulation management.
+Performs basic validation to ensure object integrity.
 }
 \details{
 The Bioenergetic object serves as a comprehensive container for all
@@ -37,6 +44,7 @@ bioenergetic model components:
 \strong{Required Components:}
 \itemize{
   \item{species_params: }{Parameter sets for consumption, respiration, etc.}
+  \item{species_info: }{Species identification with scientific_name or common_name}
 }
 
 \strong{Optional Components:}
@@ -47,8 +55,16 @@ bioenergetic model components:
   \item{simulation_settings: }{Initial conditions and duration}
 }
 
-The object maintains state information including fit status and results,
-allowing for iterative model development and parameter refinement.
+\strong{Species Information:}
+The species_info list should contain at minimum one of:
+\itemize{
+  \item{scientific_name: }{Scientific species name (e.g., "Salmo salar")}
+  \item{common_name: }{Common species name (e.g., "Atlantic salmon")}
+}
+Optional fields include life_stage, source, notes, etc.
+
+The constructor performs basic validation to ensure object integrity.
+Complete validation is performed when running simulations.
 }
 \examples{
 \dontrun{
@@ -58,9 +74,17 @@ params <- list(
   respiration = list(RA = 0.0548, RB = -0.299, RQ = 2, RTO = 5, RTM = 25, RTL = 35)
 )
 
+# Create species info
+species_info <- list(
+  scientific_name = "Salmo salar",
+  common_name = "Atlantic salmon",
+  life_stage = "juvenile"
+)
+
 # Create bioenergetic object
 bio_obj <- Bioenergetic(
   species_params = params,
+  species_info = species_info,
   simulation_settings = list(initial_weight = 10, duration = 365)
 )
 }

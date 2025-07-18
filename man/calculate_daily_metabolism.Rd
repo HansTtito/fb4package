@@ -2,7 +2,7 @@
 % Please edit documentation in R/10-main-growth-model.R
 \name{calculate_daily_metabolism}
 \alias{calculate_daily_metabolism}
-\title{Calcular procesos metabólicos diarios}
+\title{Calcula egestion, excreción, respiración y SDA para un día}
 \usage{
 calculate_daily_metabolism(
   consumption_energy,

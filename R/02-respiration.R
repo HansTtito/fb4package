@@ -127,34 +127,23 @@ calculate_simple_activity <- function(ACT) {
 #' @param activity_params Lista con parámetros de actividad 
 #' @return Respiración (g O2/g pez/día)
 #' @export
-calculate_respiration <- function(temperature, weight, respiration_params, activity_params = NULL) {
+calculate_respiration <- function(temperature, weight, respiration_params, activity_params) {
   
-  # Validaciones básicas
+  # Validar que los parámetros no sean NULL
   if (is.null(respiration_params)) {
     stop("respiration_params no puede ser NULL")
   }
-  
-  required_basic <- c("RA", "RB", "RQ", "RTO", "RTM", "RTL")
-  missing_basic <- setdiff(required_basic, names(respiration_params))
-  if (length(missing_basic) > 0) {
-    stop("Parámetros básicos faltantes: ", paste(missing_basic, collapse = ", "))
+  if (is.null(activity_params)) {
+    stop("activity_params no puede ser NULL")
   }
   
   # Validar valores de entrada
   weight <- check_numeric_value(weight, "weight", min_val = 0.001)
   temperature <- check_numeric_value(temperature, "temperature", min_val = -5, max_val = 50)
   
-  # Extraer parámetros básicos
-  RA <- as.numeric(respiration_params$RA)
-  RB <- as.numeric(respiration_params$RB)
-  RQ <- as.numeric(respiration_params$RQ)
-  RTO <- as.numeric(respiration_params$RTO)
-  RTM <- as.numeric(respiration_params$RTM)
-  RTL <- as.numeric(respiration_params$RTL)
-  
-  if (any(is.na(c(RA, RB, RQ, RTO, RTM, RTL)))) {
-    return(0.001)  # Valor mínimo
-  }
+  # Extraer parámetros básicos (requeridos siempre)
+  RA <- respiration_params$RA
+  RB <- respiration_params$RB
   
   # Calcular respiración máxima
   Rmax <- RA * weight^RB
@@ -162,7 +151,7 @@ calculate_respiration <- function(temperature, weight, respiration_params, activ
   # Calcular factor de temperatura
   ft <- calculate_temperature_factor_respiration(temperature, respiration_params)
   
-  # Calcular factor de actividad - AHORA USANDO AMBOS CONJUNTOS DE PARÁMETROS
+  # Calcular factor de actividad
   activity_factor <- calculate_activity_factor_respiration(
     weight = weight, 
     temperature = temperature, 
@@ -190,35 +179,30 @@ calculate_respiration <- function(temperature, weight, respiration_params, activ
 #' @keywords internal
 calculate_temperature_factor_respiration <- function(temperature, respiration_params) {
   
-  REQ <- respiration_params$REQ %||% 1
+  REQ <- respiration_params$REQ
   
   if (REQ == 1) {
     RQ <- respiration_params$RQ
-    if (is.null(RQ) || is.na(RQ)) return(1.0)
     return(respiration_temp_eq1(temperature, RQ))
     
   } else if (REQ == 2) {
-    # Parámetros necesarios para ecuación 2
+    # Parámetros requeridos para ecuación 2
     RTM <- respiration_params$RTM
     RTO <- respiration_params$RTO
-    RX <- respiration_params$RX
     
-    # Si RX no está disponible, calcularlo
-    if (is.null(RX) || is.na(RX)) {
+    # Calcular RX si no está presente
+    if (is.null(respiration_params$RX)) {
       RQ <- respiration_params$RQ
-      if (any(is.na(c(RQ, RTM, RTO)))) return(1.0)
-      
       extra_params <- calculate_respiration_params_eq2(RQ, RTM, RTO)
       RX <- extra_params$RX
+    } else {
+      RX <- respiration_params$RX
     }
     
-    if (any(is.na(c(RTM, RTO, RX)))) return(1.0)
     return(respiration_temp_eq2(temperature, RTM, RTO, RX))
     
   } else {
-    warning("Ecuación de respiración no válida: ", REQ, ". Usando ecuación 1.")
-    RQ <- respiration_params$RQ %||% 0.1
-    return(respiration_temp_eq1(temperature, RQ))
+    stop("Ecuación de respiración no válida: ", REQ)
   }
 }
 
@@ -230,102 +214,43 @@ calculate_temperature_factor_respiration <- function(temperature, respiration_pa
 #' @param activity_params Lista con parámetros de actividad
 #' @return Factor de actividad
 #' @keywords internal
-calculate_activity_factor_respiration <- function(weight, temperature, respiration_params, activity_params = NULL) {
+calculate_activity_factor_respiration <- function(weight, temperature, respiration_params, activity_params) {
   
-  REQ <- respiration_params$REQ %||% 1
+  REQ <- respiration_params$REQ
   
   if (REQ == 1) {
-    # Actividad compleja con dependencia de temperatura
+    # Actividad compleja - requiere AMBOS conjuntos de parámetros
     
-    # Parámetros requeridos de respiración
-    required_respiration_params <- c("RTL", "RK4", "RK1", "RK5", "RTO")
-    # Parámetros requeridos de actividad
-    required_activity_params <- c("ACT", "BACT")
+    # Parámetros de respiración (requeridos)
+    RTL <- respiration_params$RTL
+    RK4 <- respiration_params$RK4
+    RK1 <- respiration_params$RK1
+    RK5 <- respiration_params$RK5
+    RTO <- respiration_params$RTO
     
-    # Verificar disponibilidad de parámetros de respiración
-    has_respiration_params <- all(required_respiration_params %in% names(respiration_params))
+    # Parámetros de actividad (requeridos)
+    ACT <- activity_params$ACT
+    BACT <- activity_params$BACT
     
-    # Verificar disponibilidad de parámetros de actividad
-    has_activity_params <- !is.null(activity_params) && 
-      all(required_activity_params %in% names(activity_params))
-    
-    # También verificar si ACT y BACT están en respiration_params (backup)
-    has_activity_in_respiration <- all(c("ACT", "BACT") %in% names(respiration_params))
-    
-    # Verificar si tenemos TODOS los parámetros necesarios
-    if (has_respiration_params && (has_activity_params || has_activity_in_respiration)) {
-      
-      # Usar parámetros de respiración
-      RTL <- respiration_params$RTL
-      RK4 <- respiration_params$RK4
-      RK1 <- respiration_params$RK1
-      RK5 <- respiration_params$RK5
-      RTO <- respiration_params$RTO
-      
-      # Priorizar activity_params para ACT y BACT
-      if (has_activity_params) {
-        ACT <- activity_params$ACT
-        BACT <- activity_params$BACT
-      } else {
-        ACT <- respiration_params$ACT
-        BACT <- respiration_params$BACT
-      }
-      
-      return(calculate_activity_factor(
-        weight = weight,
-        temperature = temperature,
-        RTL = RTL,
-        ACT = ACT,
-        RK4 = RK4,
-        BACT = BACT,
-        RK1 = RK1,
-        RK5 = RK5,
-        RTO = RTO
-      ))
-      
-    } else {
-      # Generar parámetros faltantes internamente con valores por defecto
-      RTL <- respiration_params$RTL %||% 25
-      RK4 <- respiration_params$RK4 %||% 0.13
-      RK1 <- respiration_params$RK1 %||% 1
-      RK5 <- respiration_params$RK5 %||% 0
-      RTO <- respiration_params$RTO %||% 0.0234
-      
-      # Para ACT y BACT, priorizar activity_params, luego respiration_params, luego default
-      if (has_activity_params) {
-        ACT <- activity_params$ACT
-        BACT <- activity_params$BACT
-      } else {
-        ACT <- respiration_params$ACT %||% 1.0
-        BACT <- respiration_params$BACT %||% 0.0
-      }
-      
-      return(calculate_activity_factor(
-        weight = weight,
-        temperature = temperature,
-        RTL = RTL,
-        ACT = ACT,
-        RK4 = RK4,
-        BACT = BACT,
-        RK1 = RK1,
-        RK5 = RK5,
-        RTO = RTO
-      ))
-    }
+    return(calculate_activity_factor(
+      weight = weight,
+      temperature = temperature,
+      RTL = RTL,
+      ACT = ACT,
+      RK4 = RK4,
+      BACT = BACT,
+      RK1 = RK1,
+      RK5 = RK5,
+      RTO = RTO
+    ))
     
   } else if (REQ == 2) {
-    # Actividad simple para ecuación 2
-    # Priorizar activity_params, luego respiration_params, luego default
-    if (!is.null(activity_params) && "ACT" %in% names(activity_params)) {
-      ACT <- activity_params$ACT
-    } else {
-      ACT <- respiration_params$ACT %||% 1.0
-    }
-    
+    # Actividad simple - solo requiere ACT
+    ACT <- activity_params$ACT
     return(calculate_simple_activity(ACT))
     
   } else {
-    return(1.0)
+    stop("Ecuación de respiración no válida: ", REQ)
   }
 }
 

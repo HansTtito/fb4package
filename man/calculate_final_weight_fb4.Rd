@@ -8,7 +8,7 @@ calculate_final_weight_fb4(
   initial_weight,
   net_energy,
   spawn_energy = 0,
-  species_params_predator,
+  predator_params,
   day = 1,
   energy_data = NULL
 )
@@ -20,11 +20,11 @@ calculate_final_weight_fb4(
 
 \item{spawn_energy}{Energía perdida por reproducción (J)}
 
-\item{species_params_predator}{Parámetros del depredador}
-
 \item{day}{Día actual}
 
 \item{energy_data}{Vector de densidades energéticas por día (para PREDEDEQ=1)}
+
+\item{species_params_predator}{Parámetros del depredador}
 }
 \value{
 Lista con peso final y cambio de peso

@@ -17,7 +17,6 @@ plot.fb4_result <- function(x, type = "growth", ...) {
   if (is.null(x$daily_output)) {
     stop("Objeto fb4_result debe incluir daily_output para graficar")
   }
-
   daily_data <- x$daily_output
 
   if (type == "growth") {

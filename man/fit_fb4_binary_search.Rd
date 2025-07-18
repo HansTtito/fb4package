@@ -12,7 +12,6 @@ fit_fb4_binary_search(
   processed_data,
   model_options,
   oxycal = 13560,
-  population_size = 1,
   output_daily = TRUE,
   tolerance = 0.001,
   max_iterations = 25
@@ -32,8 +31,6 @@ fit_fb4_binary_search(
 \item{model_options}{Opciones del modelo}
 
 \item{oxycal}{Coeficiente oxicalórico}
-
-\item{population_size}{Número de individuos}
 
 \item{output_daily}{Retornar salida diaria}
 

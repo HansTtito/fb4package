@@ -11,53 +11,10 @@ run_fb4_with_ration_grams(
   processed_data,
   model_options,
   oxycal = 13560,
-  population_size = 1,
   output_daily = TRUE
 )
 }
-\arguments{
-\item{species_params}{List with species parameters}
-
-\item{initial_weight}{Initial weight in grams}
-
-\item{ration_grams}{Daily ration in grams of prey}
-
-\item{processed_data}{Processed input data}
-
-\item{model_options}{Model options}
-
-\item{oxycal}{Oxycalorific coefficient, default 13560}
-
-\item{population_size}{Population size, default 1}
-
-\item{output_daily}{Logical, whether to include daily output}
-}
-\value{
-List with simulation results
-}
 \description{
-Executes the simulation using a specific daily ration in grams.
-Does not require iterative fitting as the consumption is fixed.
-The p-value is calculated dynamically based on the ration and fish weight.
-}
-\details{
-The ration is constant in absolute grams each day, regardless of fish weight.
-The p-value is calculated dynamically based on: p = ration_grams / (weight * Cmax)
-where Cmax is the maximum consumption rate at the given temperature.
-
-This approach is useful when you have specific feeding data or want to
-simulate controlled feeding experiments.
-}
-\examples{
-\dontrun{
-# Internal function - not called directly by users
-result <- run_fb4_with_ration_grams(
-  species_params = my_params,
-  initial_weight = 10,
-  ration_grams = 0.5,
-  processed_data = my_data,
-  model_options = my_options
-)
-}
+Execute FB4 with Daily Ration in Grams
 }
 \keyword{internal}

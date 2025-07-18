@@ -19,15 +19,13 @@ NULL
 #' @param processed_data Datos ambientales procesados
 #' @param model_options Opciones del modelo
 #' @param oxycal Coeficiente oxicalórico
-#' @param population_size Número de individuos
 #' @param output_daily Retornar salida diaria
 #' @param tolerance Tolerancia para convergencia
 #' @param max_iterations Número máximo de iteraciones
 #' @return Lista con resultado del ajuste y simulación final
 fit_fb4_binary_search <- function(species_params, initial_weight, fit_to, fit_value,
                                   processed_data, model_options, oxycal = 13560,
-                                  population_size = 1, output_daily = TRUE,
-                                  tolerance = 0.001, max_iterations = 25) {
+                                  output_daily = TRUE, tolerance = 0.001, max_iterations = 25) {
   
   # Validaciones
   if (!fit_to %in% c("weight", "consumption")) {
@@ -58,7 +56,6 @@ fit_fb4_binary_search <- function(species_params, initial_weight, fit_to, fit_va
       processed_data = processed_data,
       model_options = model_options,
       oxycal = oxycal,
-      population_size = population_size,
       output_daily = output_daily
     )
     
@@ -150,7 +147,6 @@ binary_search_p_value_robust <- function(target_value, fit_type,
       processed_data = processed_data,
       model_options = model_options,
       oxycal = oxycal,
-      population_size = 1,
       output_daily = FALSE
     )
     

@@ -10,8 +10,6 @@ NULL
 
 #' Calcular consumo diario
 #'
-#' Calcula el consumo diario basado en el método especificado
-#'
 #' @param current_weight Peso actual del pez (g)
 #' @param temperature Temperatura del agua (°C)
 #' @param p_value Proporción del consumo máximo (0-5)
@@ -75,8 +73,7 @@ calculate_daily_consumption <- function(current_weight, temperature, p_value = N
   ))
 }
 
-#' Calcular procesos metabólicos diarios
-#'
+
 #' Calcula egestion, excreción, respiración y SDA para un día
 #'
 #' @param consumption_energy Consumo energético (J/g/día)
@@ -141,8 +138,6 @@ calculate_daily_metabolism <- function(consumption_energy, current_weight, tempe
   ))
 }
 
-#' Calcular crecimiento y peso final diario
-#'
 #' Calcula el peso final del día considerando crecimiento y reproducción
 #'
 #' @param current_weight Peso inicial del día (g)

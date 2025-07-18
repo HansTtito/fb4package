@@ -11,58 +11,10 @@ run_fb4_with_p_value(
   processed_data,
   model_options,
   oxycal = 13560,
-  population_size = 1,
   output_daily = TRUE
 )
 }
-\arguments{
-\item{species_params}{Species parameters}
-
-\item{initial_weight}{Initial weight in grams}
-
-\item{p_value}{Specific p-value (proportion of maximum consumption, 0-5)}
-
-\item{processed_data}{Processed data}
-
-\item{model_options}{Model options}
-
-\item{oxycal}{Oxycalorific coefficient, default 13560}
-
-\item{population_size}{Number of individuals, default 1}
-
-\item{output_daily}{Return daily output, default TRUE}
-}
-\value{
-List with simulation results
-}
 \description{
-Executes the Fish Bioenergetics 4.0 simulation using a fixed p-value
-(proportion of maximum consumption). This is the most direct approach
-when you know the desired feeding level.
-}
-\details{
-The p-value represents the proportion of maximum consumption and typically
-ranges from 0.1 to 1.0 for realistic scenarios, though values up to 5.0
-are technically possible. Values are automatically clamped to the range
-0.001 to 4.999 to ensure numerical stability.
-
-This method is useful when:
-\itemize{
-  \item{You have empirical data on feeding rates}
-  \item{You want to explore different feeding scenarios}
-  \item{You need to compare with other bioenergetic studies}
-}
-}
-\examples{
-\dontrun{
-# Internal function - not called directly by users
-result <- run_fb4_with_p_value(
-  species_params = my_params,
-  initial_weight = 15,
-  p_value = 0.6,
-  processed_data = my_data,
-  model_options = my_options
-)
-}
+Execute FB4 Simulation with Specific P-Value
 }
 \keyword{internal}

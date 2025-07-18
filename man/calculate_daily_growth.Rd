@@ -2,7 +2,7 @@
 % Please edit documentation in R/10-main-growth-model.R
 \name{calculate_daily_growth}
 \alias{calculate_daily_growth}
-\title{Calcular crecimiento y peso final diario}
+\title{Calcula el peso final del día considerando crecimiento y reproducción}
 \usage{
 calculate_daily_growth(
   current_weight,

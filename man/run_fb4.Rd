@@ -15,37 +15,5 @@ run_fb4(x, ...)
 Object of class 'fb4_result' with simulation results
 }
 \description{
-Generic function that allows executing Fish Bioenergetics 4.0 model simulations
-with different types of input objects. This provides a flexible interface
-that can be extended to support various data input formats.
-}
-\details{
-This generic function dispatches to specific methods based on object class:
-\itemize{
-  \item{Bioenergetic: }{Uses run_fb4.Bioenergetic()}
-  \item{Others: }{Future methods for other classes}
-}
-
-The function provides a consistent interface regardless of the input object type,
-making it easier to integrate with different data workflows and analysis pipelines.
-}
-\examples{
-\dontrun{
-# With Bioenergetic object
-bio_obj <- new_bioenergetic(
-  species = "Salmo salar",
-  initial_weight = 15,
-  duration = 200,
-  temperature_avg = 12
-)
-result <- run_fb4(bio_obj, fit_to = "Weight", fit_value = 50)
-
-# Check result structure
-str(result)
-plot(result)
-}
-
-}
-\seealso{
-\code{\link{run_fb4.Bioenergetic}}, \code{\link{new_bioenergetic}}
+Generic Function for Fish Bioenergetics 4.0 Model Execution
 }

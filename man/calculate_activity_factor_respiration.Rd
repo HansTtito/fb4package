@@ -8,7 +8,7 @@ calculate_activity_factor_respiration(
   weight,
   temperature,
   respiration_params,
-  activity_params = NULL
+  activity_params
 )
 }
 \arguments{
