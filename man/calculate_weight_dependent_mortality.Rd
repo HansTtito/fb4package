@@ -2,7 +2,7 @@
 % Please edit documentation in R/08-mortality-reproduction.R
 \name{calculate_weight_dependent_mortality}
 \alias{calculate_weight_dependent_mortality}
-\title{Calcular mortalidad dependiente del peso}
+\title{Calculate weight-dependent mortality (Low-level)}
 \usage{
 calculate_weight_dependent_mortality(
   current_weight,
@@ -13,20 +13,20 @@ calculate_weight_dependent_mortality(
 )
 }
 \arguments{
-\item{current_weight}{Peso actual (g)}
+\item{current_weight}{Current weight (g)}
 
-\item{base_mortality}{Tasa base de mortalidad diaria}
+\item{base_mortality}{Base daily mortality rate}
 
-\item{weight_threshold}{Peso umbral por debajo del cual aumenta mortalidad}
+\item{weight_threshold}{Weight threshold below which mortality increases}
 
-\item{starvation_factor}{Factor de multiplicación por inanición}
+\item{starvation_factor}{Multiplication factor for starvation}
 
-\item{initial_weight}{Peso inicial para comparación (opcional)}
+\item{initial_weight}{Initial weight for comparison (optional)}
 }
 \value{
-Tasa de mortalidad ajustada
+Adjusted mortality rate
 }
 \description{
-Ajusta la mortalidad basada en el peso actual del pez
+Adjusts mortality based on current fish weight
 }
 \keyword{internal}

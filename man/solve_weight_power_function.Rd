@@ -2,23 +2,23 @@
 % Please edit documentation in R/04-predator-energy-density.R
 \name{solve_weight_power_function}
 \alias{solve_weight_power_function}
-\title{Resolver peso final para función potencia (PREDEDEQ = 1 y 3)}
+\title{Solve weight for power function (Low-level)}
 \usage{
 solve_weight_power_function(initial_weight, net_energy, Alpha1, Beta1)
 }
 \arguments{
-\item{initial_weight}{Peso inicial}
+\item{initial_weight}{Initial weight}
 
-\item{net_energy}{Energía neta}
+\item{net_energy}{Net energy}
 
-\item{Alpha1}{Coeficiente}
+\item{Alpha1}{Coefficient}
 
-\item{Beta1}{Exponente}
+\item{Beta1}{Exponent}
 }
 \value{
-Peso final
+Final weight
 }
 \description{
-Resolver peso final para función potencia (PREDEDEQ = 1 y 3)
+Solves final weight for power function relationship (PREDEDEQ = 3)
 }
 \keyword{internal}

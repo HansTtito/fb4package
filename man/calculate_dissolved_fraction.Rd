@@ -2,20 +2,20 @@
 % Please edit documentation in R/06-contaminant-accumulation.R
 \name{calculate_dissolved_fraction}
 \alias{calculate_dissolved_fraction}
-\title{Calcular fracción disuelta del contaminante}
+\title{Calculate dissolved fraction of contaminant (Utility)}
 \usage{
 calculate_dissolved_fraction(poc_concentration, doc_concentration, kow)
 }
 \arguments{
-\item{poc_concentration}{Concentración de carbono orgánico particulado (kg/L)}
+\item{poc_concentration}{Particulate organic carbon concentration (kg/L)}
 
-\item{doc_concentration}{Concentración de carbono orgánico disuelto (kg/L)}
+\item{doc_concentration}{Dissolved organic carbon concentration (kg/L)}
 
-\item{kow}{Coeficiente de partición octanol:agua}
+\item{kow}{Octanol:water partition coefficient}
 }
 \value{
-Fracción disuelta
+Dissolved fraction
 }
 \description{
-Calcula fracción disuelta basada en carbono orgánico según Arnot & Gobas (2004)
+Calculates dissolved fraction based on organic carbon according to Arnot & Gobas (2004)
 }

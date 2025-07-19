@@ -4,32 +4,31 @@
 \alias{check_numeric_value}
 \title{Check Numeric Value}
 \usage{
-check_numeric_value(value, name, min_val = -Inf, max_val = Inf)
+check_numeric_value(
+  value,
+  name,
+  min_val = -Inf,
+  max_val = Inf,
+  allow_vector = FALSE,
+  must_be_integer = FALSE
+)
 }
 \arguments{
-\item{value}{Value to check}
+\item{value}{Value to validate}
 
-\item{name}{Parameter name (for error messages)}
+\item{name}{Parameter name for error messages}
 
-\item{min_val}{Minimum allowed value, default -Inf}
+\item{min_val}{Minimum allowed value (default -Inf)}
 
-\item{max_val}{Maximum allowed value, default Inf}
+\item{max_val}{Maximum allowed value (default Inf)}
+
+\item{allow_vector}{Allow vectors or require scalar (default FALSE = scalar only)}
+
+\item{must_be_integer}{Require integer values (default FALSE)}
 }
 \value{
-Validated numeric value
+Validated numeric value(s)
 }
 \description{
-Validates that a value is numeric, finite, scalar, and within specified bounds.
+Check Numeric Value
 }
-\details{
-This utility function provides consistent validation for scalar numeric
-parameters throughout the package, ensuring they meet basic requirements
-for numerical computations.
-}
-\examples{
-\dontrun{
-check_numeric_value(15.5, "temperature", 0, 40)  # Returns 15.5
-check_numeric_value(-5, "weight", 0)             # Error: below minimum
-}
-}
-\keyword{internal}

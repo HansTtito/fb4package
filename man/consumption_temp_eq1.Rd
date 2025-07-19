@@ -2,19 +2,19 @@
 % Please edit documentation in R/01-consumption.R
 \name{consumption_temp_eq1}
 \alias{consumption_temp_eq1}
-\title{Función de temperatura para consumo - Ecuación 1}
+\title{Temperature function for consumption - Equation 1 (Low-level)}
 \usage{
 consumption_temp_eq1(temperature, CQ)
 }
 \arguments{
-\item{temperature}{Temperatura del agua (°C)}
+\item{temperature}{Water temperature (°C)}
 
-\item{CQ}{Coeficiente de temperatura para consumo}
+\item{CQ}{Temperature coefficient for consumption}
 }
 \value{
-Factor de temperatura
+Temperature factor
 }
 \description{
-Implementa la ecuación de temperatura 1 (exponencial simple)
+Implements temperature equation 1 (simple exponential)
 }
 \keyword{internal}

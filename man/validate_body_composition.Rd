@@ -2,16 +2,16 @@
 % Please edit documentation in R/05-body-composition.R
 \name{validate_body_composition}
 \alias{validate_body_composition}
-\title{Validar composición corporal}
+\title{Validate body composition (Utility)}
 \usage{
 validate_body_composition(composition)
 }
 \arguments{
-\item{composition}{Lista de composición corporal}
+\item{composition}{Body composition list}
 }
 \value{
-Lista con resultados de validación
+List with validation results
 }
 \description{
-Validar composición corporal
+Validates body composition against typical biological ranges
 }

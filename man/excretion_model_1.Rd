@@ -2,21 +2,21 @@
 % Please edit documentation in R/03-egestion-excretion.R
 \name{excretion_model_1}
 \alias{excretion_model_1}
-\title{Modelo de excreción 1 - Básico}
+\title{Excretion model 1 - Basic (Low-level)}
 \usage{
 excretion_model_1(consumption, egestion, UA)
 }
 \arguments{
-\item{consumption}{Consumo (J/g)}
+\item{consumption}{Consumption (J/g)}
 
-\item{egestion}{Egestión (J/g)}
+\item{egestion}{Egestion (J/g)}
 
-\item{UA}{Fracción de excreción}
+\item{UA}{Excretion fraction}
 }
 \value{
-Excreción (J/g)
+Excretion (J/g)
 }
 \description{
-Modelo simple de excreción proporcional a la materia asimilada
+Simple excretion model proportional to assimilated matter
 }
 \keyword{internal}

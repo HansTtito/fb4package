@@ -2,7 +2,7 @@
 % Please edit documentation in R/01-consumption.R
 \name{consumption-functions}
 \alias{consumption-functions}
-\title{Funciones de Consumo para el Modelo FB4}
+\title{Consumption Functions for FB4 Model}
 \description{
-Funciones de Consumo para el Modelo FB4
+Consumption Functions for FB4 Model
 }

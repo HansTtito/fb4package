@@ -2,27 +2,27 @@
 % Please edit documentation in R/04-predator-energy-density.R
 \name{predator_energy_eq2}
 \alias{predator_energy_eq2}
-\title{Densidad energética lineal por segmentos (Ecuación 2)}
+\title{Linear piecewise energy density - Equation 2 (Low-level)}
 \usage{
 predator_energy_eq2(weight, Alpha1, Beta1, Alpha2, Beta2, Cutoff)
 }
 \arguments{
-\item{weight}{Peso del pez (g)}
+\item{weight}{Fish weight (g)}
 
-\item{Alpha1}{Intercepto para primer segmento}
+\item{Alpha1}{Intercept for first segment}
 
-\item{Beta1}{Pendiente para primer segmento}
+\item{Beta1}{Slope for first segment}
 
-\item{Alpha2}{Intercepto para segundo segmento}
+\item{Alpha2}{Intercept for second segment}
 
-\item{Beta2}{Pendiente para segundo segmento}
+\item{Beta2}{Slope for second segment}
 
-\item{Cutoff}{Peso de corte entre segmentos}
+\item{Cutoff}{Weight cutoff between segments}
 }
 \value{
-Densidad energética (J/g)
+Energy density (J/g)
 }
 \description{
-Densidad energética lineal por segmentos (Ecuación 2)
+Two-segment linear relationship between weight and energy density
 }
 \keyword{internal}

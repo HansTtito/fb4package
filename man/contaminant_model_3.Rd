@@ -2,7 +2,7 @@
 % Please edit documentation in R/06-contaminant-accumulation.R
 \name{contaminant_model_3}
 \alias{contaminant_model_3}
-\title{Modelo de contaminantes 3 - Arnot & Gobas (2004)}
+\title{Contaminant model 3 - Arnot & Gobas (2004) (Low-level)}
 \usage{
 contaminant_model_3(
   respiration_o2,
@@ -20,34 +20,34 @@ contaminant_model_3(
 )
 }
 \arguments{
-\item{respiration_o2}{Respiración (g O2/g/día)}
+\item{respiration_o2}{Respiration (g O2/g/day)}
 
-\item{consumption}{Vector de consumo por presa (g/día)}
+\item{consumption}{Vector of consumption by prey (g/day)}
 
-\item{weight}{Peso del pez (g)}
+\item{weight}{Fish weight (g)}
 
-\item{temperature}{Temperatura del agua (°C)}
+\item{temperature}{Water temperature (°C)}
 
-\item{prey_concentrations}{Vector de concentraciones en presas (μg/g)}
+\item{prey_concentrations}{Vector of concentrations in prey (μg/g)}
 
-\item{assimilation_efficiency}{Vector de eficiencias de asimilación}
+\item{assimilation_efficiency}{Vector of assimilation efficiencies}
 
-\item{current_burden}{Carga corporal actual (μg)}
+\item{current_burden}{Current body burden (μg)}
 
-\item{gill_efficiency}{Eficiencia de captación branquial}
+\item{gill_efficiency}{Gill uptake efficiency}
 
-\item{fish_water_partition}{Coeficiente de partición pez:agua}
+\item{fish_water_partition}{Fish:water partition coefficient}
 
-\item{water_concentration}{Concentración total en agua (mg/L)}
+\item{water_concentration}{Total concentration in water (mg/L)}
 
-\item{dissolved_fraction}{Fracción disuelta}
+\item{dissolved_fraction}{Dissolved fraction}
 
-\item{do_saturation}{Saturación de oxígeno disuelto (fracción)}
+\item{do_saturation}{Dissolved oxygen saturation (fraction)}
 }
 \value{
-Lista con clearance, uptake, y nueva carga
+List with clearance, uptake, and new burden
 }
 \description{
-Modelo completo con captación desde agua y alimento, eliminación proporcional a respiración
+Complete model with uptake from water and food, elimination proportional to respiration
 }
 \keyword{internal}

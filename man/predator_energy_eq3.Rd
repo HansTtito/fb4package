@@ -2,21 +2,21 @@
 % Please edit documentation in R/04-predator-energy-density.R
 \name{predator_energy_eq3}
 \alias{predator_energy_eq3}
-\title{Densidad energética función potencia (Ecuación 3)}
+\title{Power function energy density - Equation 3 (Low-level)}
 \usage{
 predator_energy_eq3(weight, Alpha1, Beta1)
 }
 \arguments{
-\item{weight}{Peso del pez (g)}
+\item{weight}{Fish weight (g)}
 
-\item{Alpha1}{Coeficiente multiplicativo}
+\item{Alpha1}{Multiplicative coefficient}
 
-\item{Beta1}{Exponente}
+\item{Beta1}{Exponent}
 }
 \value{
-Densidad energética (J/g)
+Energy density (J/g)
 }
 \description{
-Densidad energética función potencia (Ecuación 3)
+Power relationship between weight and energy density
 }
 \keyword{internal}

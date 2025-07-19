@@ -2,19 +2,19 @@
 % Please edit documentation in R/01-consumption.R
 \name{calculate_temperature_factor_consumption}
 \alias{calculate_temperature_factor_consumption}
-\title{Calcular factor de temperatura para consumo}
+\title{Calculate temperature factor for consumption (Mid-level)}
 \usage{
 calculate_temperature_factor_consumption(temperature, consumption_params)
 }
 \arguments{
-\item{temperature}{Temperatura del agua (°C)}
+\item{temperature}{Water temperature (°C)}
 
-\item{consumption_params}{Lista con parámetros de consumo}
+\item{consumption_params}{List with consumption parameters}
 }
 \value{
-Factor de temperatura
+Temperature factor
 }
 \description{
-Calcular factor de temperatura para consumo
+Coordinates temperature equation selection and calculation
 }
 \keyword{internal}

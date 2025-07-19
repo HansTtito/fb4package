@@ -1,180 +1,112 @@
-#' Funciones de Regeneración de Nutrientes para el Modelo FB4
+#' Nutrient Regeneration Functions for FB4 Model
 #'
 #' @name nutrient-regeneration
 #' @aliases nutrient-regeneration
 NULL
 
 # ============================================================================
-# FUNCIONES CORE DE ASIGNACIÓN DE NUTRIENTES
+# LOW-LEVEL FUNCTIONS
 # ============================================================================
 
-#' Asignación de fósforo en el modelo bioenergético
+#' Generic nutrient allocation in bioenergetic model (Low-level)
 #'
-#' Calcula el balance de fósforo en consumo, crecimiento, excreción y egestion
+#' Calculates nutrient balance in consumption, growth, excretion and egestion
 #'
-#' @param consumption Vector de consumo por tipo de presa (g/día)
-#' @param prey_p_concentrations Vector de concentraciones de P en presas (g P/g peso húmedo)
-#' @param p_assimilation_efficiency Vector de eficiencias de asimilación de P (fracción 0-1)
-#' @param weight_gain Ganancia de peso del depredador (g/día)
-#' @param predator_p_concentration Concentración de P en depredador (g P/g peso húmedo)
-#' @return Lista con flujos de fósforo
+#' @param consumption Vector of consumption by prey type (g/day)
+#' @param prey_nutrient_concentrations Vector of nutrient concentrations in prey (g nutrient/g wet weight)
+#' @param nutrient_assimilation_efficiency Vector of nutrient assimilation efficiencies (fraction 0-1)
+#' @param weight_gain Predator weight gain (g/day)
+#' @param predator_nutrient_concentration Nutrient concentration in predator (g nutrient/g wet weight)
+#' @param nutrient_name Name of nutrient for error messages
+#' @return List with nutrient fluxes
 #' @keywords internal
-calculate_phosphorus_allocation <- function(consumption, prey_p_concentrations, 
-                                            p_assimilation_efficiency, weight_gain,
-                                            predator_p_concentration) {
+calculate_nutrient_allocation <- function(consumption, prey_nutrient_concentrations, 
+                                          nutrient_assimilation_efficiency, weight_gain,
+                                          predator_nutrient_concentration, nutrient_name = "nutrient") {
   
-  # Validar entradas
-  if (length(consumption) != length(prey_p_concentrations) || 
-      length(consumption) != length(p_assimilation_efficiency)) {
-    stop("Vectores de entrada deben tener la misma longitud")
+  # Validate inputs
+  if (length(consumption) != length(prey_nutrient_concentrations) || 
+      length(consumption) != length(nutrient_assimilation_efficiency)) {
+    stop("Input vectors must have the same length")
   }
   
-  # Validar rangos de eficiencias
-  if (any(p_assimilation_efficiency < 0 | p_assimilation_efficiency > 1, na.rm = TRUE)) {
-    warning("Eficiencias de asimilación fuera de rango [0,1], corrigiendo")
-    p_assimilation_efficiency <- clamp(p_assimilation_efficiency, 0, 1)
+  # Validate efficiency ranges
+  if (any(nutrient_assimilation_efficiency < 0 | nutrient_assimilation_efficiency > 1, na.rm = TRUE)) {
+    warning("Assimilation efficiencies outside range [0,1], correcting")
+    nutrient_assimilation_efficiency <- clamp(nutrient_assimilation_efficiency, 0, 1)
   }
   
-  # Validar concentraciones
-  if (any(prey_p_concentrations < 0, na.rm = TRUE) || predator_p_concentration < 0) {
-    warning("Concentraciones negativas detectadas, corrigiendo a 0")
-    prey_p_concentrations <- pmax(0, prey_p_concentrations, na.rm = TRUE)
-    predator_p_concentration <- max(0, predator_p_concentration)
+  # Validate concentrations
+  if (any(prey_nutrient_concentrations < 0, na.rm = TRUE) || predator_nutrient_concentration < 0) {
+    warning("Negative concentrations detected, correcting to 0")
+    prey_nutrient_concentrations <- pmax(0, prey_nutrient_concentrations, na.rm = TRUE)
+    predator_nutrient_concentration <- max(0, predator_nutrient_concentration)
   }
   
-  # 1. Fósforo consumido por tipo de presa (g P/día)
-  p_consumption_by_prey <- consumption * prey_p_concentrations
+  # 1. Nutrient consumed by prey type (g nutrient/day)
+  nutrient_consumption_by_prey <- consumption * prey_nutrient_concentrations
   
-  # 2. Fósforo total consumido (g P/día)
-  p_consumed_total <- sum(p_consumption_by_prey, na.rm = TRUE)
+  # 2. Total nutrient consumed (g nutrient/day)
+  nutrient_consumed_total <- sum(nutrient_consumption_by_prey, na.rm = TRUE)
   
-  # 3. Fósforo incorporado en crecimiento (g P/día)
-  p_growth <- pmax(0, weight_gain) * predator_p_concentration
+  # 3. Nutrient incorporated in growth (g nutrient/day)
+  nutrient_growth <- pmax(0, weight_gain) * predator_nutrient_concentration
   
-  # 4. Fósforo asimilado total (g P/día)
-  p_assimilated <- sum(p_assimilation_efficiency * p_consumption_by_prey, na.rm = TRUE)
+  # 4. Total assimilated nutrient (g nutrient/day)
+  nutrient_assimilated <- sum(nutrient_assimilation_efficiency * nutrient_consumption_by_prey, na.rm = TRUE)
   
-  # 5. Fósforo excretado (g P/día)
-  # P excretado = P asimilado - P crecimiento
-  p_excretion <- pmax(0, p_assimilated - p_growth)
+  # 5. Nutrient excretion (g nutrient/day)
+  # Excreted = Assimilated - Growth
+  nutrient_excretion <- pmax(0, nutrient_assimilated - nutrient_growth)
   
-  # 6. Fósforo en egestion (g P/día)
-  # P egestion = P consumido - P asimilado
-  p_egestion <- pmax(0, p_consumed_total - p_assimilated)
+  # 6. Nutrient egestion (g nutrient/day)
+  # Egestion = Consumed - Assimilated
+  nutrient_egestion <- pmax(0, nutrient_consumed_total - nutrient_assimilated)
   
-  # Verificar balance de masa
-  balance_check <- abs(p_consumed_total - (p_growth + p_excretion + p_egestion))
+  # Mass balance check
+  balance_check <- abs(nutrient_consumed_total - (nutrient_growth + nutrient_excretion + nutrient_egestion))
   if (balance_check > 1e-8) {
-    warning("Desbalance de masa en fósforo: ", signif(balance_check, 3))
+    warning("Mass balance error in ", nutrient_name, ": ", signif(balance_check, 3))
   }
   
   return(list(
-    consumed = p_consumed_total,
-    growth = p_growth,
-    excretion = p_excretion,
-    egestion = p_egestion,
-    assimilated = p_assimilated,
-    assimilation_efficiency = if (p_consumed_total > 0) p_assimilated / p_consumed_total else 0
+    consumed = nutrient_consumed_total,
+    growth = nutrient_growth,
+    excretion = nutrient_excretion,
+    egestion = nutrient_egestion,
+    assimilated = nutrient_assimilated,
+    assimilation_efficiency = if (nutrient_consumed_total > 0) nutrient_assimilated / nutrient_consumed_total else 0
   ))
 }
 
-#' Asignación de nitrógeno en el modelo bioenergético
-#'
-#' Calcula el balance de nitrógeno en consumo, crecimiento, excreción y egestion
-#'
-#' @param consumption Vector de consumo por tipo de presa (g/día)
-#' @param prey_n_concentrations Vector de concentraciones de N en presas (g N/g peso húmedo)
-#' @param n_assimilation_efficiency Vector de eficiencias de asimilación de N (fracción 0-1)
-#' @param weight_gain Ganancia de peso del depredador (g/día)
-#' @param predator_n_concentration Concentración de N en depredador (g N/g peso húmedo)
-#' @return Lista con flujos de nitrógeno
-#' @keywords internal
-calculate_nitrogen_allocation <- function(consumption, prey_n_concentrations,
-                                          n_assimilation_efficiency, weight_gain,
-                                          predator_n_concentration) {
-  
-  # Validar entradas
-  if (length(consumption) != length(prey_n_concentrations) || 
-      length(consumption) != length(n_assimilation_efficiency)) {
-    stop("Vectores de entrada deben tener la misma longitud")
-  }
-  
-  # Validar rangos de eficiencias
-  if (any(n_assimilation_efficiency < 0 | n_assimilation_efficiency > 1, na.rm = TRUE)) {
-    warning("Eficiencias de asimilación fuera de rango [0,1], corrigiendo")
-    n_assimilation_efficiency <- clamp(n_assimilation_efficiency, 0, 1)
-  }
-  
-  # Validar concentraciones
-  if (any(prey_n_concentrations < 0, na.rm = TRUE) || predator_n_concentration < 0) {
-    warning("Concentraciones negativas detectadas, corrigiendo a 0")
-    prey_n_concentrations <- pmax(0, prey_n_concentrations, na.rm = TRUE)
-    predator_n_concentration <- max(0, predator_n_concentration)
-  }
-  
-  # 1. Nitrógeno consumido por tipo de presa (g N/día)
-  n_consumption_by_prey <- consumption * prey_n_concentrations
-  
-  # 2. Nitrógeno total consumido (g N/día)
-  n_consumed_total <- sum(n_consumption_by_prey, na.rm = TRUE)
-  
-  # 3. Nitrógeno incorporado en crecimiento (g N/día)
-  n_growth <- pmax(0, weight_gain) * predator_n_concentration
-  
-  # 4. Nitrógeno asimilado total (g N/día)
-  n_assimilated <- sum(n_assimilation_efficiency * n_consumption_by_prey, na.rm = TRUE)
-  
-  # 5. Nitrógeno excretado (g N/día)
-  # N excretado = N asimilado - N crecimiento
-  n_excretion <- pmax(0, n_assimilated - n_growth)
-  
-  # 6. Nitrógeno en egestion (g N/día)
-  # N egestion = N consumido - N asimilado
-  n_egestion <- pmax(0, n_consumed_total - n_assimilated)
-  
-  # Verificar balance de masa
-  balance_check <- abs(n_consumed_total - (n_growth + n_excretion + n_egestion))
-  if (balance_check > 1e-8) {
-    warning("Desbalance de masa en nitrógeno: ", signif(balance_check, 3))
-  }
-  
-  return(list(
-    consumed = n_consumed_total,
-    growth = n_growth,
-    excretion = n_excretion,
-    egestion = n_egestion,
-    assimilated = n_assimilated,
-    assimilation_efficiency = if (n_consumed_total > 0) n_assimilated / n_consumed_total else 0
-  ))
-}
 
 # ============================================================================
-# FUNCIÓN PRINCIPAL DE NUTRIENTES
+# MID-LEVEL FUNCTIONS: Coordination and Business Logic
 # ============================================================================
 
-#' Calcular balance de nutrientes
+#' Calculate nutrient balance (Mid-level - Main function)
 #'
-#' Función principal para calcular los flujos de nitrógeno y fósforo
+#' Main function for calculating nitrogen and phosphorus fluxes
 #'
-#' @param consumption Vector de consumo por tipo de presa (g/día)
-#' @param weight_gain Ganancia de peso del depredador (g/día)
-#' @param nutrient_params Lista con parámetros de nutrientes
-#' @return Lista con resultados de nutrientes
+#' @param consumption Vector of consumption by prey type (g/day)
+#' @param weight_gain Predator weight gain (g/day)
+#' @param nutrient_params List with nutrient parameters
+#' @return List with nutrient results
 #' @export
 calculate_nutrient_balance <- function(consumption, weight_gain, nutrient_params) {
   
-  # Validaciones básicas
+  # Basic validations
   if (is.null(nutrient_params)) {
-    stop("nutrient_params no puede ser NULL")
+    stop("nutrient_params cannot be NULL")
   }
   
   weight_gain <- check_numeric_value(weight_gain, "weight_gain", min_val = -Inf)
   
-  # Extraer parámetros con valores por defecto
+  # Extract parameters with default values
   prey_n_concentrations <- nutrient_params$prey_n_concentrations %||% 
-    rep(0.08, length(consumption))  # 8% N típico
+    rep(0.08, length(consumption))  # 8% N typical
   prey_p_concentrations <- nutrient_params$prey_p_concentrations %||% 
-    rep(0.01, length(consumption))  # 1% P típico
+    rep(0.01, length(consumption))  # 1% P typical
   
   predator_n_concentration <- nutrient_params$predator_n_concentration %||% 0.09  # 9% N
   predator_p_concentration <- nutrient_params$predator_p_concentration %||% 0.015  # 1.5% P
@@ -184,34 +116,16 @@ calculate_nutrient_balance <- function(consumption, weight_gain, nutrient_params
   p_assimilation_efficiency <- nutrient_params$p_assimilation_efficiency %||% 
     rep(0.80, length(consumption))
   
-  # Ajustar longitudes de vectores si es necesario
-  n_prey <- length(consumption)
+  # Adjust vector lengths if necessary
+  consumption_length <- length(consumption)
   
-  if (length(prey_n_concentrations) == 1) {
-    prey_n_concentrations <- rep(prey_n_concentrations, n_prey)
-  } else if (length(prey_n_concentrations) != n_prey) {
-    stop("Longitud de prey_n_concentrations no coincide con consumption")
-  }
+  # Standardize vector lengths
+  prey_n_concentrations <- standardize_vector_length(prey_n_concentrations, consumption_length, "prey_n_concentrations")
+  prey_p_concentrations <- standardize_vector_length(prey_p_concentrations, consumption_length, "prey_p_concentrations")
+  n_assimilation_efficiency <- standardize_vector_length(n_assimilation_efficiency, consumption_length, "n_assimilation_efficiency")
+  p_assimilation_efficiency <- standardize_vector_length(p_assimilation_efficiency, consumption_length, "p_assimilation_efficiency")
   
-  if (length(prey_p_concentrations) == 1) {
-    prey_p_concentrations <- rep(prey_p_concentrations, n_prey)
-  } else if (length(prey_p_concentrations) != n_prey) {
-    stop("Longitud de prey_p_concentrations no coincide con consumption")
-  }
-  
-  if (length(n_assimilation_efficiency) == 1) {
-    n_assimilation_efficiency <- rep(n_assimilation_efficiency, n_prey)
-  } else if (length(n_assimilation_efficiency) != n_prey) {
-    stop("Longitud de n_assimilation_efficiency no coincide con consumption")
-  }
-  
-  if (length(p_assimilation_efficiency) == 1) {
-    p_assimilation_efficiency <- rep(p_assimilation_efficiency, n_prey)
-  } else if (length(p_assimilation_efficiency) != n_prey) {
-    stop("Longitud de p_assimilation_efficiency no coincide con consumption")
-  }
-  
-  # Calcular flujos de nitrógeno
+  # Calculate nitrogen fluxes
   nitrogen_result <- calculate_nitrogen_allocation(
     consumption = consumption,
     prey_n_concentrations = prey_n_concentrations,
@@ -220,7 +134,7 @@ calculate_nutrient_balance <- function(consumption, weight_gain, nutrient_params
     predator_n_concentration = predator_n_concentration
   )
   
-  # Calcular flujos de fósforo
+  # Calculate phosphorus fluxes
   phosphorus_result <- calculate_phosphorus_allocation(
     consumption = consumption,
     prey_p_concentrations = prey_p_concentrations,
@@ -229,10 +143,10 @@ calculate_nutrient_balance <- function(consumption, weight_gain, nutrient_params
     predator_p_concentration = predator_p_concentration
   )
   
-  # Calcular ratios N:P
+  # Calculate N:P ratios
   np_ratios <- calculate_np_ratios(nitrogen_result, phosphorus_result)
   
-  # Calcular eficiencias
+  # Calculate efficiencies
   efficiencies <- calculate_nutrient_efficiencies(nitrogen_result, phosphorus_result)
   
   return(list(
@@ -245,29 +159,47 @@ calculate_nutrient_balance <- function(consumption, weight_gain, nutrient_params
 }
 
 # ============================================================================
-# FUNCIONES DE ANÁLISIS
+# UTILITY FUNCTIONS: Parameter Calculations and Validation
 # ============================================================================
 
-#' Calcular ratios N:P para todos los procesos
+#' Standardize vector length (Utility)
 #'
-#' Calcula ratios molares y de masa N:P para consumo, crecimiento, excreción y egestion
+#' Ensures vector has correct length for calculations
 #'
-#' @param nitrogen_fluxes Lista resultado de calculate_nitrogen_allocation
-#' @param phosphorus_fluxes Lista resultado de calculate_phosphorus_allocation
-#' @param ratio_type Tipo de ratio ("mass" o "molar")
-#' @return Lista con ratios N:P
+#' @param vector Input vector
+#' @param target_length Target length
+#' @param param_name Parameter name for error messages
+#' @return Vector with correct length
+#' @keywords internal
+standardize_vector_length <- function(vector, target_length, param_name) {
+  if (length(vector) == 1) {
+    return(rep(vector, target_length))
+  } else if (length(vector) != target_length) {
+    stop("Length of ", param_name, " does not match consumption vector")
+  }
+  return(vector)
+}
+
+#' Calculate N:P ratios for all processes (Utility)
+#'
+#' Calculates molar and mass N:P ratios for consumption, growth, excretion and egestion
+#'
+#' @param nitrogen_fluxes List result from calculate_nitrogen_allocation
+#' @param phosphorus_fluxes List result from calculate_phosphorus_allocation
+#' @param ratio_type Type of ratio ("mass" or "molar")
+#' @return List with N:P ratios
 #' @export
 calculate_np_ratios <- function(nitrogen_fluxes, phosphorus_fluxes, ratio_type = "mass") {
   
   if (!ratio_type %in% c("mass", "molar")) {
-    stop("ratio_type debe ser 'mass' o 'molar'")
+    stop("ratio_type must be 'mass' or 'molar'")
   }
   
-  # Factores de conversión para ratios molares
+  # Conversion factors for molar ratios
   atomic_weight_N <- 14.007
   atomic_weight_P <- 30.974
   
-  # Procesos a calcular
+  # Processes to calculate
   processes <- c("consumed", "growth", "excretion", "egestion")
   ratios <- numeric(length(processes))
   names(ratios) <- processes
@@ -303,17 +235,17 @@ calculate_np_ratios <- function(nitrogen_fluxes, phosphorus_fluxes, ratio_type =
   ))
 }
 
-#' Calcular eficiencias de retención de nutrientes
+#' Calculate nutrient retention efficiencies (Utility)
 #'
-#' Calcula eficiencias de asimilación y retención para N y P
+#' Calculates assimilation and retention efficiencies for N and P
 #'
-#' @param nitrogen_fluxes Lista resultado de calculate_nitrogen_allocation
-#' @param phosphorus_fluxes Lista resultado de calculate_phosphorus_allocation
-#' @return Lista con eficiencias calculadas
+#' @param nitrogen_fluxes List result from calculate_nitrogen_allocation
+#' @param phosphorus_fluxes List result from calculate_phosphorus_allocation
+#' @return List with calculated efficiencies
 #' @export
 calculate_nutrient_efficiencies <- function(nitrogen_fluxes, phosphorus_fluxes) {
   
-  # Eficiencias de nitrógeno
+  # Nitrogen efficiencies
   n_consumed <- nitrogen_fluxes$consumed
   n_growth <- nitrogen_fluxes$growth
   n_excretion <- nitrogen_fluxes$excretion
@@ -323,7 +255,7 @@ calculate_nutrient_efficiencies <- function(nitrogen_fluxes, phosphorus_fluxes) 
   n_excretion_rate <- if (n_consumed > 0) n_excretion / n_consumed else 0
   n_growth_efficiency <- if (n_assimilated > 0) n_growth / n_assimilated else 0
   
-  # Eficiencias de fósforo
+  # Phosphorus efficiencies
   p_consumed <- phosphorus_fluxes$consumed
   p_growth <- phosphorus_fluxes$growth
   p_excretion <- phosphorus_fluxes$excretion
@@ -346,19 +278,19 @@ calculate_nutrient_efficiencies <- function(nitrogen_fluxes, phosphorus_fluxes) 
       excretion_rate = p_excretion_rate,
       growth_efficiency = p_growth_efficiency
     ),
-    # Eficiencias relativas
+    # Relative efficiencies
     relative_n_retention = if (p_retention_efficiency > 0) n_retention_efficiency / p_retention_efficiency else NA,
     relative_n_excretion = if (p_excretion_rate > 0) n_excretion_rate / p_excretion_rate else NA
   ))
 }
 
-#' Validar concentraciones de nutrientes
+#' Validate nutrient concentrations (Utility)
 #'
-#' Verifica que las concentraciones estén en rangos biológicamente realistas
+#' Verifies that concentrations are within biologically realistic ranges
 #'
-#' @param nutrient_concentrations Lista con concentraciones de N y P
-#' @param organism_type Tipo de organismo para validación
-#' @return Lista con resultados de validación
+#' @param nutrient_concentrations List with N and P concentrations
+#' @param organism_type Organism type for validation
+#' @return List with validation results
 #' @export
 validate_nutrient_concentrations <- function(nutrient_concentrations, organism_type = "fish") {
   
@@ -368,7 +300,7 @@ validate_nutrient_concentrations <- function(nutrient_concentrations, organism_t
     errors = character()
   )
   
-  # Rangos típicos (g/g peso húmedo)
+  # Typical ranges (g/g wet weight)
   typical_ranges <- list(
     fish = list(nitrogen = c(0.08, 0.12), phosphorus = c(0.01, 0.02)),
     zooplankton = list(nitrogen = c(0.07, 0.11), phosphorus = c(0.008, 0.015)),
@@ -377,58 +309,58 @@ validate_nutrient_concentrations <- function(nutrient_concentrations, organism_t
   
   if (!organism_type %in% names(typical_ranges)) {
     validation$warnings <- c(validation$warnings, 
-                             paste("Tipo de organismo no reconocido:", organism_type))
+                             paste("Unrecognized organism type:", organism_type))
     organism_type <- "fish"
   }
   
   ranges <- typical_ranges[[organism_type]]
   
-  # Validar nitrógeno
+  # Validate nitrogen
   if ("nitrogen" %in% names(nutrient_concentrations)) {
     n_values <- nutrient_concentrations$nitrogen
     
     if (any(n_values < 0, na.rm = TRUE)) {
-      validation$errors <- c(validation$errors, "Concentraciones de nitrógeno negativas")
+      validation$errors <- c(validation$errors, "Negative nitrogen concentrations")
       validation$valid <- FALSE
     }
     
     if (any(n_values < ranges$nitrogen[1] | n_values > ranges$nitrogen[2], na.rm = TRUE)) {
       validation$warnings <- c(validation$warnings, 
-                               paste("Concentraciones de N fuera de rango típico para", organism_type))
+                               paste("N concentrations outside typical range for", organism_type))
     }
   }
   
-  # Validar fósforo
+  # Validate phosphorus
   if ("phosphorus" %in% names(nutrient_concentrations)) {
     p_values <- nutrient_concentrations$phosphorus
     
     if (any(p_values < 0, na.rm = TRUE)) {
-      validation$errors <- c(validation$errors, "Concentraciones de fósforo negativas")
+      validation$errors <- c(validation$errors, "Negative phosphorus concentrations")
       validation$valid <- FALSE
     }
     
     if (any(p_values < ranges$phosphorus[1] | p_values > ranges$phosphorus[2], na.rm = TRUE)) {
       validation$warnings <- c(validation$warnings, 
-                               paste("Concentraciones de P fuera de rango típico para", organism_type))
+                               paste("P concentrations outside typical range for", organism_type))
     }
   }
   
-  # Validar ratio N:P
+  # Validate N:P ratio
   if ("nitrogen" %in% names(nutrient_concentrations) && 
       "phosphorus" %in% names(nutrient_concentrations)) {
     
     n_values <- nutrient_concentrations$nitrogen
     p_values <- nutrient_concentrations$phosphorus
     
-    # Evitar división por cero
+    # Avoid division by zero
     valid_indices <- !is.na(p_values) & p_values > 0
     if (any(valid_indices)) {
       np_ratios <- n_values[valid_indices] / p_values[valid_indices]
       
-      # Rango típico para ratios N:P (masa): 4-15
+      # Typical range for N:P ratios (mass): 4-15
       if (any(np_ratios < 2 | np_ratios > 20, na.rm = TRUE)) {
         validation$warnings <- c(validation$warnings, 
-                                 "Ratios N:P fuera de rango típico (2-20)")
+                                 "N:P ratios outside typical range (2-20)")
       }
     }
   }
@@ -437,95 +369,89 @@ validate_nutrient_concentrations <- function(nutrient_concentrations, organism_t
 }
 
 # ============================================================================
-# FUNCIONES DE ALTO NIVEL
+# HIGH-LEVEL ANALYSIS FUNCTIONS
 # ============================================================================
 
-
-#' Estimar impacto ecosistémico de excreción de nutrientes
+#' Estimate ecosystem impact of nutrient excretion
 #'
-#' Calcula el impacto potencial en el ecosistema de la excreción de nutrientes
+#' Calculates potential ecosystem impact of nutrient excretion
 #'
-#' @param daily_n_excretion Excreción diaria de nitrógeno (g N/día)
-#' @param daily_p_excretion Excreción diaria de fósforo (g P/día)
-#' @param fish_biomass Biomasa total de peces en el sistema (g)
-#' @param water_volume Volumen de agua del sistema (L)
-#' @param simulation_days Número de días de simulación
-#' @return Lista con estimaciones de impacto ecosistémico
+#' @param daily_n_excretion Daily nitrogen excretion (g N/day)
+#' @param daily_p_excretion Daily phosphorus excretion (g P/day)
+#' @param fish_biomass Total fish biomass in system (g)
+#' @param water_volume Water volume of system (L)
+#' @param simulation_days Number of simulation days
+#' @return List with ecosystem impact estimates
 #' @export
 calculate_ecosystem_impact <- function(daily_n_excretion, daily_p_excretion, fish_biomass,
                                        water_volume, simulation_days) {
   
-  # Validar entradas
+  # Validate inputs
   fish_biomass <- check_numeric_value(fish_biomass, "fish_biomass", min_val = 0)
   water_volume <- check_numeric_value(water_volume, "water_volume", min_val = 1)
   simulation_days <- check_numeric_value(simulation_days, "simulation_days", min_val = 1)
   
-  # Excreción total para toda la población de peces
-  total_n_excretion_per_day <- daily_n_excretion * fish_biomass  # g N/día
-  total_p_excretion_per_day <- daily_p_excretion * fish_biomass  # g P/día
+  # Total excretion for entire fish population
+  total_n_excretion_per_day <- daily_n_excretion * fish_biomass  # g N/day
+  total_p_excretion_per_day <- daily_p_excretion * fish_biomass  # g P/day
   
-  # Excreción acumulada durante período de simulación
+  # Cumulative excretion during simulation period
   total_n_excretion <- total_n_excretion_per_day * simulation_days  # g N
   total_p_excretion <- total_p_excretion_per_day * simulation_days  # g P
   
-  # Concentraciones potenciales en agua (mg/L)
-  # Asumiendo mezcla completa y sin pérdidas
+  # Potential water concentrations (mg/L)
+  # Assuming complete mixing and no losses
   n_concentration_mgL <- (total_n_excretion / water_volume) * 1000
   p_concentration_mgL <- (total_p_excretion / water_volume) * 1000
   
-  # Adición diaria de nutrientes (mg/L/día)
+  # Daily nutrient addition (mg/L/day)
   daily_n_addition <- (total_n_excretion_per_day / water_volume) * 1000
   daily_p_addition <- (total_p_excretion_per_day / water_volume) * 1000
   
-  # Ratio N:P en excreción
+  # N:P ratio in excretion
   excretion_np_ratio <- if (total_p_excretion > 0) total_n_excretion / total_p_excretion else Inf
   
-  # Estimación simple del estado trófico basado en P
+  # Simple trophic status estimation based on P
   trophic_status <- if (p_concentration_mgL < 0.01) {
-    "Oligotrófico"
+    "Oligotrophic"
   } else if (p_concentration_mgL < 0.05) {
-    "Mesotrófico"
+    "Mesotrophic"
   } else {
-    "Eutrófico"
+    "Eutrophic"
   }
   
   return(list(
-    # Excreción total
+    # Total excretion
     total_n_excretion_g = total_n_excretion,
     total_p_excretion_g = total_p_excretion,
     
-    # Tasas diarias
+    # Daily rates
     daily_n_excretion_g = total_n_excretion_per_day,
     daily_p_excretion_g = total_p_excretion_per_day,
     
-    # Concentraciones potenciales
+    # Potential concentrations
     n_concentration_mgL = n_concentration_mgL,
     p_concentration_mgL = p_concentration_mgL,
     daily_n_addition_mgL = daily_n_addition,
     daily_p_addition_mgL = daily_p_addition,
     
-    # Evaluación
+    # Assessment
     excretion_np_ratio = excretion_np_ratio,
     trophic_status = trophic_status,
     
-    # Parámetros del sistema
+    # System parameters
     fish_biomass_g = fish_biomass,
     water_volume_L = water_volume,
     simulation_days = simulation_days
   ))
 }
 
-
-# ============================================================================
-# FUNCIONES DE ANÁLISIS COMPARATIVO
-# ============================================================================
-
-#' Comparar con ratios de Redfield
+#' Compare with Redfield ratios
 #'
-#' Compara ratios N:P calculados con el ratio de Redfield
+#' Compares calculated N:P ratios with Redfield ratio
 #'
-#' @param np_ratios Lista resultado de calculate_np_ratios
-#' @return Data frame con comparación
+#' @param np_ratios List result from calculate_np_ratios
+#' @return Data frame with comparison
 #' @export
 compare_with_redfield <- function(np_ratios) {
   
@@ -540,24 +466,24 @@ compare_with_redfield <- function(np_ratios) {
     stringsAsFactors = FALSE
   )
   
-  # Añadir interpretación
+  # Add interpretation
   comparison$Interpretation <- ifelse(
-    is.infinite(comparison$NP_Ratio), "Sin P disponible",
-    ifelse(is.nan(comparison$NP_Ratio), "Sin flujo",
+    is.infinite(comparison$NP_Ratio), "No P available",
+    ifelse(is.nan(comparison$NP_Ratio), "No flux",
            ifelse(comparison$NP_Ratio > redfield_ratio,
-                  "Rico en N relativo a P",
-                  "Pobre en N relativo a P"))
+                  "N-rich relative to P",
+                  "N-poor relative to P"))
   )
   
   return(comparison)
 }
 
-#' Calcular balance estequiométrico
+#' Calculate stoichiometric balance
 #'
-#' Analiza limitaciones nutricionales basadas en ratios N:P
+#' Analyzes nutritional limitations based on N:P ratios
 #'
-#' @param nutrient_balance Lista resultado de calculate_nutrient_balance
-#' @return Lista con análisis estequiométrico
+#' @param nutrient_balance List result from calculate_nutrient_balance
+#' @return List with stoichiometric analysis
 #' @export
 calculate_stoichiometric_balance <- function(nutrient_balance) {
   
@@ -565,30 +491,30 @@ calculate_stoichiometric_balance <- function(nutrient_balance) {
   nitrogen <- nutrient_balance$nitrogen
   phosphorus <- nutrient_balance$phosphorus
   
-  # Determinar limitación nutricional en el consumo
+  # Determine nutritional limitation in consumption
   consumption_np <- np_ratios$ratios["consumed"]
   redfield_ratio <- np_ratios$redfield_ratio
   
   if (is.finite(consumption_np)) {
     if (consumption_np > redfield_ratio) {
-      nutrient_limitation <- "Limitado por P"
+      nutrient_limitation <- "P-limited"
       limiting_nutrient <- "phosphorus"
     } else {
-      nutrient_limitation <- "Limitado por N"
+      nutrient_limitation <- "N-limited"
       limiting_nutrient <- "nitrogen"
     }
   } else {
-    nutrient_limitation <- "Indeterminado"
+    nutrient_limitation <- "Undetermined"
     limiting_nutrient <- "unknown"
   }
   
-  # Calcular exceso nutricional
+  # Calculate nutrient excess
   if (limiting_nutrient == "phosphorus") {
-    # Exceso de N relativo a P
+    # Excess N relative to P
     excess_factor <- consumption_np / redfield_ratio
     excess_nutrient <- "nitrogen"
   } else if (limiting_nutrient == "nitrogen") {
-    # Exceso de P relativo a N
+    # Excess P relative to N
     excess_factor <- redfield_ratio / consumption_np
     excess_nutrient <- "phosphorus"
   } else {
@@ -596,7 +522,7 @@ calculate_stoichiometric_balance <- function(nutrient_balance) {
     excess_nutrient <- "none"
   }
   
-  # Eficiencia de uso de nutriente limitante
+  # Efficiency of limiting nutrient use
   if (limiting_nutrient == "nitrogen") {
     limiting_efficiency <- nutrient_balance$efficiencies$nitrogen$retention_efficiency
   } else if (limiting_nutrient == "phosphorus") {
@@ -616,4 +542,3 @@ calculate_stoichiometric_balance <- function(nutrient_balance) {
     np_deviation = consumption_np - redfield_ratio
   ))
 }
-

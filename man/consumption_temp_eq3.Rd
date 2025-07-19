@@ -2,29 +2,29 @@
 % Please edit documentation in R/01-consumption.R
 \name{consumption_temp_eq3}
 \alias{consumption_temp_eq3}
-\title{Función de temperatura para consumo - Ecuación 3}
+\title{Temperature function for consumption - Equation 3 (Low-level)}
 \usage{
 consumption_temp_eq3(temperature, CQ, CG1, CK1, CG2, CTL, CK4)
 }
 \arguments{
-\item{temperature}{Temperatura del agua (°C)}
+\item{temperature}{Water temperature (°C)}
 
-\item{CQ}{Coeficiente de temperatura}
+\item{CQ}{Temperature coefficient}
 
-\item{CG1}{Parámetro calculado 1}
+\item{CG1}{Calculated parameter 1}
 
-\item{CK1}{Fracción pequeña de la tasa máxima}
+\item{CK1}{Small fraction of maximum rate}
 
-\item{CG2}{Parámetro calculado 2}
+\item{CG2}{Calculated parameter 2}
 
-\item{CTL}{Temperatura con tasa reducida}
+\item{CTL}{Temperature with reduced rate}
 
-\item{CK4}{Fracción reducida de la tasa máxima}
+\item{CK4}{Reduced fraction of maximum rate}
 }
 \value{
-Factor de temperatura
+Temperature factor
 }
 \description{
-Implementa la ecuación de temperatura 3 (Thornton y Lessem 1978)
+Implements temperature equation 3 (Thornton and Lessem 1978)
 }
 \keyword{internal}

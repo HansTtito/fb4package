@@ -2,7 +2,7 @@
 % Please edit documentation in R/09-fitting-algorithms.R
 \name{fit_fb4_binary_search}
 \alias{fit_fb4_binary_search}
-\title{Algoritmo de búsqueda binaria para ajuste FB4}
+\title{Binary Search Algorithm for FB4 Fitting}
 \usage{
 fit_fb4_binary_search(
   species_params,
@@ -18,29 +18,29 @@ fit_fb4_binary_search(
 )
 }
 \arguments{
-\item{species_params}{Parámetros de la especie extraídos}
+\item{species_params}{Extracted species parameters}
 
-\item{initial_weight}{Peso inicial (g)}
+\item{initial_weight}{Initial weight (g)}
 
-\item{fit_to}{Tipo de ajuste ("weight" o "consumption")}
+\item{fit_to}{Type of fitting ("weight" or "consumption")}
 
-\item{fit_value}{Valor objetivo}
+\item{fit_value}{Target value}
 
-\item{processed_data}{Datos ambientales procesados}
+\item{processed_data}{Processed environmental data}
 
-\item{model_options}{Opciones del modelo}
+\item{model_options}{Model options}
 
-\item{oxycal}{Coeficiente oxicalórico}
+\item{oxycal}{Oxycalorific coefficient}
 
-\item{output_daily}{Retornar salida diaria}
+\item{output_daily}{Return daily output}
 
-\item{tolerance}{Tolerancia para convergencia}
+\item{tolerance}{Tolerance for convergence}
 
-\item{max_iterations}{Número máximo de iteraciones}
+\item{max_iterations}{Maximum number of iterations}
 }
 \value{
-Lista con resultado del ajuste y simulación final
+List with fitting result and final simulation
 }
 \description{
-Implementación robusta del algoritmo de búsqueda binaria basado en las funciones críticas
+Robust implementation of binary search algorithm based on critical functions
 }

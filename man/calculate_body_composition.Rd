@@ -2,7 +2,7 @@
 % Please edit documentation in R/05-body-composition.R
 \name{calculate_body_composition}
 \alias{calculate_body_composition}
-\title{Calcular composición corporal completa}
+\title{Calculate complete body composition (Mid-level - Main function)}
 \usage{
 calculate_body_composition(
   weight,
@@ -12,18 +12,18 @@ calculate_body_composition(
 )
 }
 \arguments{
-\item{weight}{Peso total húmedo (g)}
+\item{weight}{Total wet weight (g)}
 
-\item{water_fraction}{Fracción de agua (0-1), por defecto 0.728}
+\item{water_fraction}{Water fraction (0-1), default 0.728}
 
-\item{fat_energy}{Energía por gramo de grasa (J/g)}
+\item{fat_energy}{Energy per gram of fat (J/g)}
 
-\item{protein_energy}{Energía por gramo de proteína (J/g)}
+\item{protein_energy}{Energy per gram of protein (J/g)}
 }
 \value{
-Lista con composición corporal completa
+List with complete body composition
 }
 \description{
-Función principal que calcula todos los componentes de la composición corporal
-y la densidad energética a partir del peso y fracción de agua
+Main function that calculates all body composition components
+and energy density from weight and water fraction
 }

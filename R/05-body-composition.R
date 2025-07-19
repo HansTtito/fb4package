@@ -1,203 +1,224 @@
-#' Funciones de Composición Corporal para el Modelo FB4
+#' Body Composition Functions for FB4 Model
 #'
 #' @name body-composition
 #' @aliases body-composition
 NULL
 
 # ============================================================================
-# FUNCIONES CORE DE COMPOSICIÓN CORPORAL
+# LOW-LEVEL FUNCTIONS
 # ============================================================================
 
-#' Estimar contenido de proteína a partir del agua
+#' Estimate protein content from water (Low-level)
 #'
-#' Estima gramos de proteína basado en el contenido de agua usando la
-#' regresión de Breck (2014)
+#' Estimates grams of protein based on water content using Breck (2014) regression
 #'
-#' @param water_content Contenido de agua (g)
-#' @return Contenido de proteína (g)
+#' @param water_content Water content (g)
+#' @return Protein content (g)
 #' @keywords internal
 #' @references Breck, J.E. 2014. Body composition in fishes: body size matters. Aquaculture 433:40-49.
 calculate_protein_from_water <- function(water_content) {
-  if (is.na(water_content) || water_content <= 0) {
-    return(0)
-  }
+  if (water_content <= 0) return(0)
   
-  # Regresión de Breck (2014), N = 101, r² = 0.9917
+  # Breck (2014) regression, N = 101, r² = 0.9917
   # log10(Protein) = -0.8068 + 1.0750 * log10(H2O)
   protein <- 10^(-0.8068 + 1.0750 * log10(water_content))
   
   return(pmax(0, protein))
 }
 
-#' Estimar contenido de ceniza a partir del agua
+#' Estimate ash content from water (Low-level)
 #'
-#' Estima gramos de ceniza basado en el contenido de agua usando la
-#' regresión de Breck (2014)
+#' Estimates grams of ash based on water content using Breck (2014) regression
 #'
-#' @param water_content Contenido de agua (g)
-#' @return Contenido de ceniza (g)
+#' @param water_content Water content (g)
+#' @return Ash content (g)
 #' @keywords internal
 #' @references Breck, J.E. 2014. Body composition in fishes: body size matters. Aquaculture 433:40-49.
 calculate_ash_from_water <- function(water_content) {
-  if (is.na(water_content) || water_content <= 0) {
-    return(0)
-  }
+  if (water_content <= 0) return(0)
   
-  # Regresión de Breck (2014), N = 101, r² = 0.9932
+  # Breck (2014) regression, N = 101, r² = 0.9932
   # log10(Ash) = -1.6765 + 1.0384 * log10(H2O)
   ash <- 10^(-1.6765 + 1.0384 * log10(water_content))
   
   return(pmax(0, ash))
 }
 
-#' Calcular contenido de grasa por sustracción
+#' Calculate fat content by subtraction (Low-level)
 #'
-#' Calcula gramos de grasa restando agua, proteína y ceniza del peso total
+#' Calculates grams of fat by subtracting water, protein and ash from total weight
 #'
-#' @param total_weight Peso total húmedo (g)
-#' @param water_content Contenido de agua (g)
-#' @param protein_content Contenido de proteína (g)
-#' @param ash_content Contenido de ceniza (g)
-#' @return Contenido de grasa (g)
+#' @param total_weight Total wet weight (g)
+#' @param water_content Water content (g)
+#' @param protein_content Protein content (g)
+#' @param ash_content Ash content (g)
+#' @return Fat content (g)
 #' @keywords internal
 calculate_fat_by_subtraction <- function(total_weight, water_content, protein_content, ash_content) {
-  
   fat_content <- total_weight - water_content - protein_content - ash_content
   
-  # Validar que la grasa no sea negativa
-  if (fat_content < 0) {
-    fat_content <- 0
-  }
+  # Ensure fat is not negative
+  fat_content <- pmax(0, fat_content)
   
-  # Validar límites biológicos (máximo ~35% del peso)
+  # Apply biological limits (maximum ~35% of weight)
   max_fat <- total_weight * 0.35
-  if (fat_content > max_fat) {
-    fat_content <- max_fat
-  }
+  fat_content <- pmin(fat_content, max_fat)
   
   return(fat_content)
 }
 
-#' Calcular densidad energética a partir de grasa y proteína
+#' Calculate energy density from fat and protein (Low-level)
 #'
-#' @param fat_content Contenido de grasa (g)
-#' @param protein_content Contenido de proteína (g)
-#' @param total_weight Peso total (g)
-#' @param fat_energy Energía por gramo de grasa (J/g)
-#' @param protein_energy Energía por gramo de proteína (J/g)
-#' @return Densidad energética (J/g peso húmedo)
+#' Calculates energy density based on fat and protein content
+#'
+#' @param fat_content Fat content (g)
+#' @param protein_content Protein content (g)
+#' @param total_weight Total weight (g)
+#' @param fat_energy Energy per gram of fat (J/g)
+#' @param protein_energy Energy per gram of protein (J/g)
+#' @return Energy density (J/g wet weight)
 #' @keywords internal
 calculate_energy_density <- function(fat_content, protein_content, total_weight, 
                                      fat_energy = 36200, protein_energy = 23600) {
+  if (total_weight <= 0) return(4500)  # Default value
   
-  if (total_weight <= 0) return(4500)  # Valor por defecto
-  
-  # Calcular densidad energética
+  # Calculate energy density
   energy_density <- (fat_content * fat_energy + protein_content * protein_energy) / total_weight
   
-  # Limitar a rango biológico típico
+  # Limit to typical biological range
   energy_density <- clamp(energy_density, 2000, 10000)
   
   return(energy_density)
 }
 
 # ============================================================================
-# FUNCIÓN PRINCIPAL DE COMPOSICIÓN CORPORAL
+# MID-LEVEL FUNCTIONS: Coordination and Business Logic
 # ============================================================================
 
-#' Calcular composición corporal completa
+#' Calculate complete body composition (Mid-level - Main function)
 #'
-#' Función principal que calcula todos los componentes de la composición corporal
-#' y la densidad energética a partir del peso y fracción de agua
+#' Main function that calculates all body composition components
+#' and energy density from weight and water fraction
 #'
-#' @param weight Peso total húmedo (g)
-#' @param water_fraction Fracción de agua (0-1), por defecto 0.728
-#' @param fat_energy Energía por gramo de grasa (J/g)
-#' @param protein_energy Energía por gramo de proteína (J/g)
-#' @return Lista con composición corporal completa
+#' @param weight Total wet weight (g)
+#' @param water_fraction Water fraction (0-1), default 0.728
+#' @param fat_energy Energy per gram of fat (J/g)
+#' @param protein_energy Energy per gram of protein (J/g)
+#' @return List with complete body composition
 #' @export
 calculate_body_composition <- function(weight, 
                                        water_fraction = 0.728, 
                                        fat_energy = 39300, 
                                        protein_energy = 23600) {
-  
-  # Validar entradas
-  weight <- check_numeric_value(weight, "weight", min_val = 0.001)
-  water_fraction <- check_numeric_value(water_fraction, "water_fraction", min_val = 0.4, max_val = 0.9)
-  
-  # Calcular contenido de agua
+
+  # Calculate water content
   water_content <- water_fraction * weight
   
-  # Calcular otros componentes usando regresiones de Breck (2014)
+  # Calculate other components using Breck (2014) regressions
   protein_content <- calculate_protein_from_water(water_content)
   ash_content <- calculate_ash_from_water(water_content)
   fat_content <- calculate_fat_by_subtraction(weight, water_content, protein_content, ash_content)
   
-  # Calcular densidad energética
+  # Calculate energy density
   energy_density <- calculate_energy_density(fat_content, protein_content, weight, fat_energy, protein_energy)
   
-  # Calcular fracciones
+  # Calculate fractions
   water_frac <- water_content / weight
   protein_frac <- protein_content / weight
   ash_frac <- ash_content / weight
   fat_frac <- fat_content / weight
   
-  # Verificar balance
+  # Check balance
   total_fraction <- water_frac + protein_frac + ash_frac + fat_frac
   balanced <- abs(total_fraction - 1) < 0.05
   
   return(list(
-    # Información básica
+    # Basic information
     total_weight = weight,
     
-    # Contenidos absolutos (g)
+    # Absolute contents (g)
     water_g = water_content,
     protein_g = protein_content,
     ash_g = ash_content,
     fat_g = fat_content,
     
-    # Fracciones
+    # Fractions
     water_fraction = water_frac,
     protein_fraction = protein_frac,
     ash_fraction = ash_frac,
     fat_fraction = fat_frac,
     
-    # Energía
+    # Energy
     energy_density = energy_density,
     total_energy = energy_density * weight,
     
-    # Validación
+    # Validation
     total_fraction = total_fraction,
     balanced = balanced
   ))
 }
 
+#' Update body composition during simulation (Mid-level)
+#'
+#' Updates body composition as fish grows or changes condition
+#' Used during simulation loops - assumes pre-validated inputs
+#'
+#' @param old_weight Previous weight (g)
+#' @param new_weight New weight (g)
+#' @param old_composition Previous composition (optional)
+#' @param water_fraction_new Water fraction for new weight
+#' @return New body composition
+#' @export
+update_body_composition <- function(old_weight, new_weight, old_composition = NULL, 
+                                    water_fraction_new = 0.728) {
+
+  # Calculate new composition
+  new_composition <- calculate_body_composition(new_weight, water_fraction_new)
+  
+  # If we have previous composition, calculate changes
+  if (!is.null(old_composition)) {
+    changes <- list(
+      weight_change = new_weight - old_weight,
+      water_change = new_composition$water_g - old_composition$water_g,
+      protein_change = new_composition$protein_g - old_composition$protein_g,
+      fat_change = new_composition$fat_g - old_composition$fat_g,
+      energy_density_change = new_composition$energy_density - old_composition$energy_density
+    )
+    
+    new_composition$changes <- changes
+  }
+  
+  return(new_composition)
+}
+
 # ============================================================================
-# FUNCIONES DE ANÁLISIS
+# UTILITY FUNCTIONS: Analysis and Validation
 # ============================================================================
 
-#' Analizar composición corporal por rango de tamaños
+#' Analyze body composition by size range (Utility)
 #'
-#' @param weight_range Rango de pesos a analizar (vector de 2 elementos)
-#' @param n_points Número de puntos para analizar
-#' @param water_fraction Fracción de agua (constante o función del peso)
-#' @return Data frame con análisis de composición por tamaño
+#' Analyzes body composition across a range of fish sizes
+#'
+#' @param weight_range Weight range to analyze (2-element vector)
+#' @param n_points Number of points to analyze
+#' @param water_fraction Water fraction (constant or function of weight)
+#' @return Data frame with composition analysis by size
 #' @export
 analyze_composition_by_size <- function(weight_range = c(1, 500), 
                                         n_points = 50, 
                                         water_fraction = 0.728) {
-  
-  # Crear secuencia de pesos
+
+  # Create weight sequence
   weights <- seq(weight_range[1], weight_range[2], length.out = n_points)
   
-  # Permitir fracción de agua variable si es función
+  # Allow variable water fraction if function
   if (is.function(water_fraction)) {
     water_fractions <- sapply(weights, water_fraction)
   } else {
     water_fractions <- rep(water_fraction, n_points)
   }
   
-  # Calcular composiciones
+  # Calculate compositions
   compositions <- mapply(
     calculate_body_composition,
     weight = weights,
@@ -205,7 +226,7 @@ analyze_composition_by_size <- function(weight_range = c(1, 500),
     SIMPLIFY = FALSE
   )
   
-  # Convertir a data frame
+  # Convert to data frame
   result_df <- data.frame(
     Weight = weights,
     Water_g = sapply(compositions, function(x) x$water_g),
@@ -222,25 +243,22 @@ analyze_composition_by_size <- function(weight_range = c(1, 500),
   return(result_df)
 }
 
-
-# ============================================================================
-# FUNCIONES DE VALIDACIÓN
-# ============================================================================
-
-#' Validar composición corporal
+#' Validate body composition (Utility)
 #'
-#' @param composition Lista de composición corporal
-#' @return Lista con resultados de validación
+#' Validates body composition against typical biological ranges
+#'
+#' @param composition Body composition list
+#' @return List with validation results
 #' @export
 validate_body_composition <- function(composition) {
-  
+
   validation <- list(
     valid = TRUE,
     warnings = character(),
     errors = character()
   )
   
-  # Rangos típicos para peces (fracciones)
+  # Typical ranges for fish (fractions)
   typical_ranges <- list(
     water = c(0.65, 0.85),
     protein = c(0.10, 0.25),
@@ -249,81 +267,42 @@ validate_body_composition <- function(composition) {
     energy_density = c(2000, 8000)
   )
   
-  # Validar rangos
+  # Validate ranges
   if (composition$water_fraction < typical_ranges$water[1] || 
       composition$water_fraction > typical_ranges$water[2]) {
     validation$warnings <- c(validation$warnings,
-                             paste("Fracción de agua fuera de rango típico:",
+                             paste("Water fraction outside typical range:",
                                    round(composition$water_fraction, 3)))
   }
   
   if (composition$protein_fraction < typical_ranges$protein[1] || 
       composition$protein_fraction > typical_ranges$protein[2]) {
     validation$warnings <- c(validation$warnings,
-                             paste("Fracción de proteína fuera de rango típico:",
+                             paste("Protein fraction outside typical range:",
                                    round(composition$protein_fraction, 3)))
   }
   
   if (composition$energy_density < typical_ranges$energy_density[1] || 
       composition$energy_density > typical_ranges$energy_density[2]) {
     validation$warnings <- c(validation$warnings,
-                             paste("Densidad energética fuera de rango típico:",
+                             paste("Energy density outside typical range:",
                                    round(composition$energy_density, 0), "J/g"))
   }
   
-  # Validar balance de fracciones
+  # Validate fraction balance
   if (!composition$balanced) {
     validation$errors <- c(validation$errors, 
-                           paste("Las fracciones no suman ~1.0:",
+                           paste("Fractions do not sum to ~1.0:",
                                  round(composition$total_fraction, 3)))
     validation$valid <- FALSE
   }
   
-  # Validar valores negativos
+  # Validate negative values
   if (any(c(composition$water_g, composition$protein_g, 
             composition$ash_g, composition$fat_g) < 0)) {
-    validation$errors <- c(validation$errors, "Componentes negativos detectados")
+    validation$errors <- c(validation$errors, "Negative components detected")
     validation$valid <- FALSE
   }
   
   return(validation)
 }
-
-
-# ============================================================================
-# FUNCIONES ESPECÍFICAS PARA SIMULACIONES FB4
-# ============================================================================
-
-#' Actualizar composición corporal durante simulación
-#'
-#' Actualiza la composición corporal conforme el pez crece o cambia de condición
-#'
-#' @param old_weight Peso anterior (g)
-#' @param new_weight Peso nuevo (g)
-#' @param old_composition Composición anterior (opcional)
-#' @param water_fraction_new Fracción de agua para nuevo peso
-#' @return Nueva composición corporal
-#' @export
-update_body_composition <- function(old_weight, new_weight, old_composition = NULL, 
-                                    water_fraction_new = 0.728) {
-  
-  # Calcular nueva composición
-  new_composition <- calculate_body_composition(new_weight, water_fraction_new)
-  
-  # Si tenemos composición anterior, calcular cambios
-  if (!is.null(old_composition)) {
-    changes <- list(
-      weight_change = new_weight - old_weight,
-      water_change = new_composition$water_g - old_composition$water_g,
-      protein_change = new_composition$protein_g - old_composition$protein_g,
-      fat_change = new_composition$fat_g - old_composition$fat_g,
-      energy_density_change = new_composition$energy_density - old_composition$energy_density
-    )
-    
-    new_composition$changes <- changes
-  }
-  
-  return(new_composition)
-}
-
-

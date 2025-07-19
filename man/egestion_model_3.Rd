@@ -2,7 +2,7 @@
 % Please edit documentation in R/03-egestion-excretion.R
 \name{egestion_model_3}
 \alias{egestion_model_3}
-\title{Modelo de egestión 3 - Stewart et al. (1983)}
+\title{Egestion model 3 - Stewart et al. (1983) (Low-level)}
 \usage{
 egestion_model_3(
   consumption,
@@ -15,24 +15,24 @@ egestion_model_3(
 )
 }
 \arguments{
-\item{consumption}{Consumo (J/g)}
+\item{consumption}{Consumption (J/g)}
 
-\item{temperature}{Temperatura del agua (°C)}
+\item{temperature}{Water temperature (°C)}
 
-\item{p_value}{Proporción del consumo máximo (p-value)}
+\item{p_value}{Proportion of maximum consumption (p-value)}
 
-\item{FA}{Parámetro base de egestión}
+\item{FA}{Base egestion parameter}
 
-\item{FB}{Coeficiente de dependencia de temperatura}
+\item{FB}{Temperature dependence coefficient}
 
-\item{FG}{Coeficiente de dependencia del nivel de alimentación}
+\item{FG}{Feeding level dependence coefficient}
 
-\item{indigestible_fraction}{Fracción indigerible de las presas}
+\item{indigestible_fraction}{Indigestible fraction of prey}
 }
 \value{
-Egestión (J/g)
+Egestion (J/g)
 }
 \description{
-Modelo que incluye presas indigeribles
+Model that includes indigestible prey
 }
 \keyword{internal}

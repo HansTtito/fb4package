@@ -2,7 +2,7 @@
 % Please edit documentation in R/08-mortality-reproduction.R
 \name{generate_reproduction_pattern}
 \alias{generate_reproduction_pattern}
-\title{Generar patrón reproductivo estacional}
+\title{Generate seasonal reproduction pattern (Low-level)}
 \usage{
 generate_reproduction_pattern(
   days,
@@ -13,20 +13,20 @@ generate_reproduction_pattern(
 )
 }
 \arguments{
-\item{days}{Vector de días del año}
+\item{days}{Vector of days of year}
 
-\item{peak_day}{Día del pico reproductivo}
+\item{peak_day}{Day of reproductive peak}
 
-\item{duration}{Duración del período reproductivo (días)}
+\item{duration}{Duration of reproductive period (days)}
 
-\item{max_spawn_fraction}{Fracción máxima de peso perdido}
+\item{max_spawn_fraction}{Maximum fraction of weight lost}
 
-\item{pattern_type}{Tipo de patrón ("gaussian", "uniform", "pulse")}
+\item{pattern_type}{Pattern type ("gaussian", "uniform", "pulse")}
 }
 \value{
-Vector con fracciones reproductivas por día
+Vector with reproductive fractions by day
 }
 \description{
-Crea un patrón de reproducción estacional simplificado
+Creates a simplified seasonal reproduction pattern
 }
 \keyword{internal}

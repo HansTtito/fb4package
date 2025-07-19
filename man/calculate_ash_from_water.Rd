@@ -2,19 +2,18 @@
 % Please edit documentation in R/05-body-composition.R
 \name{calculate_ash_from_water}
 \alias{calculate_ash_from_water}
-\title{Estimar contenido de ceniza a partir del agua}
+\title{Estimate ash content from water (Low-level)}
 \usage{
 calculate_ash_from_water(water_content)
 }
 \arguments{
-\item{water_content}{Contenido de agua (g)}
+\item{water_content}{Water content (g)}
 }
 \value{
-Contenido de ceniza (g)
+Ash content (g)
 }
 \description{
-Estima gramos de ceniza basado en el contenido de agua usando la
-regresión de Breck (2014)
+Estimates grams of ash based on water content using Breck (2014) regression
 }
 \references{
 Breck, J.E. 2014. Body composition in fishes: body size matters. Aquaculture 433:40-49.

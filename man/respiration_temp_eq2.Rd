@@ -2,23 +2,23 @@
 % Please edit documentation in R/02-respiration.R
 \name{respiration_temp_eq2}
 \alias{respiration_temp_eq2}
-\title{Función de temperatura para respiración - Ecuación 2}
+\title{Temperature function for respiration - Equation 2 (Low-level)}
 \usage{
 respiration_temp_eq2(temperature, RTM, RTO, RX)
 }
 \arguments{
-\item{temperature}{Temperatura del agua (°C)}
+\item{temperature}{Water temperature (°C)}
 
-\item{RTM}{Temperatura máxima (letal)}
+\item{RTM}{Maximum (lethal) temperature}
 
-\item{RTO}{Temperatura óptima para respiración}
+\item{RTO}{Optimum temperature for respiration}
 
-\item{RX}{Parámetro calculado}
+\item{RX}{Calculated parameter}
 }
 \value{
-Factor de temperatura
+Temperature factor
 }
 \description{
-Implementa la ecuación de temperatura 2 (Kitchell et al. 1977)
+Implements temperature equation 2 (Kitchell et al. 1977)
 }
 \keyword{internal}

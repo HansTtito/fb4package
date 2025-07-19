@@ -2,7 +2,7 @@
 % Please edit documentation in R/02-respiration.R
 \name{calculate_activity_factor_respiration}
 \alias{calculate_activity_factor_respiration}
-\title{Calcular factor de actividad para respiración}
+\title{Calculate activity factor for respiration (Mid-level)}
 \usage{
 calculate_activity_factor_respiration(
   weight,
@@ -12,18 +12,18 @@ calculate_activity_factor_respiration(
 )
 }
 \arguments{
-\item{weight}{Peso del pez (g)}
+\item{weight}{Fish weight (g)}
 
-\item{temperature}{Temperatura del agua (°C)}
+\item{temperature}{Water temperature (°C)}
 
-\item{respiration_params}{Lista con parámetros de respiración}
+\item{respiration_params}{List with respiration parameters}
 
-\item{activity_params}{Lista con parámetros de actividad}
+\item{activity_params}{List with activity parameters}
 }
 \value{
-Factor de actividad
+Activity factor
 }
 \description{
-Calcular factor de actividad para respiración
+Coordinates activity calculation based on respiration equation
 }
 \keyword{internal}

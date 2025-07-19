@@ -1,55 +1,55 @@
-#' Funciones de Mortalidad y Reproducción para el Modelo FB4
+#' Mortality and Reproduction Functions for FB4 Model
 #'
 #' @name mortality-reproduction
 #' @aliases mortality-reproduction
 NULL
 
 # ============================================================================
-# FUNCIONES CORE DE MORTALIDAD
+# LOW-LEVEL FUNCTIONS
 # ============================================================================
 
-#' Calcular supervivencia diaria combinada
+#' Calculate combined daily survival (Low-level)
 #'
-#' Calcula la supervivencia considerando múltiples fuentes de mortalidad
+#' Calculates survival considering multiple mortality sources
 #'
-#' @param mortality_rates Vector de tasas de mortalidad por fuente (fracción diaria 0-1)
-#' @param method Método de combinación ("independent", "additive")
-#' @return Tasa de supervivencia combinada
+#' @param mortality_rates Vector of mortality rates by source (daily fraction 0-1)
+#' @param method Combination method ("independent", "additive")
+#' @return Combined survival rate
 #' @keywords internal
 calculate_combined_survival <- function(mortality_rates, method = "independent") {
   
-  # Validar entradas
+  # Validate inputs
   mortality_rates <- mortality_rates[!is.na(mortality_rates)]
   
   if (any(mortality_rates < 0 | mortality_rates > 1)) {
-    warning("Tasas de mortalidad fuera de rango [0,1], corrigiendo")
+    warning("Mortality rates outside range [0,1], correcting")
     mortality_rates <- clamp(mortality_rates, 0, 1)
   }
   
   if (method == "independent") {
-    # Supervivencia independiente: S = Π(1 - mi)
+    # Independent survival: S = Π(1 - mi)
     survival_rate <- prod(1 - mortality_rates)
   } else if (method == "additive") {
-    # Mortalidad aditiva: M = Σmi, S = 1 - M
+    # Additive mortality: M = Σmi, S = 1 - M
     combined_mortality <- sum(mortality_rates)
     survival_rate <- max(0, 1 - combined_mortality)
   } else {
-    stop("method debe ser 'independent' o 'additive'")
+    stop("method must be 'independent' or 'additive'")
   }
   
   return(clamp(survival_rate, 0, 1))
 }
 
-#' Calcular mortalidad dependiente del peso
+#' Calculate weight-dependent mortality (Low-level)
 #'
-#' Ajusta la mortalidad basada en el peso actual del pez
+#' Adjusts mortality based on current fish weight
 #'
-#' @param current_weight Peso actual (g)
-#' @param base_mortality Tasa base de mortalidad diaria
-#' @param weight_threshold Peso umbral por debajo del cual aumenta mortalidad
-#' @param starvation_factor Factor de multiplicación por inanición
-#' @param initial_weight Peso inicial para comparación (opcional)
-#' @return Tasa de mortalidad ajustada
+#' @param current_weight Current weight (g)
+#' @param base_mortality Base daily mortality rate
+#' @param weight_threshold Weight threshold below which mortality increases
+#' @param starvation_factor Multiplication factor for starvation
+#' @param initial_weight Initial weight for comparison (optional)
+#' @return Adjusted mortality rate
 #' @keywords internal
 calculate_weight_dependent_mortality <- function(current_weight, base_mortality,
                                                  weight_threshold = 0,
@@ -58,17 +58,17 @@ calculate_weight_dependent_mortality <- function(current_weight, base_mortality,
   
   mortality_rate <- base_mortality
   
-  # Mortalidad por peso absoluto bajo
+  # Mortality due to low absolute weight
   if (weight_threshold > 0 && current_weight < weight_threshold) {
     weight_ratio <- current_weight / weight_threshold
     starvation_effect <- starvation_factor * (1 - weight_ratio)
     mortality_rate <- mortality_rate + starvation_effect * base_mortality
   }
   
-  # Mortalidad por pérdida relativa de peso
+  # Mortality due to relative weight loss
   if (!is.null(initial_weight) && initial_weight > 0) {
     weight_loss_fraction <- 1 - (current_weight / initial_weight)
-    if (weight_loss_fraction > 0.5) {  # Más del 50% de pérdida de peso
+    if (weight_loss_fraction > 0.5) {  # More than 50% weight loss
       severe_loss_effect <- 2 * (weight_loss_fraction - 0.5)
       mortality_rate <- mortality_rate + severe_loss_effect * base_mortality
     }
@@ -77,16 +77,16 @@ calculate_weight_dependent_mortality <- function(current_weight, base_mortality,
   return(clamp(mortality_rate, 0, 0.99))
 }
 
-#' Calcular mortalidad dependiente de temperatura
+#' Calculate temperature-dependent mortality (Low-level)
 #'
-#' Ajusta la mortalidad basada en estrés térmico
+#' Adjusts mortality based on thermal stress
 #'
-#' @param temperature Temperatura actual (°C)
-#' @param base_mortality Tasa base de mortalidad diaria
-#' @param optimal_temp Temperatura óptima (°C)
-#' @param thermal_tolerance Rango de tolerancia térmica (°C)
-#' @param stress_factor Factor de multiplicación por estrés térmico
-#' @return Tasa de mortalidad ajustada
+#' @param temperature Current temperature (°C)
+#' @param base_mortality Base daily mortality rate
+#' @param optimal_temp Optimal temperature (°C)
+#' @param thermal_tolerance Thermal tolerance range (°C)
+#' @param stress_factor Multiplication factor for thermal stress
+#' @return Adjusted mortality rate
 #' @keywords internal
 calculate_temperature_dependent_mortality <- function(temperature, base_mortality,
                                                       optimal_temp = 20,
@@ -106,27 +106,23 @@ calculate_temperature_dependent_mortality <- function(temperature, base_mortalit
   return(clamp(total_mortality, 0, 0.99))
 }
 
-# ============================================================================
-# FUNCIONES CORE DE REPRODUCCIÓN
-# ============================================================================
-
-#' Calcular pérdida de peso por reproducción
+#' Calculate reproductive weight loss (Low-level)
 #'
-#' Calcula la pérdida de peso y energía durante eventos reproductivos
+#' Calculates weight and energy loss during reproductive events
 #'
-#' @param spawn_fraction Fracción de peso perdido en reproducción (0-1)
-#' @param current_weight Peso actual del pez (g)
-#' @param energy_density Densidad energética del tejido reproductivo (J/g)
-#' @return Lista con pérdidas de peso y energía
+#' @param spawn_fraction Fraction of weight lost in reproduction (0-1)
+#' @param current_weight Current fish weight (g)
+#' @param energy_density Energy density of reproductive tissue (J/g)
+#' @return List with weight and energy losses
 #' @keywords internal
 calculate_reproductive_loss <- function(spawn_fraction, current_weight, energy_density = 5000) {
   
-  # Validar entradas
+  # Validate inputs
   spawn_fraction <- clamp(spawn_fraction, 0, 1)
   current_weight <- check_numeric_value(current_weight, "current_weight", min_val = 0.001)
   energy_density <- check_numeric_value(energy_density, "energy_density", min_val = 100)
   
-  # Cálculos
+  # Calculations
   weight_loss <- spawn_fraction * current_weight
   energy_loss <- weight_loss * energy_density
   
@@ -138,16 +134,16 @@ calculate_reproductive_loss <- function(spawn_fraction, current_weight, energy_d
   ))
 }
 
-#' Generar patrón reproductivo estacional
+#' Generate seasonal reproduction pattern (Low-level)
 #'
-#' Crea un patrón de reproducción estacional simplificado
+#' Creates a simplified seasonal reproduction pattern
 #'
-#' @param days Vector de días del año
-#' @param peak_day Día del pico reproductivo
-#' @param duration Duración del período reproductivo (días)
-#' @param max_spawn_fraction Fracción máxima de peso perdido
-#' @param pattern_type Tipo de patrón ("gaussian", "uniform", "pulse")
-#' @return Vector con fracciones reproductivas por día
+#' @param days Vector of days of year
+#' @param peak_day Day of reproductive peak
+#' @param duration Duration of reproductive period (days)
+#' @param max_spawn_fraction Maximum fraction of weight lost
+#' @param pattern_type Pattern type ("gaussian", "uniform", "pulse")
+#' @return Vector with reproductive fractions by day
 #' @keywords internal
 generate_reproduction_pattern <- function(days, peak_day, duration,
                                           max_spawn_fraction = 0.15,
@@ -157,34 +153,34 @@ generate_reproduction_pattern <- function(days, peak_day, duration,
   spawn_fractions <- rep(0, n_days)
   
   if (pattern_type == "gaussian") {
-    # Patrón gaussiano centrado en peak_day
+    # Gaussian pattern centered on peak_day
     for (i in seq_along(days)) {
       day <- days[i]
       
-      # Distancia al pico (considerando circularidad del año)
+      # Distance to peak (considering year circularity)
       dist_to_peak <- min(abs(day - peak_day), 365 - abs(day - peak_day))
       
       if (dist_to_peak <= duration/2) {
-        # Función gaussiana
-        sigma <- duration / 4  # Desviación estándar
-        spawn_fractions[i] <- max_spawn_fraction * exp(-0.5 * (dist_to_peak / sigma)^2)
+        # Gaussian function
+        sigma <- duration / 4  # Standard deviation
+        spawn_fractions[i] <- max_spawn_fraction * safe_exp(-0.5 * (dist_to_peak / sigma)^2)
       }
     }
     
   } else if (pattern_type == "uniform") {
-    # Patrón uniforme durante el período
+    # Uniform pattern during period
     start_day <- peak_day - duration/2
     end_day <- peak_day + duration/2
     
     for (i in seq_along(days)) {
       day <- days[i]
       
-      # Verificar si está en período reproductivo (considerando circularidad)
+      # Check if in reproductive period (considering circularity)
       in_season <- FALSE
       if (start_day >= 1 && end_day <= 365) {
         in_season <- day >= start_day && day <= end_day
       } else {
-        # Manejar casos donde el período cruza el año
+        # Handle cases where period crosses year
         if (start_day < 1) {
           in_season <- day >= (start_day + 365) || day <= end_day
         } else if (end_day > 365) {
@@ -198,7 +194,7 @@ generate_reproduction_pattern <- function(days, peak_day, duration,
     }
     
   } else if (pattern_type == "pulse") {
-    # Evento de desove puntual
+    # Punctual spawning event
     closest_day_index <- which.min(abs(days - peak_day))
     if (length(closest_day_index) > 0) {
       spawn_fractions[closest_day_index] <- max_spawn_fraction
@@ -209,48 +205,48 @@ generate_reproduction_pattern <- function(days, peak_day, duration,
 }
 
 # ============================================================================
-# FUNCIÓN PRINCIPAL DE MORTALIDAD Y REPRODUCCIÓN
+# MID-LEVEL FUNCTIONS: Coordination and Business Logic
 # ============================================================================
 
-#' Calcular mortalidad y reproducción diaria
+#' Calculate daily mortality and reproduction (Mid-level - Main function)
 #'
-#' Función principal para calcular efectos de mortalidad y reproducción
+#' Main function for calculating mortality and reproduction effects
 #'
-#' @param current_weight Peso actual del pez (g)
-#' @param temperature Temperatura del agua (°C)
-#' @param day_of_year Día del año (1-365)
-#' @param mortality_params Lista con parámetros de mortalidad
-#' @param reproduction_params Lista con parámetros de reproducción (opcional)
-#' @param initial_weight Peso inicial para cálculos relativos (opcional)
-#' @return Lista con resultados de mortalidad y reproducción
+#' @param current_weight Current fish weight (g)
+#' @param temperature Water temperature (°C)
+#' @param day_of_year Day of year (1-365)
+#' @param mortality_params List with mortality parameters
+#' @param reproduction_params List with reproduction parameters (optional)
+#' @param initial_weight Initial weight for relative calculations (optional)
+#' @return List with mortality and reproduction results
 #' @export
 calculate_mortality_reproduction <- function(current_weight, temperature, day_of_year,
                                              mortality_params, reproduction_params = NULL,
                                              initial_weight = NULL) {
   
-  # Validaciones básicas
+  # Basic validations
   current_weight <- check_numeric_value(current_weight, "current_weight", min_val = 0.001)
   temperature <- check_numeric_value(temperature, "temperature", min_val = -5, max_val = 50)
   day_of_year <- check_numeric_value(day_of_year, "day_of_year", min_val = 1, max_val = 365)
   
   if (is.null(mortality_params)) {
-    stop("mortality_params no puede ser NULL")
+    stop("mortality_params cannot be NULL")
   }
   
-  # Extraer parámetros de mortalidad con valores por defecto
+  # Extract mortality parameters with default values
   base_mortality <- mortality_params$base_mortality %||% 0.001
   natural_mortality <- mortality_params$natural_mortality %||% base_mortality
   fishing_mortality <- mortality_params$fishing_mortality %||% 0
   predation_mortality <- mortality_params$predation_mortality %||% 0
   
-  # Parámetros de dependencia
+  # Dependency parameters
   weight_threshold <- mortality_params$weight_threshold %||% 0
   starvation_factor <- mortality_params$starvation_factor %||% 5
   optimal_temp <- mortality_params$optimal_temp %||% 20
   thermal_tolerance <- mortality_params$thermal_tolerance %||% 10
   stress_factor <- mortality_params$stress_factor %||% 2
   
-  # Calcular mortalidad dependiente del peso
+  # Calculate weight-dependent mortality
   weight_adjusted_mortality <- calculate_weight_dependent_mortality(
     current_weight = current_weight,
     base_mortality = natural_mortality,
@@ -259,7 +255,7 @@ calculate_mortality_reproduction <- function(current_weight, temperature, day_of
     initial_weight = initial_weight
   )
   
-  # Calcular mortalidad dependiente de temperatura
+  # Calculate temperature-dependent mortality
   temp_adjusted_mortality <- calculate_temperature_dependent_mortality(
     temperature = temperature,
     base_mortality = weight_adjusted_mortality,
@@ -268,18 +264,18 @@ calculate_mortality_reproduction <- function(current_weight, temperature, day_of
     stress_factor = stress_factor
   )
   
-  # Combinar todas las fuentes de mortalidad
+  # Combine all mortality sources
   all_mortality_rates <- c(
     natural = temp_adjusted_mortality,
     fishing = fishing_mortality,
     predation = predation_mortality
   )
   
-  # Calcular supervivencia combinada
+  # Calculate combined survival
   survival_rate <- calculate_combined_survival(all_mortality_rates, method = "independent")
   combined_mortality <- 1 - survival_rate
   
-  # Resultado de mortalidad
+  # Mortality result
   mortality_result <- list(
     survival_rate = survival_rate,
     combined_mortality = combined_mortality,
@@ -290,37 +286,12 @@ calculate_mortality_reproduction <- function(current_weight, temperature, day_of
     temperature_effect = temp_adjusted_mortality - weight_adjusted_mortality
   )
   
-  # Calcular reproducción si se especifica
-  reproduction_result <- NULL
-  if (!is.null(reproduction_params)) {
-    
-    # Extraer parámetros reproductivos
-    spawn_pattern <- reproduction_params$spawn_pattern %||% rep(0, 365)
-    energy_density <- reproduction_params$energy_density %||% 5000
-    
-    # Obtener fracción reproductiva para el día actual
-    if (length(spawn_pattern) >= day_of_year) {
-      spawn_fraction <- spawn_pattern[day_of_year]
-    } else {
-      spawn_fraction <- 0
-    }
-    
-    # Calcular pérdidas reproductivas si hay desove
-    if (spawn_fraction > 0) {
-      reproduction_result <- calculate_reproductive_loss(
-        spawn_fraction = spawn_fraction,
-        current_weight = current_weight,
-        energy_density = energy_density
-      )
-    } else {
-      reproduction_result <- list(
-        weight_loss = 0,
-        energy_loss = 0,
-        spawn_fraction = 0,
-        remaining_weight = current_weight
-      )
-    }
-  }
+  # Calculate reproduction if specified
+  reproduction_result <- process_reproduction(
+    reproduction_params = reproduction_params,
+    current_weight = current_weight,
+    day_of_year = day_of_year
+  )
   
   return(list(
     mortality = mortality_result,
@@ -332,17 +303,61 @@ calculate_mortality_reproduction <- function(current_weight, temperature, day_of
 }
 
 # ============================================================================
-# FUNCIONES DE CONVERSIÓN Y UTILIDADES
+# UTILITY FUNCTIONS: Parameter Calculations and Validation
 # ============================================================================
 
+#' Process reproduction parameters (Utility)
+#'
+#' Handles reproduction calculations if parameters are provided
+#'
+#' @param reproduction_params List with reproduction parameters (optional)
+#' @param current_weight Current fish weight (g)
+#' @param day_of_year Day of year (1-365)
+#' @return List with reproduction results or NULL
+#' @keywords internal
+process_reproduction <- function(reproduction_params, current_weight, day_of_year) {
+  
+  if (is.null(reproduction_params)) {
+    return(NULL)
+  }
+  
+  # Extract reproductive parameters
+  spawn_pattern <- reproduction_params$spawn_pattern %||% rep(0, 365)
+  energy_density <- reproduction_params$energy_density %||% 5000
+  
+  # Get reproductive fraction for current day
+  if (length(spawn_pattern) >= day_of_year) {
+    spawn_fraction <- spawn_pattern[day_of_year]
+  } else {
+    spawn_fraction <- 0
+  }
+  
+  # Calculate reproductive losses if spawning occurs
+  if (spawn_fraction > 0) {
+    reproduction_result <- calculate_reproductive_loss(
+      spawn_fraction = spawn_fraction,
+      current_weight = current_weight,
+      energy_density = energy_density
+    )
+  } else {
+    reproduction_result <- list(
+      weight_loss = 0,
+      energy_loss = 0,
+      spawn_fraction = 0,
+      remaining_weight = current_weight
+    )
+  }
+  
+  return(reproduction_result)
+}
 
-#' Calcular supervivencia acumulativa
+#' Calculate cumulative survival (Utility)
 #'
-#' Calcula la supervivencia a lo largo de múltiples períodos
+#' Calculates survival across multiple periods
 #'
-#' @param survival_rates Vector de tasas de supervivencia diarias
-#' @param initial_population Población inicial
-#' @return Vector con población superviviente por día
+#' @param survival_rates Vector of daily survival rates
+#' @param initial_population Initial population
+#' @return Vector with surviving population by day
 #' @export
 calculate_cumulative_survival <- function(survival_rates, initial_population = 1) {
   
@@ -357,14 +372,14 @@ calculate_cumulative_survival <- function(survival_rates, initial_population = 1
   return(population)
 }
 
-#' Validar parámetros de mortalidad y reproducción
+#' Validate mortality and reproduction parameters (Utility)
 #'
-#' Verifica que los parámetros estén en rangos realistas
+#' Verifies that parameters are within realistic ranges
 #'
-#' @param mortality_params Lista con parámetros de mortalidad
-#' @param reproduction_params Lista con parámetros de reproducción (opcional)
-#' @param species_type Tipo de especie para validación
-#' @return Lista con resultados de validación
+#' @param mortality_params List with mortality parameters
+#' @param reproduction_params List with reproduction parameters (optional)
+#' @param species_type Species type for validation
+#' @return List with validation results
 #' @export
 validate_mortality_reproduction_params <- function(mortality_params, reproduction_params = NULL,
                                                    species_type = "general") {
@@ -375,92 +390,125 @@ validate_mortality_reproduction_params <- function(mortality_params, reproductio
     errors = character()
   )
   
-  # Rangos típicos por tipo de especie (mortalidad diaria)
+  # Typical ranges by species type (daily mortality)
   typical_mortality_range <- switch(species_type,
-                                    "small_fish" = c(0.0001, 0.01),     # 0.01% - 1% diaria
-                                    "large_fish" = c(0.00001, 0.005),   # 0.001% - 0.5% diaria
-                                    "general" = c(0.00001, 0.01)        # 0.001% - 1% diaria
+                                    "small_fish" = c(0.0001, 0.01),     # 0.01% - 1% daily
+                                    "large_fish" = c(0.00001, 0.005),   # 0.001% - 0.5% daily
+                                    "general" = c(0.00001, 0.01)        # 0.001% - 1% daily
   )
   
-  # Validar parámetros de mortalidad
+  # Validate mortality parameters
+  validation <- validate_mortality_parameters(mortality_params, typical_mortality_range, 
+                                              species_type, validation)
+  
+  # Validate reproduction parameters
+  if (!is.null(reproduction_params)) {
+    validation <- validate_reproduction_parameters(reproduction_params, validation)
+  }
+  
+  return(validation)
+}
+
+#' Validate mortality parameters (Utility)
+#'
+#' Internal function to validate mortality-specific parameters
+#'
+#' @param mortality_params List with mortality parameters
+#' @param typical_mortality_range Typical mortality range for species
+#' @param species_type Species type
+#' @param validation Current validation state
+#' @return Updated validation list
+#' @keywords internal
+validate_mortality_parameters <- function(mortality_params, typical_mortality_range, 
+                                          species_type, validation) {
+  
   if (!is.null(mortality_params)) {
     
-    # Validar mortalidad base
+    # Validate base mortality
     if ("base_mortality" %in% names(mortality_params)) {
       base_mort <- mortality_params$base_mortality
       if (base_mort < 0 || base_mort > 1) {
-        validation$errors <- c(validation$errors, "base_mortality debe estar entre 0 y 1")
+        validation$errors <- c(validation$errors, "base_mortality must be between 0 and 1")
         validation$valid <- FALSE
       }
       
       if (base_mort < typical_mortality_range[1] || base_mort > typical_mortality_range[2]) {
         validation$warnings <- c(validation$warnings, 
-                                 paste("base_mortality fuera de rango típico para", species_type))
+                                 paste("base_mortality outside typical range for", species_type))
       }
     }
     
-    # Validar otros tipos de mortalidad
+    # Validate other mortality types
     mortality_types <- c("natural_mortality", "fishing_mortality", "predation_mortality")
     for (mort_type in mortality_types) {
       if (mort_type %in% names(mortality_params)) {
         mort_value <- mortality_params[[mort_type]]
         if (mort_value < 0 || mort_value > 1) {
           validation$errors <- c(validation$errors, 
-                                 paste(mort_type, "debe estar entre 0 y 1"))
+                                 paste(mort_type, "must be between 0 and 1"))
           validation$valid <- FALSE
         }
       }
     }
     
-    # Validar parámetros de temperatura
+    # Validate temperature parameters
     if ("optimal_temp" %in% names(mortality_params)) {
       opt_temp <- mortality_params$optimal_temp
       if (opt_temp < -5 || opt_temp > 40) {
         validation$warnings <- c(validation$warnings, 
-                                 "optimal_temp fuera de rango típico (-5 a 40°C)")
+                                 "optimal_temp outside typical range (-5 to 40°C)")
       }
     }
     
     if ("thermal_tolerance" %in% names(mortality_params)) {
       tolerance <- mortality_params$thermal_tolerance
       if (tolerance <= 0) {
-        validation$errors <- c(validation$errors, "thermal_tolerance debe ser positivo")
+        validation$errors <- c(validation$errors, "thermal_tolerance must be positive")
         validation$valid <- FALSE
       }
     }
   }
   
-  # Validar parámetros de reproducción
-  if (!is.null(reproduction_params)) {
+  return(validation)
+}
+
+#' Validate reproduction parameters (Utility)
+#'
+#' Internal function to validate reproduction-specific parameters
+#'
+#' @param reproduction_params List with reproduction parameters
+#' @param validation Current validation state
+#' @return Updated validation list
+#' @keywords internal
+validate_reproduction_parameters <- function(reproduction_params, validation) {
+  
+  if ("spawn_pattern" %in% names(reproduction_params)) {
+    spawn_pattern <- reproduction_params$spawn_pattern
     
-    if ("spawn_pattern" %in% names(reproduction_params)) {
-      spawn_pattern <- reproduction_params$spawn_pattern
-      
-      if (any(spawn_pattern < 0 | spawn_pattern > 1, na.rm = TRUE)) {
-        validation$errors <- c(validation$errors, 
-                               "spawn_pattern debe estar entre 0 y 1")
-        validation$valid <- FALSE
-      }
-      
-      # Verificar reproducción anual total
-      total_annual_spawn <- sum(spawn_pattern, na.rm = TRUE)
-      if (total_annual_spawn > 0.5) {
-        validation$warnings <- c(validation$warnings, 
-                                 "Reproducción anual total muy alta (>50% del peso)")
-      }
+    if (any(spawn_pattern < 0 | spawn_pattern > 1, na.rm = TRUE)) {
+      validation$errors <- c(validation$errors, 
+                             "spawn_pattern must be between 0 and 1")
+      validation$valid <- FALSE
     }
     
-    if ("energy_density" %in% names(reproduction_params)) {
-      energy_density <- reproduction_params$energy_density
-      if (energy_density <= 0) {
-        validation$errors <- c(validation$errors, "energy_density debe ser positivo")
-        validation$valid <- FALSE
-      }
-      
-      if (energy_density < 1000 || energy_density > 20000) {
-        validation$warnings <- c(validation$warnings, 
-                                 "energy_density fuera de rango típico (1000-20000 J/g)")
-      }
+    # Check total annual reproduction
+    total_annual_spawn <- sum(spawn_pattern, na.rm = TRUE)
+    if (total_annual_spawn > 0.5) {
+      validation$warnings <- c(validation$warnings, 
+                               "Total annual reproduction very high (>50% of weight)")
+    }
+  }
+  
+  if ("energy_density" %in% names(reproduction_params)) {
+    energy_density <- reproduction_params$energy_density
+    if (energy_density <= 0) {
+      validation$errors <- c(validation$errors, "energy_density must be positive")
+      validation$valid <- FALSE
+    }
+    
+    if (energy_density < 1000 || energy_density > 20000) {
+      validation$warnings <- c(validation$warnings, 
+                               "energy_density outside typical range (1000-20000 J/g)")
     }
   }
   

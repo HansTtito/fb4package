@@ -2,7 +2,7 @@
 % Please edit documentation in R/04-predator-energy-density.R
 \name{predator-energy-density}
 \alias{predator-energy-density}
-\title{Funciones de Densidad Energética del Depredador para el Modelo FB4}
+\title{Predator Energy Density Functions for FB4 Model}
 \description{
-Funciones de Densidad Energética del Depredador para el Modelo FB4
+Predator Energy Density Functions for FB4 Model
 }

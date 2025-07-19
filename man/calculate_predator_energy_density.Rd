@@ -2,22 +2,20 @@
 % Please edit documentation in R/04-predator-energy-density.R
 \name{calculate_predator_energy_density}
 \alias{calculate_predator_energy_density}
-\title{Calcular densidad energética del depredador}
+\title{Calculate predator energy density (Mid-level - Main function)}
 \usage{
 calculate_predator_energy_density(weight, day = 1, predator_params)
 }
 \arguments{
-\item{weight}{Peso del pez (g)}
+\item{weight}{Fish weight (g)}
 
-\item{day}{Día de la simulación (para ecuación 1)}
+\item{day}{Simulation day (for equation 1)}
 
-\item{predator_params}{Lista con parámetros de densidad energética}
-
-\item{energy_data}{Vector con datos de densidad energética por día (para ecuación 1)}
+\item{predator_params}{List with energy density parameters}
 }
 \value{
-Densidad energética (J/g)
+Energy density (J/g)
 }
 \description{
-Calcular densidad energética del depredador
+Main energy density calculation function called from simulation loop
 }

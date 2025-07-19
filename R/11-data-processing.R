@@ -1,54 +1,54 @@
-#' Funciones de Procesamiento de Datos para FB4
+#' Data Processing Functions for FB4
 #'
 #' @name data-processing
 #' @aliases data-processing
 NULL
 
 # ============================================================================
-# FUNCIÓN PRINCIPAL DE INTERPOLACIÓN
+# MAIN INTERPOLATION FUNCTION
 # ============================================================================
 
-#' Interpolar series de tiempo
+#' Interpolate time series
 #'
-#' Función robusta para interpolar datos temporales
+#' Robust function for interpolating temporal data
 #'
-#' @param data Data frame con columna Day y columnas de valores
-#' @param value_columns Vector con nombres de columnas a interpolar
-#' @param target_days Vector de días objetivo
-#' @param method Método de interpolación ("linear", "constant", "spline")
-#' @param fill_na_method Método para llenar valores faltantes ("extend", "zero", "mean")
-#' @param validate_input Validar estructura de entrada
-#' @return Data frame con datos interpolados
+#' @param data Data frame with Day column and value columns
+#' @param value_columns Vector with names of columns to interpolate
+#' @param target_days Vector of target days
+#' @param method Interpolation method ("linear", "constant", "spline")
+#' @param fill_na_method Method to fill missing values ("extend", "zero", "mean")
+#' @param validate_input Validate input structure
+#' @return Data frame with interpolated data
 #' @keywords internal
 interpolate_time_series <- function(data, value_columns, target_days, 
                                     method = "linear", fill_na_method = "extend",
                                     validate_input = TRUE) {
   
-  # Validaciones mejoradas
+  # Enhanced validations
   if (validate_input) {
     if (!"Day" %in% names(data)) {
-      stop("Data frame debe tener columna 'Day'")
+      stop("Data frame must have 'Day' column")
     }
     
     missing_cols <- setdiff(value_columns, names(data))
     if (length(missing_cols) > 0) {
-      stop("Columnas faltantes: ", paste(missing_cols, collapse = ", "))
+      stop("Missing columns: ", paste(missing_cols, collapse = ", "))
     }
     
-    # Validar que target_days sea numérico y ordenado
+    # Validate that target_days is numeric and sorted
     if (!is.numeric(target_days)) {
-      stop("target_days debe ser numérico")
+      stop("target_days must be numeric")
     }
     target_days <- sort(unique(target_days))
   }
   
-  # Preparar resultado
+  # Prepare result
   n_days <- length(target_days)
   result <- data.frame(Day = target_days)
   
-  # Función interna para manejar interpolación
+  # Internal function to handle interpolation
   interpolate_column <- function(values, days, target_days, method) {
-    # Remover valores NA
+    # Remove NA values
     valid_idx <- !is.na(values) & !is.na(days)
     
     if (sum(valid_idx) < 2) {
@@ -62,7 +62,7 @@ interpolate_time_series <- function(data, value_columns, target_days,
     clean_days <- days[valid_idx]
     clean_values <- values[valid_idx]
     
-    # Realizar interpolación según método
+    # Perform interpolation according to method
     if (method == "linear") {
       interpolated <- approx(x = clean_days, y = clean_values,
                              xout = target_days, method = "linear", rule = 2)$y
@@ -78,17 +78,17 @@ interpolate_time_series <- function(data, value_columns, target_days,
                                xout = target_days, method = "natural")$y
       }
     } else {
-      stop("Método de interpolación no válido: ", method)
+      stop("Invalid interpolation method: ", method)
     }
     
     return(interpolated)
   }
   
-  # Interpolar cada columna
+  # Interpolate each column
   for (col in value_columns) {
     interpolated <- interpolate_column(data[[col]], data$Day, target_days, method)
     
-    # Manejar valores NA resultantes
+    # Handle resulting NA values
     if (any(is.na(interpolated))) {
       if (fill_na_method == "extend") {
         first_valid <- which(!is.na(interpolated))[1]
@@ -112,150 +112,6 @@ interpolate_time_series <- function(data, value_columns, target_days,
   }
   
   return(result)
-}
-
-
-# ============================================================================
-# FUNCIONES PARA OBJETOS BIOENERGETIC
-# ============================================================================
-
-#' Process Bioenergetic object data for simulation
-#'
-#' @description
-#' Converts a Bioenergetic object into the data structures required for FB4 simulation.
-#' Performs interpolation, normalization, and formatting of all temporal data.
-#'
-#' @param bio_obj Bioenergetic object (must be pre-validated)
-#' @param first_day First simulation day
-#' @param last_day Last simulation day
-#' @return List with processed data ready for simulation
-#' @export
-process_bioenergetic_data <- function(bio_obj, first_day, last_day) {
-  
-  # Basic input validation
-  if (first_day >= last_day) {
-    stop("first_day must be less than last_day")
-  }
-  
-  target_days <- first_day:last_day
-  n_days <- length(target_days)
-  
-  # Process temperature data
-  temp_data <- tryCatch({
-    interpolate_time_series(
-      data = bio_obj$environmental_data$temperature,
-      value_columns = "Temperature",
-      target_days = target_days,
-      method = "linear"
-    )
-  }, error = function(e) {
-    stop("Failed to process temperature data: ", e$message)
-  })
-  
-  # Get prey information
-  prey_names <- bio_obj$diet_data$prey_names
-  if (is.null(prey_names) || length(prey_names) == 0) {
-    stop("No prey species found in diet data")
-  }
-  
-  # Process diet proportions
-  diet_props <- tryCatch({
-    interpolate_time_series(
-      data = bio_obj$diet_data$proportions,
-      value_columns = prey_names,
-      target_days = target_days,
-      method = "linear"
-    )
-  }, error = function(e) {
-    stop("Failed to process diet proportions: ", e$message)
-  })
-  
-  # Process prey energies
-  diet_energies <- tryCatch({
-    interpolate_time_series(
-      data = bio_obj$diet_data$energies,
-      value_columns = prey_names,
-      target_days = target_days,
-      method = "linear"
-    )
-  }, error = function(e) {
-    stop("Failed to process prey energies: ", e$message)
-  })
-  
-  # Process indigestible fractions
-  prey_indigestible <- tryCatch({
-    interpolate_time_series(
-      data = bio_obj$diet_data$indigestible,
-      value_columns = prey_names,
-      target_days = target_days,
-      method = "linear"
-    )
-  }, error = function(e) {
-    stop("Failed to process indigestible fractions: ", e$message)
-  })
-  
-  # Convert to matrices for efficient computation
-  diet_matrix <- as.matrix(diet_props[, prey_names, drop = FALSE])
-  energy_matrix <- as.matrix(diet_energies[, prey_names, drop = FALSE])
-  indigestible_matrix <- as.matrix(prey_indigestible[, prey_names, drop = FALSE])
-  
-  # Normalize diet proportions to sum to 1
-  row_sums <- rowSums(diet_matrix, na.rm = TRUE)
-  # Avoid division by zero
-  row_sums[row_sums == 0] <- 1
-  diet_matrix <- diet_matrix / row_sums
-  
-  # Validate normalized diet
-  final_sums <- rowSums(diet_matrix)
-  if (any(abs(final_sums - 1) > 0.01)) {
-    warning("Some diet proportions could not be properly normalized")
-  }
-  
-  # Process predator energy density using simplified functions
-  predator_ed_vector <- tryCatch({
-    
-    # Use initial weight as reference for weight-dependent calculations
-    reference_weight <- bio_obj$simulation_settings$initial_weight %||% 100
-    
-    # Calculate energy density for each day
-    sapply(target_days, function(day) {
-      calculate_predator_energy_density(
-        weight = reference_weight,
-        day = day,
-        predator_params = bio_obj$species_params$predator
-      )
-    })
-    
-  }, error = function(e) {
-    stop("Failed to process predator energy density: ", e$message)
-  })
-  
-  # Final validation of processed data
-  if (any(is.na(temp_data$Temperature))) {
-    stop("Temperature data contains NA values after processing")
-  }
-  if (any(is.na(diet_matrix))) {
-    stop("Diet proportions contain NA values after processing")
-  }
-  if (any(energy_matrix <= 0, na.rm = TRUE)) {
-    stop("Prey energies contain non-positive values after processing")
-  }
-  if (any(is.na(predator_ed_vector))) {
-    stop("Predator energy density contains NA values after processing")
-  }
-  
-  # Return processed data structure
-  return(list(
-    temperature = temp_data$Temperature,
-    diet_proportions = diet_matrix,
-    prey_energies = energy_matrix,
-    prey_indigestible = indigestible_matrix,
-    predator_energy_density = predator_ed_vector,
-    duration = n_days,
-    prey_names = prey_names,
-    first_day = first_day,
-    last_day = last_day
-  ))
 }
 
 # ============================================================================
@@ -854,8 +710,8 @@ process_bioenergetic_data <- function(bio_obj, first_day, last_day) {
     diet_proportions = diet_matrix,
     prey_energies = energy_matrix,
     prey_indigestible = indigestible_matrix,
-    predator_energy_density = predator_ed_vector,  # Vector, not data.frame
-    reproduction = reproduction_data,  # Vector of reproduction proportions
+    predator_energy_density = predator_ed_vector,
+    reproduction = reproduction_data, 
     duration = n_days,
     prey_names = prey_names,
     first_day = first_day,

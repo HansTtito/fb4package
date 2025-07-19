@@ -2,20 +2,20 @@
 % Please edit documentation in R/02-respiration.R
 \name{calculate_sda}
 \alias{calculate_sda}
-\title{Calcular Acción Dinámica Específica (SDA)}
+\title{Calculate Specific Dynamic Action (SDA) (Utility)}
 \usage{
 calculate_sda(consumption_energy, egestion_energy, SDA_coeff)
 }
 \arguments{
-\item{consumption_energy}{Consumo en energía (J/g)}
+\item{consumption_energy}{Consumption in energy (J/g)}
 
-\item{egestion_energy}{Egestión en energía (J/g)}
+\item{egestion_energy}{Egestion in energy (J/g)}
 
-\item{SDA_coeff}{Coeficiente de acción dinámica específica}
+\item{SDA_coeff}{Specific dynamic action coefficient}
 }
 \value{
-SDA en energía (J/g)
+SDA in energy (J/g)
 }
 \description{
-Calcular Acción Dinámica Específica (SDA)
+Calculates metabolic cost of feeding and digestion
 }

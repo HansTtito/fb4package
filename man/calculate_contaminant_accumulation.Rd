@@ -2,7 +2,7 @@
 % Please edit documentation in R/06-contaminant-accumulation.R
 \name{calculate_contaminant_accumulation}
 \alias{calculate_contaminant_accumulation}
-\title{Calcular acumulación de contaminantes}
+\title{Calculate contaminant accumulation (Mid-level - Main function)}
 \usage{
 calculate_contaminant_accumulation(
   respiration_o2,
@@ -14,21 +14,21 @@ calculate_contaminant_accumulation(
 )
 }
 \arguments{
-\item{respiration_o2}{Respiración en g O2/g/día}
+\item{respiration_o2}{Respiration in g O2/g/day}
 
-\item{consumption}{Vector de consumo por tipo de presa (g/día)}
+\item{consumption}{Vector of consumption by prey type (g/day)}
 
-\item{weight}{Peso del pez (g)}
+\item{weight}{Fish weight (g)}
 
-\item{temperature}{Temperatura del agua (°C)}
+\item{temperature}{Water temperature (°C)}
 
-\item{current_concentration}{Concentración actual en depredador (μg/g)}
+\item{current_concentration}{Current concentration in predator (μg/g)}
 
-\item{contaminant_params}{Lista con parámetros de contaminantes}
+\item{contaminant_params}{List with contaminant parameters}
 }
 \value{
-Lista con resultados de contaminantes
+List with contaminant results
 }
 \description{
-Función principal para calcular la dinámica de contaminantes
+Main function for calculating contaminant dynamics
 }

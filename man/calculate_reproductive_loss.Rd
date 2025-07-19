@@ -2,7 +2,7 @@
 % Please edit documentation in R/08-mortality-reproduction.R
 \name{calculate_reproductive_loss}
 \alias{calculate_reproductive_loss}
-\title{Calcular pérdida de peso por reproducción}
+\title{Calculate reproductive weight loss (Low-level)}
 \usage{
 calculate_reproductive_loss(
   spawn_fraction,
@@ -11,16 +11,16 @@ calculate_reproductive_loss(
 )
 }
 \arguments{
-\item{spawn_fraction}{Fracción de peso perdido en reproducción (0-1)}
+\item{spawn_fraction}{Fraction of weight lost in reproduction (0-1)}
 
-\item{current_weight}{Peso actual del pez (g)}
+\item{current_weight}{Current fish weight (g)}
 
-\item{energy_density}{Densidad energética del tejido reproductivo (J/g)}
+\item{energy_density}{Energy density of reproductive tissue (J/g)}
 }
 \value{
-Lista con pérdidas de peso y energía
+List with weight and energy losses
 }
 \description{
-Calcula la pérdida de peso y energía durante eventos reproductivos
+Calculates weight and energy loss during reproductive events
 }
 \keyword{internal}

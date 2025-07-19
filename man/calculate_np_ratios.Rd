@@ -2,20 +2,20 @@
 % Please edit documentation in R/07-nutrient-regeneration.R
 \name{calculate_np_ratios}
 \alias{calculate_np_ratios}
-\title{Calcular ratios N:P para todos los procesos}
+\title{Calculate N:P ratios for all processes (Utility)}
 \usage{
 calculate_np_ratios(nitrogen_fluxes, phosphorus_fluxes, ratio_type = "mass")
 }
 \arguments{
-\item{nitrogen_fluxes}{Lista resultado de calculate_nitrogen_allocation}
+\item{nitrogen_fluxes}{List result from calculate_nitrogen_allocation}
 
-\item{phosphorus_fluxes}{Lista resultado de calculate_phosphorus_allocation}
+\item{phosphorus_fluxes}{List result from calculate_phosphorus_allocation}
 
-\item{ratio_type}{Tipo de ratio ("mass" o "molar")}
+\item{ratio_type}{Type of ratio ("mass" or "molar")}
 }
 \value{
-Lista con ratios N:P
+List with N:P ratios
 }
 \description{
-Calcula ratios molares y de masa N:P para consumo, crecimiento, excreción y egestion
+Calculates molar and mass N:P ratios for consumption, growth, excretion and egestion
 }

@@ -2,19 +2,19 @@
 % Please edit documentation in R/03-egestion-excretion.R
 \name{egestion_model_1}
 \alias{egestion_model_1}
-\title{Modelo de egestión 1 - Básico}
+\title{Egestion model 1 - Basic (Low-level)}
 \usage{
 egestion_model_1(consumption, FA)
 }
 \arguments{
-\item{consumption}{Consumo (J/g)}
+\item{consumption}{Consumption (J/g)}
 
-\item{FA}{Fracción de egestión}
+\item{FA}{Egestion fraction}
 }
 \value{
-Egestión (J/g)
+Egestion (J/g)
 }
 \description{
-Modelo simple de egestión con fracción constante del consumo
+Simple egestion model with constant fraction of consumption
 }
 \keyword{internal}

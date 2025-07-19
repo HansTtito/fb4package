@@ -2,7 +2,7 @@
 % Please edit documentation in R/05-body-composition.R
 \name{calculate_fat_by_subtraction}
 \alias{calculate_fat_by_subtraction}
-\title{Calcular contenido de grasa por sustracción}
+\title{Calculate fat content by subtraction (Low-level)}
 \usage{
 calculate_fat_by_subtraction(
   total_weight,
@@ -12,18 +12,18 @@ calculate_fat_by_subtraction(
 )
 }
 \arguments{
-\item{total_weight}{Peso total húmedo (g)}
+\item{total_weight}{Total wet weight (g)}
 
-\item{water_content}{Contenido de agua (g)}
+\item{water_content}{Water content (g)}
 
-\item{protein_content}{Contenido de proteína (g)}
+\item{protein_content}{Protein content (g)}
 
-\item{ash_content}{Contenido de ceniza (g)}
+\item{ash_content}{Ash content (g)}
 }
 \value{
-Contenido de grasa (g)
+Fat content (g)
 }
 \description{
-Calcula gramos de grasa restando agua, proteína y ceniza del peso total
+Calculates grams of fat by subtracting water, protein and ash from total weight
 }
 \keyword{internal}

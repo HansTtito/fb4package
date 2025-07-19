@@ -2,19 +2,19 @@
 % Please edit documentation in R/02-respiration.R
 \name{calculate_temperature_factor_respiration}
 \alias{calculate_temperature_factor_respiration}
-\title{Calcular factor de temperatura para respiración}
+\title{Calculate temperature factor for respiration (Mid-level)}
 \usage{
 calculate_temperature_factor_respiration(temperature, respiration_params)
 }
 \arguments{
-\item{temperature}{Temperatura del agua (°C)}
+\item{temperature}{Water temperature (°C)}
 
-\item{respiration_params}{Lista con parámetros de respiración}
+\item{respiration_params}{List with respiration parameters}
 }
 \value{
-Factor de temperatura
+Temperature factor
 }
 \description{
-Calcular factor de temperatura para respiración
+Coordinates temperature equation selection and calculation
 }
 \keyword{internal}

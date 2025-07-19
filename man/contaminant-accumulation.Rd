@@ -2,7 +2,7 @@
 % Please edit documentation in R/06-contaminant-accumulation.R
 \name{contaminant-accumulation}
 \alias{contaminant-accumulation}
-\title{Funciones de Acumulación de Contaminantes para el Modelo FB4}
+\title{Contaminant Accumulation Functions for FB4 Model}
 \description{
-Funciones de Acumulación de Contaminantes para el Modelo FB4
+Contaminant Accumulation Functions for FB4 Model
 }

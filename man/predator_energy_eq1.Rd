@@ -2,21 +2,21 @@
 % Please edit documentation in R/04-predator-energy-density.R
 \name{predator_energy_eq1}
 \alias{predator_energy_eq1}
-\title{Densidad energética desde datos interpolados (Ecuación 1)}
+\title{Energy density from interpolated data - Equation 1 (Low-level)}
 \usage{
 predator_energy_eq1(weight, day, energy_data)
 }
 \arguments{
-\item{weight}{Peso del pez (g) - no usado en esta ecuación}
+\item{weight}{Fish weight (g) - not used in this equation}
 
-\item{day}{Día de la simulación}
+\item{day}{Simulation day}
 
-\item{energy_data}{Vector con densidades energéticas por día}
+\item{energy_data}{Vector with energy densities by day}
 }
 \value{
-Densidad energética (J/g)
+Energy density (J/g)
 }
 \description{
-Densidad energética desde datos interpolados (Ecuación 1)
+Retrieves energy density from pre-calculated daily data
 }
 \keyword{internal}

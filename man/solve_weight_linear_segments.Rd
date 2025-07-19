@@ -2,18 +2,19 @@
 % Please edit documentation in R/04-predator-energy-density.R
 \name{solve_weight_linear_segments}
 \alias{solve_weight_linear_segments}
-\title{Resolver peso para función lineal por segmentos (PREDEDEQ=2)}
+\title{Solve weight for linear segments (Low-level)}
 \usage{
 solve_weight_linear_segments(available_energy, predator_params)
 }
 \arguments{
-\item{available_energy}{Energía disponible (J)}
+\item{available_energy}{Available energy (J)}
 
-\item{predator_params}{Parámetros de densidad energética}
+\item{predator_params}{Predator parameters}
 }
 \value{
-Peso final (g)
+Final weight (g)
 }
 \description{
-Resolver peso para función lineal por segmentos (PREDEDEQ=2)
+Solves final weight for piecewise linear function (PREDEDEQ = 2)
 }
+\keyword{internal}

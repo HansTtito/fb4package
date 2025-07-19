@@ -2,7 +2,7 @@
 % Please edit documentation in R/06-contaminant-accumulation.R
 \name{calculate_fish_water_partition}
 \alias{calculate_fish_water_partition}
-\title{Calcular coeficiente de partición pez:agua}
+\title{Calculate fish:water partition coefficient (Utility)}
 \usage{
 calculate_fish_water_partition(
   fat_fraction,
@@ -12,17 +12,17 @@ calculate_fish_water_partition(
 )
 }
 \arguments{
-\item{fat_fraction}{Fracción de grasa en el pez}
+\item{fat_fraction}{Fat fraction in fish}
 
-\item{protein_ash_fraction}{Fracción de proteína + ceniza}
+\item{protein_ash_fraction}{Protein + ash fraction}
 
-\item{water_fraction}{Fracción de agua}
+\item{water_fraction}{Water fraction}
 
-\item{kow}{Coeficiente de partición octanol:agua}
+\item{kow}{Octanol:water partition coefficient}
 }
 \value{
-Coeficiente de partición pez:agua
+Fish:water partition coefficient
 }
 \description{
-Calcula Kbw basado en composición corporal y Kow según Arnot & Gobas (2004)
+Calculates Kbw based on body composition and Kow according to Arnot & Gobas (2004)
 }

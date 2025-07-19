@@ -2,19 +2,19 @@
 % Please edit documentation in R/02-respiration.R
 \name{respiration_temp_eq1}
 \alias{respiration_temp_eq1}
-\title{Función de temperatura para respiración - Ecuación 1}
+\title{Temperature function for respiration - Equation 1 (Low-level)}
 \usage{
 respiration_temp_eq1(temperature, RQ)
 }
 \arguments{
-\item{temperature}{Temperatura del agua (°C)}
+\item{temperature}{Water temperature (°C)}
 
-\item{RQ}{Tasa Q10 para temperaturas bajas}
+\item{RQ}{Q10 rate for low temperatures}
 }
 \value{
-Factor de temperatura
+Temperature factor
 }
 \description{
-Implementa la ecuación de temperatura 1 (exponencial simple)
+Implements temperature equation 1 (simple exponential)
 }
 \keyword{internal}

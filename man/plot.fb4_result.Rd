@@ -2,20 +2,19 @@
 % Please edit documentation in R/13-visualization-analysis.R
 \name{plot.fb4_result}
 \alias{plot.fb4_result}
-\title{Método plot para objetos fb4_result}
+\title{Main plotting function for FB4 results}
 \usage{
-\method{plot}{fb4_result}(x, type = "growth", ...)
+\method{plot}{fb4_result}(fb4_result, plot_type = "growth", save_plot = NULL, ...)
 }
 \arguments{
-\item{x}{Objeto fb4_result}
+\item{fb4_result}{Object of class fb4_result}
 
-\item{type}{Tipo de gráfico ("growth", "consumption", "energy", "population")}
+\item{plot_type}{Type of plot: "growth", "consumption", "temperature", "energy", "dashboard"}
 
-\item{...}{Argumentos adicionales para plot}
-}
-\value{
-NULL (genera gráfico)
+\item{save_plot}{Path to save plot (optional)}
+
+\item{...}{Additional arguments}
 }
 \description{
-Método plot para objetos fb4_result
+Main plotting function for FB4 results
 }

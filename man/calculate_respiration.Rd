@@ -2,22 +2,22 @@
 % Please edit documentation in R/02-respiration.R
 \name{calculate_respiration}
 \alias{calculate_respiration}
-\title{Calcular respiración diaria}
+\title{Calculate daily respiration (Mid-level - Main function)}
 \usage{
 calculate_respiration(temperature, weight, respiration_params, activity_params)
 }
 \arguments{
-\item{temperature}{Temperatura del agua (°C)}
+\item{temperature}{Water temperature (°C)}
 
-\item{weight}{Peso del pez (g)}
+\item{weight}{Fish weight (g)}
 
-\item{respiration_params}{Lista con parámetros de respiración}
+\item{respiration_params}{List with respiration parameters}
 
-\item{activity_params}{Lista con parámetros de actividad}
+\item{activity_params}{List with activity parameters}
 }
 \value{
-Respiración (g O2/g pez/día)
+Respiration (g O2/g fish/day)
 }
 \description{
-Función principal que calcula la respiración basada en temperatura y peso
+Main respiration calculation function called from simulation loop
 }

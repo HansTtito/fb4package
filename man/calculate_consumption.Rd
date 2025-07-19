@@ -2,7 +2,7 @@
 % Please edit documentation in R/01-consumption.R
 \name{calculate_consumption}
 \alias{calculate_consumption}
-\title{Calcular consumo diario}
+\title{Calculate daily consumption (Mid-level - Main function)}
 \usage{
 calculate_consumption(
   temperature,
@@ -13,19 +13,19 @@ calculate_consumption(
 )
 }
 \arguments{
-\item{temperature}{Temperatura del agua (°C)}
+\item{temperature}{Water temperature (°C)}
 
-\item{weight}{Peso del pez (g)}
+\item{weight}{Fish weight (g)}
 
-\item{p_value}{Proporción del consumo máximo (0-5)}
+\item{p_value}{Proportion of maximum consumption (0-5)}
 
-\item{consumption_params}{Lista con parámetros de consumo}
+\item{consumption_params}{List with consumption parameters}
 
-\item{method}{Método de cálculo ("maximum", "rate", "specific")}
+\item{method}{Calculation method ("maximum", "rate", "specific")}
 }
 \value{
-Consumo específico (g presa/g pez/día)
+Specific consumption (g prey/g fish/day)
 }
 \description{
-Función principal que calcula el consumo basado en temperatura, peso y p-value
+Main consumption calculation function called from simulation loop
 }

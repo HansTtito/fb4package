@@ -2,7 +2,7 @@
 % Please edit documentation in R/05-body-composition.R
 \name{update_body_composition}
 \alias{update_body_composition}
-\title{Actualizar composición corporal durante simulación}
+\title{Update body composition during simulation (Mid-level)}
 \usage{
 update_body_composition(
   old_weight,
@@ -12,17 +12,18 @@ update_body_composition(
 )
 }
 \arguments{
-\item{old_weight}{Peso anterior (g)}
+\item{old_weight}{Previous weight (g)}
 
-\item{new_weight}{Peso nuevo (g)}
+\item{new_weight}{New weight (g)}
 
-\item{old_composition}{Composición anterior (opcional)}
+\item{old_composition}{Previous composition (optional)}
 
-\item{water_fraction_new}{Fracción de agua para nuevo peso}
+\item{water_fraction_new}{Water fraction for new weight}
 }
 \value{
-Nueva composición corporal
+New body composition
 }
 \description{
-Actualiza la composición corporal conforme el pez crece o cambia de condición
+Updates body composition as fish grows or changes condition
+Used during simulation loops - assumes pre-validated inputs
 }

@@ -2,16 +2,16 @@
 % Please edit documentation in R/06-contaminant-accumulation.R
 \name{validate_contaminant_params}
 \alias{validate_contaminant_params}
-\title{Validar parámetros de contaminantes}
+\title{Validate contaminant parameters (Utility)}
 \usage{
 validate_contaminant_params(contaminant_params)
 }
 \arguments{
-\item{contaminant_params}{Lista con parámetros}
+\item{contaminant_params}{List with parameters}
 }
 \value{
-Lista con resultados de validación
+List with validation results
 }
 \description{
-Validar parámetros de contaminantes
+Comprehensive validation of contaminant parameters
 }

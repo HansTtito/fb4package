@@ -2,7 +2,7 @@
 % Please edit documentation in R/08-mortality-reproduction.R
 \name{calculate_temperature_dependent_mortality}
 \alias{calculate_temperature_dependent_mortality}
-\title{Calcular mortalidad dependiente de temperatura}
+\title{Calculate temperature-dependent mortality (Low-level)}
 \usage{
 calculate_temperature_dependent_mortality(
   temperature,
@@ -13,20 +13,20 @@ calculate_temperature_dependent_mortality(
 )
 }
 \arguments{
-\item{temperature}{Temperatura actual (°C)}
+\item{temperature}{Current temperature (°C)}
 
-\item{base_mortality}{Tasa base de mortalidad diaria}
+\item{base_mortality}{Base daily mortality rate}
 
-\item{optimal_temp}{Temperatura óptima (°C)}
+\item{optimal_temp}{Optimal temperature (°C)}
 
-\item{thermal_tolerance}{Rango de tolerancia térmica (°C)}
+\item{thermal_tolerance}{Thermal tolerance range (°C)}
 
-\item{stress_factor}{Factor de multiplicación por estrés térmico}
+\item{stress_factor}{Multiplication factor for thermal stress}
 }
 \value{
-Tasa de mortalidad ajustada
+Adjusted mortality rate
 }
 \description{
-Ajusta la mortalidad basada en estrés térmico
+Adjusts mortality based on thermal stress
 }
 \keyword{internal}

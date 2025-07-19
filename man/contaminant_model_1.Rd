@@ -2,7 +2,7 @@
 % Please edit documentation in R/06-contaminant-accumulation.R
 \name{contaminant_model_1}
 \alias{contaminant_model_1}
-\title{Modelo de contaminantes 1 - Solo captación de alimento}
+\title{Contaminant model 1 - Food uptake only (Low-level)}
 \usage{
 contaminant_model_1(
   consumption,
@@ -12,18 +12,18 @@ contaminant_model_1(
 )
 }
 \arguments{
-\item{consumption}{Vector de consumo por presa (g/día)}
+\item{consumption}{Vector of consumption by prey (g/day)}
 
-\item{prey_concentrations}{Vector de concentraciones en presas (μg/g)}
+\item{prey_concentrations}{Vector of concentrations in prey (μg/g)}
 
-\item{transfer_efficiency}{Vector de eficiencias de transferencia}
+\item{transfer_efficiency}{Vector of transfer efficiencies}
 
-\item{current_burden}{Carga corporal actual (μg)}
+\item{current_burden}{Current body burden (μg)}
 }
 \value{
-Lista con clearance, uptake, y nueva carga
+List with clearance, uptake, and new burden
 }
 \description{
-Modelo simple sin eliminación, solo acumulación desde el alimento
+Simple model without elimination, only accumulation from food
 }
 \keyword{internal}

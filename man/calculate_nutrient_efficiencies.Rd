@@ -2,18 +2,18 @@
 % Please edit documentation in R/07-nutrient-regeneration.R
 \name{calculate_nutrient_efficiencies}
 \alias{calculate_nutrient_efficiencies}
-\title{Calcular eficiencias de retención de nutrientes}
+\title{Calculate nutrient retention efficiencies (Utility)}
 \usage{
 calculate_nutrient_efficiencies(nitrogen_fluxes, phosphorus_fluxes)
 }
 \arguments{
-\item{nitrogen_fluxes}{Lista resultado de calculate_nitrogen_allocation}
+\item{nitrogen_fluxes}{List result from calculate_nitrogen_allocation}
 
-\item{phosphorus_fluxes}{Lista resultado de calculate_phosphorus_allocation}
+\item{phosphorus_fluxes}{List result from calculate_phosphorus_allocation}
 }
 \value{
-Lista con eficiencias calculadas
+List with calculated efficiencies
 }
 \description{
-Calcula eficiencias de asimilación y retención para N y P
+Calculates assimilation and retention efficiencies for N and P
 }

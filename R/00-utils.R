@@ -300,37 +300,50 @@ validate_diet_consistency <- function(diet_data, energy_data) {
 
 #' Check Numeric Value
 #'
-#' @description
-#' Validates that a value is numeric, finite, scalar, and within specified bounds.
-#'
-#' @param value Value to check
-#' @param name Parameter name (for error messages)
-#' @param min_val Minimum allowed value, default -Inf
-#' @param max_val Maximum allowed value, default Inf
-#'
-#' @return Validated numeric value
-#'
-#' @details
-#' This utility function provides consistent validation for scalar numeric
-#' parameters throughout the package, ensuring they meet basic requirements
-#' for numerical computations.
-#'
-#' @keywords internal
-#'
-#' @examples
-#' \dontrun{
-#' check_numeric_value(15.5, "temperature", 0, 40)  # Returns 15.5
-#' check_numeric_value(-5, "weight", 0)             # Error: below minimum
-#' }
-check_numeric_value <- function(value, name, min_val = -Inf, max_val = Inf) {
-  if (is.null(value) || !is.numeric(value) || !is.finite(value)) {
-    stop(name, " must be a valid numeric value")
+#' @param value Value to validate
+#' @param name Parameter name for error messages
+#' @param min_val Minimum allowed value (default -Inf)
+#' @param max_val Maximum allowed value (default Inf)
+#' @param allow_vector Allow vectors or require scalar (default FALSE = scalar only)
+#' @param must_be_integer Require integer values (default FALSE)
+#' @return Validated numeric value(s)
+check_numeric_value <- function(value, name, min_val = -Inf, max_val = Inf, 
+                                allow_vector = FALSE, must_be_integer = FALSE) {
+  
+  # Fast NULL check
+  if (is.null(value)) {
+    stop(name, " cannot be NULL", call. = FALSE)
   }
-  if (length(value) != 1) stop(name, " must be a scalar value")
-  if (value < min_val || value > max_val) {
-    stop(name, " must be between ", min_val, " and ", max_val)
+  
+  # Fast type check
+  if (!is.numeric(value)) {
+    stop(name, " must be numeric, got ", class(value)[1], call. = FALSE)
   }
-  return(as.numeric(value))
+  
+  # Fast finite check (más eficiente que individually checking)
+  if (anyNA(value) || !all(is.finite(value))) {
+    stop(name, " cannot contain NA, NaN, or Inf values", call. = FALSE)
+  }
+  
+  # Scalar validation
+  if (!allow_vector && length(value) != 1) {
+    stop(name, " must be a single value, got ", length(value), " values", call. = FALSE)
+  }
+  
+  # Integer validation (if needed)
+  if (must_be_integer && !all(value == as.integer(value))) {
+    stop(name, " must be integer values", call. = FALSE)
+  }
+  
+  # Range validation (vectorized)
+  if (any(value < min_val) || any(value > max_val)) {
+    out_of_range <- value[value < min_val | value > max_val]
+    stop(name, " must be between ", min_val, " and ", max_val, 
+         ". Out of range values: ", paste(out_of_range, collapse = ", "), 
+         call. = FALSE)
+  }
+  
+  return(value)  # Return as-is, no unnecessary conversion
 }
 
 # ============================================================================

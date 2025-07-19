@@ -2,7 +2,7 @@
 % Please edit documentation in R/07-nutrient-regeneration.R
 \name{validate_nutrient_concentrations}
 \alias{validate_nutrient_concentrations}
-\title{Validar concentraciones de nutrientes}
+\title{Validate nutrient concentrations (Utility)}
 \usage{
 validate_nutrient_concentrations(
   nutrient_concentrations,
@@ -10,13 +10,13 @@ validate_nutrient_concentrations(
 )
 }
 \arguments{
-\item{nutrient_concentrations}{Lista con concentraciones de N y P}
+\item{nutrient_concentrations}{List with N and P concentrations}
 
-\item{organism_type}{Tipo de organismo para validación}
+\item{organism_type}{Organism type for validation}
 }
 \value{
-Lista con resultados de validación
+List with validation results
 }
 \description{
-Verifica que las concentraciones estén en rangos biológicamente realistas
+Verifies that concentrations are within biologically realistic ranges
 }

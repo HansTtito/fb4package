@@ -2,16 +2,16 @@
 % Please edit documentation in R/07-nutrient-regeneration.R
 \name{calculate_stoichiometric_balance}
 \alias{calculate_stoichiometric_balance}
-\title{Calcular balance estequiométrico}
+\title{Calculate stoichiometric balance}
 \usage{
 calculate_stoichiometric_balance(nutrient_balance)
 }
 \arguments{
-\item{nutrient_balance}{Lista resultado de calculate_nutrient_balance}
+\item{nutrient_balance}{List result from calculate_nutrient_balance}
 }
 \value{
-Lista con análisis estequiométrico
+List with stoichiometric analysis
 }
 \description{
-Analiza limitaciones nutricionales basadas en ratios N:P
+Analyzes nutritional limitations based on N:P ratios
 }

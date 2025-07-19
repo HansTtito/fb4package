@@ -2,7 +2,7 @@
 % Please edit documentation in R/05-body-composition.R
 \name{body-composition}
 \alias{body-composition}
-\title{Funciones de Composición Corporal para el Modelo FB4}
+\title{Body Composition Functions for FB4 Model}
 \description{
-Funciones de Composición Corporal para el Modelo FB4
+Body Composition Functions for FB4 Model
 }

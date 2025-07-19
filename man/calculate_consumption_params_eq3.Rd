@@ -2,26 +2,26 @@
 % Please edit documentation in R/01-consumption.R
 \name{calculate_consumption_params_eq3}
 \alias{calculate_consumption_params_eq3}
-\title{Calcular parámetros adicionales para ecuación de consumo 3}
+\title{Calculate additional parameters for consumption equation 3 (Mid-level)}
 \usage{
 calculate_consumption_params_eq3(CTO, CQ, CTL, CTM, CK1, CK4)
 }
 \arguments{
-\item{CTO}{Temperatura óptima}
+\item{CTO}{Optimum temperature}
 
-\item{CQ}{Coeficiente de temperatura}
+\item{CQ}{Temperature coefficient}
 
-\item{CTL}{Temperatura con tasa reducida}
+\item{CTL}{Temperature with reduced rate}
 
-\item{CTM}{Temperatura máxima}
+\item{CTM}{Maximum temperature}
 
-\item{CK1}{Fracción pequeña de tasa máxima}
+\item{CK1}{Small fraction of maximum rate}
 
-\item{CK4}{Fracción reducida de tasa máxima}
+\item{CK4}{Reduced fraction of maximum rate}
 }
 \value{
-Lista con CG1, CG2
+List with CG1, CG2
 }
 \description{
-Calcular parámetros adicionales para ecuación de consumo 3
+Calculates derived parameters needed for temperature equation 3
 }

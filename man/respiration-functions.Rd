@@ -2,7 +2,7 @@
 % Please edit documentation in R/02-respiration.R
 \name{respiration-functions}
 \alias{respiration-functions}
-\title{Funciones de Respiración para el Modelo FB4}
+\title{Respiration Functions for FB4 Model}
 \description{
-Funciones de Respiración para el Modelo FB4
+Respiration Functions for FB4 Model
 }

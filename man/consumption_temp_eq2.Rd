@@ -2,23 +2,23 @@
 % Please edit documentation in R/01-consumption.R
 \name{consumption_temp_eq2}
 \alias{consumption_temp_eq2}
-\title{Función de temperatura para consumo - Ecuación 2}
+\title{Temperature function for consumption - Equation 2 (Low-level)}
 \usage{
 consumption_temp_eq2(temperature, CTM, CTO, CX)
 }
 \arguments{
-\item{temperature}{Temperatura del agua (°C)}
+\item{temperature}{Water temperature (°C)}
 
-\item{CTM}{Temperatura máxima donde cesa el consumo}
+\item{CTM}{Maximum temperature where consumption ceases}
 
-\item{CTO}{Temperatura óptima de laboratorio}
+\item{CTO}{Laboratory optimum temperature}
 
-\item{CX}{Parámetro calculado}
+\item{CX}{Calculated parameter}
 }
 \value{
-Factor de temperatura
+Temperature factor
 }
 \description{
-Implementa la ecuación de temperatura 2 (Kitchell et al. 1977)
+Implements temperature equation 2 (Kitchell et al. 1977)
 }
 \keyword{internal}

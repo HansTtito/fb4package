@@ -2,25 +2,25 @@
 % Please edit documentation in R/03-egestion-excretion.R
 \name{excretion_model_4}
 \alias{excretion_model_4}
-\title{Modelo de excreción 4 - Sin dependencia de alimentación}
+\title{Excretion model 4 - Without feeding dependence (Low-level)}
 \usage{
 excretion_model_4(consumption, egestion, temperature, UA, UB)
 }
 \arguments{
-\item{consumption}{Consumo (J/g)}
+\item{consumption}{Consumption (J/g)}
 
-\item{egestion}{Egestión (J/g)}
+\item{egestion}{Egestion (J/g)}
 
-\item{temperature}{Temperatura del agua (°C)}
+\item{temperature}{Water temperature (°C)}
 
-\item{UA}{Parámetro base de excreción}
+\item{UA}{Base excretion parameter}
 
-\item{UB}{Coeficiente de dependencia de temperatura}
+\item{UB}{Temperature dependence coefficient}
 }
 \value{
-Excreción (J/g)
+Excretion (J/g)
 }
 \description{
-Modelo de excreción 4 - Sin dependencia de alimentación
+Excretion model with only temperature dependence
 }
 \keyword{internal}

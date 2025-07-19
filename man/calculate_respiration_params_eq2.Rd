@@ -2,20 +2,20 @@
 % Please edit documentation in R/02-respiration.R
 \name{calculate_respiration_params_eq2}
 \alias{calculate_respiration_params_eq2}
-\title{Calcular parámetros adicionales para ecuación de respiración 2}
+\title{Calculate additional parameters for respiration equation 2 (Mid-level)}
 \usage{
 calculate_respiration_params_eq2(RQ, RTM, RTO)
 }
 \arguments{
-\item{RQ}{Tasa Q10}
+\item{RQ}{Q10 rate}
 
-\item{RTM}{Temperatura máxima}
+\item{RTM}{Maximum temperature}
 
-\item{RTO}{Temperatura óptima}
+\item{RTO}{Optimum temperature}
 }
 \value{
-Lista con RY, RZ, RX
+List with RY, RZ, RX
 }
 \description{
-Calcular parámetros adicionales para ecuación de respiración 2
+Calculates derived parameters needed for temperature equation 2
 }

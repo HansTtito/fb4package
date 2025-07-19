@@ -2,7 +2,7 @@
 % Please edit documentation in R/08-mortality-reproduction.R
 \name{calculate_mortality_reproduction}
 \alias{calculate_mortality_reproduction}
-\title{Calcular mortalidad y reproducción diaria}
+\title{Calculate daily mortality and reproduction (Mid-level - Main function)}
 \usage{
 calculate_mortality_reproduction(
   current_weight,
@@ -14,21 +14,21 @@ calculate_mortality_reproduction(
 )
 }
 \arguments{
-\item{current_weight}{Peso actual del pez (g)}
+\item{current_weight}{Current fish weight (g)}
 
-\item{temperature}{Temperatura del agua (°C)}
+\item{temperature}{Water temperature (°C)}
 
-\item{day_of_year}{Día del año (1-365)}
+\item{day_of_year}{Day of year (1-365)}
 
-\item{mortality_params}{Lista con parámetros de mortalidad}
+\item{mortality_params}{List with mortality parameters}
 
-\item{reproduction_params}{Lista con parámetros de reproducción (opcional)}
+\item{reproduction_params}{List with reproduction parameters (optional)}
 
-\item{initial_weight}{Peso inicial para cálculos relativos (opcional)}
+\item{initial_weight}{Initial weight for relative calculations (optional)}
 }
 \value{
-Lista con resultados de mortalidad y reproducción
+List with mortality and reproduction results
 }
 \description{
-Función principal para calcular efectos de mortalidad y reproducción
+Main function for calculating mortality and reproduction effects
 }

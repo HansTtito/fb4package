@@ -2,7 +2,7 @@
 % Please edit documentation in R/02-respiration.R
 \name{calculate_activity_factor}
 \alias{calculate_activity_factor}
-\title{Función de actividad para respiración - Ecuación 1}
+\title{Activity factor calculation (Low-level)}
 \usage{
 calculate_activity_factor(
   weight,
@@ -17,28 +17,28 @@ calculate_activity_factor(
 )
 }
 \arguments{
-\item{weight}{Peso del pez (g)}
+\item{weight}{Fish weight (g)}
 
-\item{temperature}{Temperatura del agua (°C)}
+\item{temperature}{Water temperature (°C)}
 
-\item{RTL}{Temperatura de corte para cambio en relación de actividad}
+\item{RTL}{Cutoff temperature for activity relationship change}
 
-\item{ACT}{Multiplicador de actividad}
+\item{ACT}{Activity multiplier}
 
-\item{RK4}{Coeficiente de dependencia de masa para velocidad de nado}
+\item{RK4}{Mass dependence coefficient for swimming speed}
 
-\item{BACT}{Coeficiente de dependencia de temperatura para velocidad de nado}
+\item{BACT}{Temperature dependence coefficient for swimming speed}
 
-\item{RK1}{Intercepto para velocidad de nado sobre temperatura de corte}
+\item{RK1}{Intercept for swimming speed above cutoff temperature}
 
-\item{RK5}{Coeficiente de temperatura para velocidad de nado}
+\item{RK5}{Temperature coefficient for swimming speed}
 
-\item{RTO}{Temperatura óptima para respiración}
+\item{RTO}{Optimum temperature for respiration}
 }
 \value{
-Factor de actividad
+Activity factor
 }
 \description{
-Implementa la función de actividad con componente de temperatura
+Implements activity function with temperature component
 }
 \keyword{internal}

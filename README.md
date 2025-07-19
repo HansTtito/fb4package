@@ -92,9 +92,9 @@ results <- run_fb4(
 )
 
 # View results
-print(paste("Final weight:", round(results$final_weight, 2), "g"))
-print(paste("Optimal p-value:", round(results$best_p_value, 6)))
-print(paste("Converged:", results$converged))
+print(paste("Final weight:", round(results$summary$final_weight, 2), "g"))
+print(paste("Optimal p-value:", round(results$summary$p_value, 6)))
+print(paste("Converged:", results$fit_info$fit_successful))
 ```
 
 ### Visualization

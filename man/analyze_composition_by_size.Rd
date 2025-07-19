@@ -2,7 +2,7 @@
 % Please edit documentation in R/05-body-composition.R
 \name{analyze_composition_by_size}
 \alias{analyze_composition_by_size}
-\title{Analizar composición corporal por rango de tamaños}
+\title{Analyze body composition by size range (Utility)}
 \usage{
 analyze_composition_by_size(
   weight_range = c(1, 500),
@@ -11,15 +11,15 @@ analyze_composition_by_size(
 )
 }
 \arguments{
-\item{weight_range}{Rango de pesos a analizar (vector de 2 elementos)}
+\item{weight_range}{Weight range to analyze (2-element vector)}
 
-\item{n_points}{Número de puntos para analizar}
+\item{n_points}{Number of points to analyze}
 
-\item{water_fraction}{Fracción de agua (constante o función del peso)}
+\item{water_fraction}{Water fraction (constant or function of weight)}
 }
 \value{
-Data frame con análisis de composición por tamaño
+Data frame with composition analysis by size
 }
 \description{
-Analizar composición corporal por rango de tamaños
+Analyzes body composition across a range of fish sizes
 }

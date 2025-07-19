@@ -2,7 +2,7 @@
 % Please edit documentation in R/08-mortality-reproduction.R
 \name{mortality-reproduction}
 \alias{mortality-reproduction}
-\title{Funciones de Mortalidad y Reproducción para el Modelo FB4}
+\title{Mortality and Reproduction Functions for FB4 Model}
 \description{
-Funciones de Mortalidad y Reproducción para el Modelo FB4
+Mortality and Reproduction Functions for FB4 Model
 }

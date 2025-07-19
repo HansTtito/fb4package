@@ -2,18 +2,15 @@
 % Please edit documentation in R/13-visualization-analysis.R
 \name{summary.fb4_result}
 \alias{summary.fb4_result}
-\title{Método summary para objetos fb4_result}
+\title{Summary method for fb4_result objects}
 \usage{
 \method{summary}{fb4_result}(object, ...)
 }
 \arguments{
-\item{object}{Objeto fb4_result}
+\item{object}{FB4 result object}
 
-\item{...}{Argumentos adicionales}
-}
-\value{
-Resumen del objeto
+\item{...}{Additional arguments}
 }
 \description{
-Método summary para objetos fb4_result
+Summary method for fb4_result objects
 }

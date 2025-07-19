@@ -2,7 +2,7 @@
 % Please edit documentation in R/08-mortality-reproduction.R
 \name{validate_mortality_reproduction_params}
 \alias{validate_mortality_reproduction_params}
-\title{Validar parámetros de mortalidad y reproducción}
+\title{Validate mortality and reproduction parameters (Utility)}
 \usage{
 validate_mortality_reproduction_params(
   mortality_params,
@@ -11,15 +11,15 @@ validate_mortality_reproduction_params(
 )
 }
 \arguments{
-\item{mortality_params}{Lista con parámetros de mortalidad}
+\item{mortality_params}{List with mortality parameters}
 
-\item{reproduction_params}{Lista con parámetros de reproducción (opcional)}
+\item{reproduction_params}{List with reproduction parameters (optional)}
 
-\item{species_type}{Tipo de especie para validación}
+\item{species_type}{Species type for validation}
 }
 \value{
-Lista con resultados de validación
+List with validation results
 }
 \description{
-Verifica que los parámetros estén en rangos realistas
+Verifies that parameters are within realistic ranges
 }

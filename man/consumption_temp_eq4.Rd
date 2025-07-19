@@ -2,23 +2,23 @@
 % Please edit documentation in R/01-consumption.R
 \name{consumption_temp_eq4}
 \alias{consumption_temp_eq4}
-\title{Función de temperatura para consumo - Ecuación 4}
+\title{Temperature function for consumption - Equation 4 (Low-level)}
 \usage{
 consumption_temp_eq4(temperature, CQ, CK1, CK4)
 }
 \arguments{
-\item{temperature}{Temperatura del agua (°C)}
+\item{temperature}{Water temperature (°C)}
 
-\item{CQ}{Coeficiente lineal}
+\item{CQ}{Linear coefficient}
 
-\item{CK1}{Coeficiente cuadrático}
+\item{CK1}{Quadratic coefficient}
 
-\item{CK4}{Coeficiente cúbico}
+\item{CK4}{Cubic coefficient}
 }
 \value{
-Factor de temperatura
+Temperature factor
 }
 \description{
-Implementa la ecuación de temperatura 4 (polinomial)
+Implements temperature equation 4 (polynomial)
 }
 \keyword{internal}

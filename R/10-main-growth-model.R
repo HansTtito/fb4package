@@ -1,70 +1,70 @@
-#' Motor de Simulación Principal FB4
+#' FB4 Main Simulation Engine
 #'
 #' @name simulation-engine
 #' @aliases simulation-engine
 NULL
 
 # ============================================================================
-# FUNCIONES CORE DE SIMULACIÓN DIARIA
+# CORE DAILY SIMULATION FUNCTIONS
 # ============================================================================
 
-#' Calcular consumo diario
+#' Calculate daily consumption
 #'
-#' @param current_weight Peso actual del pez (g)
-#' @param temperature Temperatura del agua (°C)
-#' @param p_value Proporción del consumo máximo (0-5)
-#' @param ration_percent Ración como porcentaje del peso corporal
-#' @param ration_grams Ración en gramos por día
-#' @param method Método de cálculo ("p_value", "ration_percent", "ration_grams")
-#' @param consumption_params Parámetros de consumo de la especie
-#' @param mean_prey_energy Densidad energética media de las presas (J/g)
-#' @return Lista con consumo específico y energético
+#' @param current_weight Current fish weight (g)
+#' @param temperature Water temperature (°C)
+#' @param p_value Proportion of maximum consumption (0-5)
+#' @param ration_percent Ration as percentage of body weight
+#' @param ration_grams Ration in grams per day
+#' @param method Calculation method ("p_value", "ration_percent", "ration_grams")
+#' @param consumption_params Species consumption parameters
+#' @param mean_prey_energy Mean prey energy density (J/g)
+#' @return List with specific and energetic consumption
 #' @keywords internal
 calculate_daily_consumption <- function(current_weight, temperature, p_value = NULL,
                                         ration_percent = NULL, ration_grams = NULL,
                                         method = "p_value", consumption_params, mean_prey_energy) {
   
-  # Validar parámetros según método
+  # Validate parameters according to method
   if (method == "p_value" && is.null(p_value)) {
-    stop("p_value requerido para método p_value")
+    stop("p_value required for p_value method")
   }
   if (method == "ration_percent" && is.null(ration_percent)) {
-    stop("ration_percent requerido para método ration_percent")
+    stop("ration_percent required for ration_percent method")
   }
   if (method == "ration_grams" && is.null(ration_grams)) {
-    stop("ration_grams requerido para método ration_grams")
+    stop("ration_grams required for ration_grams method")
   }
   
-  # Calcular consumo máximo una vez
+  # Calculate maximum consumption once
   max_consumption_gg <- calculate_consumption(temperature, current_weight, 1.0, 
                                               consumption_params, method = "maximum")
   
   if (method == "ration_percent") {
-    # Ración como % del peso corporal
-    consumption_gg <- ration_percent / 100  # g presa/g pez
+    # Ration as % of body weight
+    consumption_gg <- ration_percent / 100  # g prey/g fish
     consumption_energy <- consumption_gg * mean_prey_energy  # J/g
     
-    # Calcular p-value equivalente
+    # Calculate equivalent p-value
     effective_p <- if (max_consumption_gg > 0) consumption_gg / max_consumption_gg else 0
     
   } else if (method == "ration_grams") {
-    # Ración como gramos de presa por día
-    consumption_gg <- ration_grams / current_weight  # g presa/g pez
+    # Ration as grams of prey per day
+    consumption_gg <- ration_grams / current_weight  # g prey/g fish
     consumption_energy <- consumption_gg * mean_prey_energy  # J/g
     
-    # Calcular p-value equivalente
+    # Calculate equivalent p-value
     effective_p <- if (max_consumption_gg > 0) consumption_gg / max_consumption_gg else 0
     
   } else {  # method == "p_value"
-    # Usar p-value directamente
+    # Use p-value directly
     effective_p <- p_value
     consumption_gg <- calculate_consumption(temperature, current_weight, effective_p, 
                                             consumption_params, method = "rate")
     consumption_energy <- consumption_gg * mean_prey_energy
   }
   
-  # Validar resultados
-  effective_p <- pmax(0, pmin(5, effective_p))  # Limitar rango
+  # Validate results
+  effective_p <- pmax(0, pmin(5, effective_p))  # Limit range
   
   return(list(
     consumption_gg = pmax(0, consumption_gg),
@@ -74,27 +74,29 @@ calculate_daily_consumption <- function(current_weight, temperature, p_value = N
 }
 
 
-#' Calcula egestion, excreción, respiración y SDA para un día
+#' Calculate egestion, excretion, respiration and SDA for one day
 #'
-#' @param consumption_energy Consumo energético (J/g/día)
-#' @param current_weight Peso actual (g)
-#' @param temperature Temperatura (°C)
-#' @param p_value P-value efectivo
-#' @param species_params Parámetros de la especie
-#' @param oxycal Coeficiente oxicalórico (J/g O2)
-#' @return Lista con procesos metabólicos
+#' @param consumption_energy Energy consumption (J/g/day)
+#' @param current_weight Current weight (g)
+#' @param temperature Temperature (°C)
+#' @param p_value Effective p-value
+#' @param species_params Species parameters
+#' @param oxycal Oxycalorific coefficient (J/g O2)
+#' @param diet_proportions Diet item proportions
+#' @param indigestible_fractions Indigestible fractions by diet item
+#' @return List with metabolic processes
 #' @keywords internal
 calculate_daily_metabolism <- function(consumption_energy, current_weight, temperature,
                                        p_value, species_params, oxycal = 13560, 
                                        diet_proportions = NULL, indigestible_fractions = NULL) {
   
-  # Calcular fracción indigerible total si se proporcionan datos
+  # Calculate total indigestible fraction if data provided
   total_indigestible_fraction <- 0
   if (!is.null(diet_proportions) && !is.null(indigestible_fractions)) {
     total_indigestible_fraction <- sum(diet_proportions * indigestible_fractions)
   }
   
-  # Calcular egestion
+  # Calculate egestion
   egestion_energy <- calculate_egestion(
     consumption = consumption_energy,
     temperature = temperature,
@@ -103,7 +105,7 @@ calculate_daily_metabolism <- function(consumption_energy, current_weight, tempe
     indigestible_fraction = total_indigestible_fraction
   )
   
-  # Calcular excreción
+  # Calculate excretion
   excretion_energy <- calculate_excretion(
     consumption = consumption_energy,
     egestion = egestion_energy,
@@ -112,7 +114,7 @@ calculate_daily_metabolism <- function(consumption_energy, current_weight, tempe
     excretion_params = species_params$excretion
   )
   
-  # Calcular respiración
+  # Calculate respiration
   respiration_o2 <- calculate_respiration(
     weight = current_weight,
     temperature = temperature,
@@ -121,7 +123,7 @@ calculate_daily_metabolism <- function(consumption_energy, current_weight, tempe
   )
   respiration_energy <- respiration_o2 * oxycal
   
-  # Calcular SDA (Acción Dinámica Específica)
+  # Calculate SDA (Specific Dynamic Action)
   sda_energy <- calculate_sda(
     consumption = consumption_energy,
     egestion = egestion_energy,
@@ -138,28 +140,28 @@ calculate_daily_metabolism <- function(consumption_energy, current_weight, tempe
   ))
 }
 
-#' Calcula el peso final del día considerando crecimiento y reproducción
+#' Calculate final daily weight considering growth and reproduction
 #'
-#' @param current_weight Peso inicial del día (g)
-#' @param net_energy Energía neta disponible (J/g/día)
-#' @param spawn_energy Energía perdida por reproducción (J)
-#' @param predator_energy_density Densidad energética del depredador (J/g)
-#' @return Lista con peso final y cambio de peso
+#' @param current_weight Initial weight of the day (g)
+#' @param net_energy Net energy available (J/g/day)
+#' @param spawn_energy Energy lost to reproduction (J)
+#' @param predator_energy_density Predator energy density (J/g)
+#' @return List with final weight and weight change
 #' @keywords internal
 calculate_daily_growth <- function(current_weight, net_energy, spawn_energy,
                                    predator_energy_density) {
   
-  # Energía total disponible para el día
+  # Total energy available for the day
   total_energy_gain <- net_energy * current_weight
   
-  # Energía neta después de reproducción
+  # Net energy after reproduction
   net_energy_after_spawn <- total_energy_gain - spawn_energy
   
-  # Calcular cambio de peso
+  # Calculate weight change
   weight_change <- net_energy_after_spawn / predator_energy_density
   
-  # Peso final
-  final_weight <- pmax(0.01, current_weight + weight_change)  # Mínimo 0.01g
+  # Final weight
+  final_weight <- pmax(0.01, current_weight + weight_change)  # Minimum 0.01g
   
   return(list(
     final_weight = final_weight,
@@ -167,6 +169,3 @@ calculate_daily_growth <- function(current_weight, net_energy, spawn_energy,
     net_energy_gain = net_energy_after_spawn
   ))
 }
-
-
-

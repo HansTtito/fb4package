@@ -2,17 +2,15 @@
 % Please edit documentation in R/13-visualization-analysis.R
 \name{export_fb4_results}
 \alias{export_fb4_results}
-\title{Exportar resultados a CSV}
+\title{Export results to CSV}
 \usage{
-export_fb4_results(fb4_result, file_path, include_summary = TRUE)
+export_fb4_results(fb4_result, file_path)
 }
 \arguments{
-\item{fb4_result}{Objeto fb4_result}
+\item{fb4_result}{FB4 result object}
 
-\item{file_path}{Ruta del archivo CSV}
-
-\item{include_summary}{Incluir resumen en archivo separado}
+\item{file_path}{Path for CSV file}
 }
 \description{
-Exportar resultados a CSV
+Export results to CSV
 }

@@ -2,23 +2,23 @@
 % Please edit documentation in R/03-egestion-excretion.R
 \name{egestion_model_4}
 \alias{egestion_model_4}
-\title{Modelo de egestión 4 - Elliott (1976) sin p-value}
+\title{Egestion model 4 - Elliott (1976) without p-value (Low-level)}
 \usage{
 egestion_model_4(consumption, temperature, FA, FB)
 }
 \arguments{
-\item{consumption}{Consumo (J/g)}
+\item{consumption}{Consumption (J/g)}
 
-\item{temperature}{Temperatura del agua (°C)}
+\item{temperature}{Water temperature (°C)}
 
-\item{FA}{Parámetro base de egestión}
+\item{FA}{Base egestion parameter}
 
-\item{FB}{Coeficiente de dependencia de temperatura}
+\item{FB}{Temperature dependence coefficient}
 }
 \value{
-Egestión (J/g)
+Egestion (J/g)
 }
 \description{
-Modelo simplificado sin dependencia del nivel de alimentación
+Simplified model without feeding level dependence
 }
 \keyword{internal}

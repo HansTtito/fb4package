@@ -2,7 +2,7 @@
 % Please edit documentation in R/09-fitting-algorithms.R
 \name{fitting-algorithms-fb4}
 \alias{fitting-algorithms-fb4}
-\title{Algoritmos de Ajuste para el Modelo FB4 - Versión Integrada}
+\title{Fitting Algorithms for FB4 Model - Integrated Version}
 \description{
-Algoritmos de Ajuste para el Modelo FB4 - Versión Integrada
+Fitting Algorithms for FB4 Model - Integrated Version
 }

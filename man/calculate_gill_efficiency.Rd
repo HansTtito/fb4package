@@ -2,16 +2,16 @@
 % Please edit documentation in R/06-contaminant-accumulation.R
 \name{calculate_gill_efficiency}
 \alias{calculate_gill_efficiency}
-\title{Calcular eficiencia de captación branquial}
+\title{Calculate gill uptake efficiency (Utility)}
 \usage{
 calculate_gill_efficiency(kow)
 }
 \arguments{
-\item{kow}{Coeficiente de partición octanol:agua}
+\item{kow}{Octanol:water partition coefficient}
 }
 \value{
-Eficiencia de captación branquial
+Gill uptake efficiency
 }
 \description{
-Calcula eficiencia branquial basada en Kow según Arnot & Gobas (2004)
+Calculates gill efficiency based on Kow according to Arnot & Gobas (2004)
 }

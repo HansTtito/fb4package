@@ -2,7 +2,7 @@
 % Please edit documentation in R/03-egestion-excretion.R
 \name{calculate_excretion}
 \alias{calculate_excretion}
-\title{Calcular excreción diaria}
+\title{Calculate daily excretion (Mid-level - Main function)}
 \usage{
 calculate_excretion(
   consumption,
@@ -13,19 +13,19 @@ calculate_excretion(
 )
 }
 \arguments{
-\item{consumption}{Consumo (J/g)}
+\item{consumption}{Consumption (J/g)}
 
-\item{egestion}{Egestión (J/g)}
+\item{egestion}{Egestion (J/g)}
 
-\item{temperature}{Temperatura del agua (°C)}
+\item{temperature}{Water temperature (°C)}
 
-\item{p_value}{Proporción del consumo máximo (p-value)}
+\item{p_value}{Proportion of maximum consumption (p-value)}
 
-\item{excretion_params}{Lista con parámetros de excreción}
+\item{excretion_params}{List with excretion parameters}
 }
 \value{
-Excreción (J/g)
+Excretion (J/g)
 }
 \description{
-Calcular excreción diaria
+Main excretion calculation function called from simulation loop
 }

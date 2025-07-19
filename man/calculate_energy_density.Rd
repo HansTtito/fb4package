@@ -2,7 +2,7 @@
 % Please edit documentation in R/05-body-composition.R
 \name{calculate_energy_density}
 \alias{calculate_energy_density}
-\title{Calcular densidad energética a partir de grasa y proteína}
+\title{Calculate energy density from fat and protein (Low-level)}
 \usage{
 calculate_energy_density(
   fat_content,
@@ -13,20 +13,20 @@ calculate_energy_density(
 )
 }
 \arguments{
-\item{fat_content}{Contenido de grasa (g)}
+\item{fat_content}{Fat content (g)}
 
-\item{protein_content}{Contenido de proteína (g)}
+\item{protein_content}{Protein content (g)}
 
-\item{total_weight}{Peso total (g)}
+\item{total_weight}{Total weight (g)}
 
-\item{fat_energy}{Energía por gramo de grasa (J/g)}
+\item{fat_energy}{Energy per gram of fat (J/g)}
 
-\item{protein_energy}{Energía por gramo de proteína (J/g)}
+\item{protein_energy}{Energy per gram of protein (J/g)}
 }
 \value{
-Densidad energética (J/g peso húmedo)
+Energy density (J/g wet weight)
 }
 \description{
-Calcular densidad energética a partir de grasa y proteína
+Calculates energy density based on fat and protein content
 }
 \keyword{internal}

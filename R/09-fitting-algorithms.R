@@ -1,40 +1,40 @@
-#' Algoritmos de Ajuste para el Modelo FB4 - Versión Integrada
+#' Fitting Algorithms for FB4 Model - Integrated Version
 #'
 #' @name fitting-algorithms-fb4
 #' @aliases fitting-algorithms-fb4
 NULL
 
 # ============================================================================
-# FUNCIONES PRINCIPALES DE AJUSTE INTEGRADAS
+# MAIN INTEGRATED FITTING FUNCTIONS
 # ============================================================================
 
-#' Algoritmo de búsqueda binaria para ajuste FB4
+#' Binary Search Algorithm for FB4 Fitting
 #'
-#' Implementación robusta del algoritmo de búsqueda binaria basado en las funciones críticas
+#' Robust implementation of binary search algorithm based on critical functions
 #'
-#' @param species_params Parámetros de la especie extraídos
-#' @param initial_weight Peso inicial (g)
-#' @param fit_to Tipo de ajuste ("weight" o "consumption")
-#' @param fit_value Valor objetivo
-#' @param processed_data Datos ambientales procesados
-#' @param model_options Opciones del modelo
-#' @param oxycal Coeficiente oxicalórico
-#' @param output_daily Retornar salida diaria
-#' @param tolerance Tolerancia para convergencia
-#' @param max_iterations Número máximo de iteraciones
-#' @return Lista con resultado del ajuste y simulación final
+#' @param species_params Extracted species parameters
+#' @param initial_weight Initial weight (g)
+#' @param fit_to Type of fitting ("weight" or "consumption")
+#' @param fit_value Target value
+#' @param processed_data Processed environmental data
+#' @param model_options Model options
+#' @param oxycal Oxycalorific coefficient
+#' @param output_daily Return daily output
+#' @param tolerance Tolerance for convergence
+#' @param max_iterations Maximum number of iterations
+#' @return List with fitting result and final simulation
 fit_fb4_binary_search <- function(species_params, initial_weight, fit_to, fit_value,
                                   processed_data, model_options, oxycal = 13560,
                                   output_daily = TRUE, tolerance = 0.001, max_iterations = 25) {
   
-  # Validaciones
+  # Validations
   if (!fit_to %in% c("weight", "consumption")) {
-    stop("fit_to debe ser 'weight' o 'consumption'")
+    stop("fit_to must be 'weight' or 'consumption'")
   }
   
   fit_value <- check_numeric_value(fit_value, "fit_value", min_val = 0.001)
   
-  # Ejecutar búsqueda binaria usando la función crítica mejorada
+  # Execute binary search using improved critical function
   fit_result <- binary_search_p_value_robust(
     target_value = fit_value,
     fit_type = fit_to,
@@ -47,11 +47,11 @@ fit_fb4_binary_search <- function(species_params, initial_weight, fit_to, fit_va
     max_iterations = max_iterations
   )
   
-  # Si el ajuste fue exitoso, ejecutar simulación completa final
+  # If fitting was successful, execute final complete simulation
   if (fit_result$fit_successful) {
-    final_simulation <- run_fb4_simulation_complete(
+    final_simulation <- run_fb4_simulation_unified(
       initial_weight = initial_weight,
-      p_value = fit_result$p_value,
+      consumption_params = list(type = "p_value", value = fit_result$p_value),
       species_params = species_params,
       processed_data = processed_data,
       model_options = model_options,
@@ -59,11 +59,11 @@ fit_fb4_binary_search <- function(species_params, initial_weight, fit_to, fit_va
       output_daily = output_daily
     )
     
-    # Combinar resultados
+    # Combine results
     result <- list(
-      # Información del ajuste
+      # Fitting information
       fit_info = fit_result,
-      # Resultados de la simulación
+      # Simulation results
       final_weight = final_simulation$final_weight,
       total_consumption = final_simulation$total_consumption,
       p_value = fit_result$p_value,
@@ -72,13 +72,13 @@ fit_fb4_binary_search <- function(species_params, initial_weight, fit_to, fit_va
       fit_error = fit_result$final_error
     )
     
-    # Añadir salida diaria si se solicita
+    # Add daily output if requested
     if (output_daily) {
       result$daily_output <- final_simulation$daily_output
     }
     
   } else {
-    # Si el ajuste falló, retornar información de error
+    # If fitting failed, return error information
     result <- list(
       fit_info = fit_result,
       final_weight = NA,
@@ -87,27 +87,27 @@ fit_fb4_binary_search <- function(species_params, initial_weight, fit_to, fit_va
       fit_successful = FALSE,
       fit_iterations = fit_result$iterations,
       fit_error = fit_result$final_error,
-      error_message = "El ajuste no convergió dentro de las iteraciones permitidas"
+      error_message = "Fitting did not converge within allowed iterations"
     )
   }
   
   return(result)
 }
 
-#' Búsqueda binaria robusta para p-value (versión mejorada)
+#' Robust Binary Search for P-value (Improved Version)
 #'
-#' Versión mejorada basada en la función crítica del primer script
+#' Improved version based on critical function from first script
 #'
-#' @param target_value Valor objetivo (peso final o consumo total)
-#' @param fit_type Tipo de ajuste ("weight" o "consumption")
-#' @param species_params Parámetros de la especie
-#' @param initial_weight Peso inicial
-#' @param processed_data Datos procesados
-#' @param model_options Opciones del modelo
-#' @param oxycal Coeficiente oxicalórico
-#' @param tolerance Tolerancia para convergencia
-#' @param max_iterations Número máximo de iteraciones
-#' @return Lista con p-value ajustado y información del ajuste
+#' @param target_value Target value (final weight or total consumption)
+#' @param fit_type Type of fitting ("weight" or "consumption")
+#' @param species_params Species parameters
+#' @param initial_weight Initial weight
+#' @param processed_data Processed data
+#' @param model_options Model options
+#' @param oxycal Oxycalorific coefficient
+#' @param tolerance Tolerance for convergence
+#' @param max_iterations Maximum number of iterations
+#' @return List with fitted p-value and fitting information
 binary_search_p_value_robust <- function(target_value, fit_type,
                                          species_params, initial_weight,
                                          processed_data, model_options,
@@ -115,7 +115,7 @@ binary_search_p_value_robust <- function(target_value, fit_type,
                                          tolerance = 0.001,
                                          max_iterations = 25) {
   
-  # Rango inicial para p_value
+  # Initial range for p_value
   lower <- 0.01
   upper <- 5
   
@@ -124,25 +124,25 @@ binary_search_p_value_robust <- function(target_value, fit_type,
   best_p <- NA
   best_error <- Inf
   
-  # PRINT INICIAL
-  cat("\n=== INICIO BÚSQUEDA BINARIA ===\n")
+  # INITIAL PRINT
+  cat("\n=== BINARY SEARCH START ===\n")
   cat("Target value:", target_value, "\n")
   cat("Fit type:", fit_type, "\n")
   cat("Initial weight:", initial_weight, "\n")
-  cat("Rango inicial: [", lower, ",", upper, "]\n")
-  cat("Tolerancia:", tolerance, "\n\n")
+  cat("Initial range: [", lower, ",", upper, "]\n")
+  cat("Tolerance:", tolerance, "\n\n")
   
   while (iteration < max_iterations) {
     iteration <- iteration + 1
     mid_p <- (lower + upper) / 2
     
-    # PRINT ITERACIÓN
+    # ITERATION PRINT
     cat("Iteration", iteration, "p-value =", mid_p)
     
-    # Ejecutar simulación con p_value candidato
-    sim <- run_fb4_simulation_complete(
+    # Execute simulation with candidate p_value
+    sim <- run_fb4_simulation_unified(
       initial_weight = initial_weight,
-      p_value = mid_p,
+      consumption_params = list(type = "p_value", value = mid_p),
       species_params = species_params,
       processed_data = processed_data,
       model_options = model_options,
@@ -150,48 +150,48 @@ binary_search_p_value_robust <- function(target_value, fit_type,
       output_daily = FALSE
     )
     
-    # Seleccionar métrica a evaluar según fit_type
+    # Select metric to evaluate according to fit_type
     metric <- if (fit_type == "weight") sim$final_weight else sim$total_consumption
     
     error <- abs(metric - target_value)
     
-    # PRINT RESULTADOS DE LA ITERACIÓN
-    cat(" W.p =", round(metric, 6), "Target =", target_value)
+    # PRINT ITERATION RESULTS
+    cat(" Result =", round(metric, 6), "Target =", target_value)
     cat(" Error =", round(error, 6))
     
-    # Guardar mejor resultado
+    # Save best result
     if (error < best_error) {
       best_error <- error
       best_p <- mid_p
-      cat(" [MEJOR]")
+      cat(" [BEST]")
     }
     
-    # Revisar convergencia
+    # Check convergence
     if (error <= tolerance) {
       fit_successful <- TRUE
-      cat(" [CONVERGIÓ]\n")
+      cat(" [CONVERGED]\n")
       break
     }
     
-    # Ajustar rango para siguiente iteración
+    # Adjust range for next iteration
     if (metric < target_value) {
       lower <- mid_p
-      cat(" [AUMENTAR p]")
+      cat(" [INCREASE p]")
     } else {
       upper <- mid_p
-      cat(" [REDUCIR p]")
+      cat(" [DECREASE p]")
     }
     
-    cat(" Nuevo rango: [", round(lower, 6), ",", round(upper, 6), "]\n")
+    cat(" New range: [", round(lower, 6), ",", round(upper, 6), "]\n")
   }
   
-  # PRINT FINAL
-  cat("\n=== RESULTADO FINAL ===\n")
-  cat("Convergió:", fit_successful, "\n")
-  cat("Iteraciones:", iteration, "\n")
-  cat("Mejor p-value:", best_p, "\n")
-  cat("Error final:", best_error, "\n")
-  cat("=======================\n\n")
+  # FINAL PRINT
+  cat("\n=== FINAL RESULT ===\n")
+  cat("Converged:", fit_successful, "\n")
+  cat("Iterations:", iteration, "\n")
+  cat("Best p-value:", best_p, "\n")
+  cat("Final error:", best_error, "\n")
+  cat("==================\n\n")
   
   return(list(
     p_value = best_p,

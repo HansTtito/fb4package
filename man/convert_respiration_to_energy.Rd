@@ -2,18 +2,18 @@
 % Please edit documentation in R/02-respiration.R
 \name{convert_respiration_to_energy}
 \alias{convert_respiration_to_energy}
-\title{Convertir respiración de O2 a unidades de energía}
+\title{Convert respiration from O2 to energy units (Utility)}
 \usage{
 convert_respiration_to_energy(respiration_o2, oxycal = 13560)
 }
 \arguments{
-\item{respiration_o2}{Respiración en g O2/g pez/día}
+\item{respiration_o2}{Respiration in g O2/g fish/day}
 
-\item{oxycal}{Factor de conversión oxycal (J/g O2)}
+\item{oxycal}{Oxycalorific conversion factor (J/g O2)}
 }
 \value{
-Respiración en J/g pez/día
+Respiration in J/g fish/day
 }
 \description{
-Convertir respiración de O2 a unidades de energía
+Converts respiration from O2 consumption to energy equivalents
 }

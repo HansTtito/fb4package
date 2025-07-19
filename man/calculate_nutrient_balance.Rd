@@ -2,20 +2,20 @@
 % Please edit documentation in R/07-nutrient-regeneration.R
 \name{calculate_nutrient_balance}
 \alias{calculate_nutrient_balance}
-\title{Calcular balance de nutrientes}
+\title{Calculate nutrient balance (Mid-level - Main function)}
 \usage{
 calculate_nutrient_balance(consumption, weight_gain, nutrient_params)
 }
 \arguments{
-\item{consumption}{Vector de consumo por tipo de presa (g/día)}
+\item{consumption}{Vector of consumption by prey type (g/day)}
 
-\item{weight_gain}{Ganancia de peso del depredador (g/día)}
+\item{weight_gain}{Predator weight gain (g/day)}
 
-\item{nutrient_params}{Lista con parámetros de nutrientes}
+\item{nutrient_params}{List with nutrient parameters}
 }
 \value{
-Lista con resultados de nutrientes
+List with nutrient results
 }
 \description{
-Función principal para calcular los flujos de nitrógeno y fósforo
+Main function for calculating nitrogen and phosphorus fluxes
 }

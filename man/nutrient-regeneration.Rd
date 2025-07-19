@@ -2,7 +2,7 @@
 % Please edit documentation in R/07-nutrient-regeneration.R
 \name{nutrient-regeneration}
 \alias{nutrient-regeneration}
-\title{Funciones de Regeneración de Nutrientes para el Modelo FB4}
+\title{Nutrient Regeneration Functions for FB4 Model}
 \description{
-Funciones de Regeneración de Nutrientes para el Modelo FB4
+Nutrient Regeneration Functions for FB4 Model
 }

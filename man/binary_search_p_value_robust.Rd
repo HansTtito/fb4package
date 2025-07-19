@@ -2,7 +2,7 @@
 % Please edit documentation in R/09-fitting-algorithms.R
 \name{binary_search_p_value_robust}
 \alias{binary_search_p_value_robust}
-\title{Búsqueda binaria robusta para p-value (versión mejorada)}
+\title{Robust Binary Search for P-value (Improved Version)}
 \usage{
 binary_search_p_value_robust(
   target_value,
@@ -17,27 +17,27 @@ binary_search_p_value_robust(
 )
 }
 \arguments{
-\item{target_value}{Valor objetivo (peso final o consumo total)}
+\item{target_value}{Target value (final weight or total consumption)}
 
-\item{fit_type}{Tipo de ajuste ("weight" o "consumption")}
+\item{fit_type}{Type of fitting ("weight" or "consumption")}
 
-\item{species_params}{Parámetros de la especie}
+\item{species_params}{Species parameters}
 
-\item{initial_weight}{Peso inicial}
+\item{initial_weight}{Initial weight}
 
-\item{processed_data}{Datos procesados}
+\item{processed_data}{Processed data}
 
-\item{model_options}{Opciones del modelo}
+\item{model_options}{Model options}
 
-\item{oxycal}{Coeficiente oxicalórico}
+\item{oxycal}{Oxycalorific coefficient}
 
-\item{tolerance}{Tolerancia para convergencia}
+\item{tolerance}{Tolerance for convergence}
 
-\item{max_iterations}{Número máximo de iteraciones}
+\item{max_iterations}{Maximum number of iterations}
 }
 \value{
-Lista con p-value ajustado y información del ajuste
+List with fitted p-value and fitting information
 }
 \description{
-Versión mejorada basada en la función crítica del primer script
+Improved version based on critical function from first script
 }

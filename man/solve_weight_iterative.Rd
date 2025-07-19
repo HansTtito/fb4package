@@ -2,7 +2,7 @@
 % Please edit documentation in R/04-predator-energy-density.R
 \name{solve_weight_iterative}
 \alias{solve_weight_iterative}
-\title{Resolver peso usando método iterativo (método general seguro)}
+\title{Solve weight using iterative method (Mid-level)}
 \usage{
 solve_weight_iterative(
   target_energy,
@@ -12,17 +12,19 @@ solve_weight_iterative(
 )
 }
 \arguments{
-\item{target_energy}{Energía corporal objetivo}
+\item{target_energy}{Target body energy}
 
-\item{predator_params}{Parámetros del depredador}
+\item{predator_params}{Predator parameters}
 
-\item{day}{Día actual}
+\item{day}{Current day}
 
-\item{initial_guess}{Estimación inicial del peso}
+\item{initial_guess}{Initial weight estimate}
 }
 \value{
-Peso final
+Final weight
 }
 \description{
-Resolver peso usando método iterativo (método general seguro)
+General safe method for solving final weight when analytical solutions fail
+Used as fallback for complex cases
 }
+\keyword{internal}

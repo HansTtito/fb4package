@@ -1,5 +1,5 @@
 # ============================================================================
-# MAIN FB4 EXECUTION FUNCTIONS - CLEAN VERSION
+# MAIN FB4 EXECUTION FUNCTIONS - OPTIMIZED VERSION
 # ============================================================================
 
 #' Execute Fish Bioenergetics 4.0 Model with Bioenergetic Object
@@ -71,33 +71,19 @@ run_fb4.Bioenergetic <- function(bio_obj,
       output_daily = output_daily
     )
     
-  } else if (fit_to == "p-value") {
-    result <- run_fb4_with_p_value(
-      species_params = bio_obj$species_params,
-      initial_weight = initial_weight,
-      p_value = fit_value,
-      processed_data = processed_data,
-      model_options = model_options,
-      oxycal = oxycal,
-      output_daily = output_daily
+  } else if (fit_to %in% c("p-value", "Ration", "Ration_prey")) {
+    # Use unified function for direct methods
+    method_map <- list(
+      "p-value" = "p_value",
+      "Ration" = "ration_percent", 
+      "Ration_prey" = "ration_grams"
     )
     
-  } else if (fit_to == "Ration") {
-    result <- run_fb4_with_ration_percent(
+    result <- run_fb4_with_method(
       species_params = bio_obj$species_params,
       initial_weight = initial_weight,
-      ration_percent = fit_value,
-      processed_data = processed_data,
-      model_options = model_options,
-      oxycal = oxycal,
-      output_daily = output_daily
-    )
-    
-  } else if (fit_to == "Ration_prey") {
-    result <- run_fb4_with_ration_grams(
-      species_params = bio_obj$species_params,
-      initial_weight = initial_weight,
-      ration_grams = fit_value,
+      method = method_map[[fit_to]],
+      value = fit_value,
       processed_data = processed_data,
       model_options = model_options,
       oxycal = oxycal,
@@ -110,6 +96,11 @@ run_fb4.Bioenergetic <- function(bio_obj,
   
   # Calculate elapsed time
   elapsed_time <- proc.time() - start_time
+  
+  # Update fitted status if successful
+  if (result$fit_info$fit_successful) {
+    bio_obj$fitted <- TRUE
+  }
   
   # Prepare final result
   final_result <- list(
@@ -158,52 +149,61 @@ run_fb4.default <- function(x, ...) {
 }
 
 # ============================================================================
-# SIMULATION EXECUTION FUNCTIONS
+# UNIFIED SIMULATION EXECUTION FUNCTION
 # ============================================================================
 
-#' Execute FB4 Simulation with Specific P-Value
+#' Execute FB4 Simulation with Unified Method Handler
+#' 
+#' @description
+#' Unified function that handles all direct simulation methods (p-value, ration_percent, ration_grams)
+#' to reduce code duplication and improve maintainability.
+#'
+#' @param species_params Species parameter list
+#' @param initial_weight Initial fish weight (g)
+#' @param method Simulation method ("p_value", "ration_percent", "ration_grams")
+#' @param value Method-specific value
+#' @param processed_data Processed environmental and diet data
+#' @param model_options Model configuration options
+#' @param oxycal Oxycalorific coefficient (J/g O2)
+#' @param output_daily Whether to include daily output
+#'
+#' @return List with simulation results
 #' @keywords internal
-run_fb4_with_p_value <- function(species_params, initial_weight, p_value,
-                                 processed_data, model_options, oxycal = 13560,
-                                 output_daily = TRUE) {
+run_fb4_with_method <- function(species_params, initial_weight, method, value,
+                                processed_data, model_options, oxycal = 13560,
+                                output_daily = TRUE) {
   
-  p_value <- clamp(p_value, 0.001, 4.999)
-  
-  simulation_result <- run_fb4_simulation_complete(
-    initial_weight = initial_weight,
-    p_value = p_value,
-    species_params = species_params,
-    processed_data = processed_data,
-    model_options = model_options,
-    oxycal = oxycal,
-    output_daily = output_daily
-  )
-  
-  simulation_result$fit_info <- list(
-    p_value = p_value,
-    fit_successful = TRUE,
-    iterations = 1,
-    final_error = 0,
-    method = "direct_p_value"
-  )
-  
-  return(simulation_result)
-}
-
-#' Execute FB4 with Ration as Percentage of Body Weight
-#' @keywords internal
-run_fb4_with_ration_percent <- function(species_params, initial_weight, ration_percent,
-                                        processed_data, model_options, oxycal = 13560,
-                                        output_daily = TRUE) {
-  
-  if (ration_percent < 0 || ration_percent > 100) {
-    stop("ration_percent must be between 0 and 100")
+  # Method-specific validation and consumption parameters setup
+  if (method == "p_value") {
+    if (!is.numeric(value) || length(value) != 1 || value <= 0) {
+      stop("p_value must be a positive number")
+    }
+    value <- clamp(value, 0.001, 4.999)
+    consumption_params <- list(type = "p_value", value = value)
+    fit_info_base <- list(p_value = value, method = "direct_p_value")
+    
+  } else if (method == "ration_percent") {
+    if (!is.numeric(value) || length(value) != 1 || value < 0 || value > 100) {
+      stop("ration_percent must be between 0 and 100")
+    }
+    consumption_params <- list(type = "ration_percent", value = value / 100)
+    fit_info_base <- list(ration_percent = value, method = "ration_percent")
+    
+  } else if (method == "ration_grams") {
+    if (!is.numeric(value) || length(value) != 1 || value <= 0) {
+      stop("ration_grams must be greater than 0")
+    }
+    consumption_params <- list(type = "ration_grams", value = value)
+    fit_info_base <- list(ration_grams = value, method = "ration_grams")
+    
+  } else {
+    stop("Unknown method: ", method, ". Must be 'p_value', 'ration_percent', or 'ration_grams'")
   }
   
-  simulation_result <- run_fb4_simulation_with_ration(
+  # Execute unified simulation
+  simulation_result <- run_fb4_simulation_unified(
     initial_weight = initial_weight,
-    ration_type = "percent",
-    ration_value = ration_percent / 100,
+    consumption_params = consumption_params,
     species_params = species_params,
     processed_data = processed_data,
     model_options = model_options,
@@ -211,58 +211,38 @@ run_fb4_with_ration_percent <- function(species_params, initial_weight, ration_p
     output_daily = output_daily
   )
   
-  simulation_result$fit_info <- list(
-    ration_percent = ration_percent,
-    fit_successful = TRUE,
-    iterations = 1,
-    final_error = 0,
-    method = "ration_percent"
-  )
-  
-  return(simulation_result)
-}
-
-#' Execute FB4 with Daily Ration in Grams
-#' @keywords internal
-run_fb4_with_ration_grams <- function(species_params, initial_weight, ration_grams,
-                                      processed_data, model_options, oxycal = 13560,
-                                      output_daily = TRUE) {
-  
-  if (ration_grams <= 0) {
-    stop("ration_grams must be greater than 0")
-  }
-  
-  simulation_result <- run_fb4_simulation_with_ration(
-    initial_weight = initial_weight,
-    ration_type = "grams",
-    ration_value = ration_grams,
-    species_params = species_params,
-    processed_data = processed_data,
-    model_options = model_options,
-    oxycal = oxycal,
-    output_daily = output_daily
-  )
-  
-  simulation_result$fit_info <- list(
-    ration_grams = ration_grams,
-    fit_successful = TRUE,
-    iterations = 1,
-    final_error = 0,
-    method = "ration_grams"
-  )
+  # Add fit info
+  fit_info_base$fit_successful <- TRUE
+  fit_info_base$iterations <- 1
+  fit_info_base$final_error <- 0
+  simulation_result$fit_info <- fit_info_base
   
   return(simulation_result)
 }
 
 # ============================================================================
-# CORE SIMULATION FUNCTIONS - SIMPLIFIED
+# CORE UNIFIED SIMULATION FUNCTION
 # ============================================================================
 
-#' Complete FB4 Simulation
+#' Unified FB4 Simulation Engine
+#' 
+#' @description
+#' Core simulation function that runs the complete fish bioenergetics model
+#' with flexible consumption parameter handling to eliminate code duplication.
+#'
+#' @param initial_weight Initial fish weight (g)
+#' @param consumption_params List with consumption method and value
+#' @param species_params Species parameter list
+#' @param processed_data Processed environmental and diet data
+#' @param model_options Model configuration options
+#' @param oxycal Oxycalorific coefficient (J/g O2)
+#' @param output_daily Whether to save daily outputs
+#'
+#' @return List with simulation results
 #' @keywords internal
-run_fb4_simulation_complete <- function(initial_weight, p_value, species_params,
-                                        processed_data, model_options, oxycal = 13560,
-                                        output_daily = TRUE) {
+run_fb4_simulation_unified <- function(initial_weight, consumption_params, species_params,
+                                       processed_data, model_options, oxycal = 13560,
+                                       output_daily = TRUE) {
   
   # Extract processed data
   temperature <- processed_data$temperature
@@ -271,134 +251,12 @@ run_fb4_simulation_complete <- function(initial_weight, p_value, species_params,
   n_days <- processed_data$duration
   prey_indigestible <- processed_data$prey_indigestible
   
-  # Initialize variables
-  current_weight <- initial_weight
-  total_consumption <- 0
-  
-  # Initialize daily output if required
-  if (output_daily) {
-    daily_output <- data.frame(
-      Day = 1:n_days,
-      Weight = numeric(n_days),
-      Temperature = temperature,
-      Consumption_gg = numeric(n_days),
-      Consumption_energy = numeric(n_days),
-      Respiration = numeric(n_days),
-      Egestion = numeric(n_days),
-      Excretion = numeric(n_days),
-      SDA = numeric(n_days),
-      Net_energy = numeric(n_days),
-      P_value = rep(p_value, n_days),
-      stringsAsFactors = FALSE
-    )
-  }
-  
-  # Day-by-day simulation
-  for (day in 1:n_days) {
-    
-    # 1. Calculate mean prey energy (inline)
-    mean_prey_energy <- sum(diet_proportions[day, ] * prey_energies[day, ], na.rm = TRUE)
-    
-    # 2. Calculate predator energy density
-    predator_ed <- calculate_predator_energy_density(
-      weight = current_weight,
-      day = day,
-      predator_params = species_params$predator
-    )
-    
-    # 3. Daily consumption
-    consumption_result <- calculate_daily_consumption(
-      current_weight = current_weight,
-      temperature = temperature[day],
-      p_value = p_value,
-      method = "p_value",
-      consumption_params = species_params$consumption,
-      mean_prey_energy = mean_prey_energy
-    )
-    
-    # 4. Daily metabolism
-    metabolism_result <- calculate_daily_metabolism(
-      consumption_energy = consumption_result$consumption_energy,
-      current_weight = current_weight,
-      temperature = temperature[day],
-      p_value = consumption_result$effective_p,
-      species_params = species_params,
-      oxycal = oxycal,
-      diet_proportions = diet_proportions[day,],
-      indigestible_fractions = prey_indigestible[day,]
-    )
-    
-    # 5. Spawning energy (simplified - no reproduction for now)
-    spawn_energy <- calculate_spawn_energy(
-      day = day,
-      current_weight = current_weight, 
-      predator_ed = predator_ed,
-      model_options = model_options,
-      reproduction_data = processed_data$reproduction
-    )
-    
-    # 6. Daily growth (inline calculation)
-    net_energy_total <- metabolism_result$net_energy * current_weight - spawn_energy
-    weight_change <- net_energy_total / predator_ed
-    current_weight <- pmax(0.01, current_weight + weight_change)
-    
-    # 7. Save daily data
-    if (output_daily) {
-      daily_output$Weight[day] <- current_weight
-      daily_output$Consumption_gg[day] <- consumption_result$consumption_gg
-      daily_output$Consumption_energy[day] <- consumption_result$consumption_energy
-      daily_output$Respiration[day] <- metabolism_result$respiration_energy
-      daily_output$Egestion[day] <- metabolism_result$egestion_energy
-      daily_output$Excretion[day] <- metabolism_result$excretion_energy
-      daily_output$SDA[day] <- metabolism_result$sda_energy
-      daily_output$Net_energy[day] <- metabolism_result$net_energy
-    }
-    
-    # 8. Update totals
-    total_consumption <- total_consumption + (consumption_result$consumption_gg * current_weight)
-    
-    # 9. Validation
-    if (current_weight <= 0) {
-      warning("Fish died on day ", day)
-      break
-    }
-  }
-  
-  # Return results
-  result <- list(
-    final_weight = current_weight,
-    initial_weight = initial_weight,
-    total_consumption = total_consumption,
-    simulation_days = n_days,
-    p_value = p_value
-  )
-  
-  if (output_daily) {
-    result$daily_output <- daily_output
-  }
-  
-  return(result)
-}
-
-#' FB4 Simulation with Specific Ration
-#' @keywords internal
-run_fb4_simulation_with_ration <- function(initial_weight, ration_type, ration_value,
-                                           species_params, processed_data, model_options,
-                                           oxycal = 13560, output_daily = TRUE) {
-  
-  # Extract processed data
-  temperature <- processed_data$temperature
-  diet_proportions <- processed_data$diet_proportions
-  prey_energies <- processed_data$prey_energies
-  n_days <- processed_data$duration
-  prey_indigestible <- processed_data$prey_indigestible
-  
-  # Initialize variables
+  # Initialize simulation variables
   current_weight <- initial_weight
   total_consumption <- 0
   p_values <- numeric(n_days)
   
-  # Initialize daily output
+  # Initialize daily output structure if required
   if (output_daily) {
     daily_output <- data.frame(
       Day = 1:n_days,
@@ -412,36 +270,41 @@ run_fb4_simulation_with_ration <- function(initial_weight, ration_type, ration_v
       SDA = numeric(n_days),
       Net_energy = numeric(n_days),
       P_value = numeric(n_days),
-      Ration_value = numeric(n_days),
       stringsAsFactors = FALSE
     )
+    
+    # Add method-specific columns
+    if (consumption_params$type %in% c("ration_percent", "ration_grams")) {
+      daily_output$Ration_value <- numeric(n_days)
+    }
   }
   
-  # Day-by-day simulation
+  # Main simulation loop - day by day
   for (day in 1:n_days) {
     
-    # 1. Calculate mean prey energy (inline)
+    # Calculate mean prey energy for this day
     mean_prey_energy <- sum(diet_proportions[day, ] * prey_energies[day, ], na.rm = TRUE)
     
-    # 2. Calculate predator energy density
+    # Calculate predator energy density for current weight and day
     predator_ed <- calculate_predator_energy_density(
       weight = current_weight,
       day = day,
       predator_params = species_params$predator
     )
     
-    # 3. Daily consumption based on ration
+    # Calculate daily consumption using existing function
     consumption_result <- calculate_daily_consumption(
       current_weight = current_weight,
       temperature = temperature[day],
-      ration_percent = if (ration_type == "percent") ration_value * 100 else NULL,
-      ration_grams = if (ration_type == "grams") ration_value else NULL,
-      method = if (ration_type == "percent") "ration_percent" else "ration_grams",
+      p_value = if (consumption_params$type == "p_value") consumption_params$value else NULL,
+      ration_percent = if (consumption_params$type == "ration_percent") consumption_params$value * 100 else NULL,
+      ration_grams = if (consumption_params$type == "ration_grams") consumption_params$value else NULL,
+      method = consumption_params$type,
       consumption_params = species_params$consumption,
       mean_prey_energy = mean_prey_energy
     )
     
-    # 4. Daily metabolism
+    # Calculate daily metabolism using existing function
     metabolism_result <- calculate_daily_metabolism(
       consumption_energy = consumption_result$consumption_energy,
       current_weight = current_weight,
@@ -453,23 +316,28 @@ run_fb4_simulation_with_ration <- function(initial_weight, ration_type, ration_v
       indigestible_fractions = prey_indigestible[day,]
     )
     
-    # 5. Spawning energy
+    # Calculate spawning energy loss (if reproduction is enabled)
     spawn_energy <- calculate_spawn_energy(
       day = day,
-      current_weight = current_weight,
+      current_weight = current_weight, 
       predator_ed = predator_ed,
       model_options = model_options,
       reproduction_data = processed_data$reproduction
     )
     
-    # 6. Daily growth (inline calculation)
-    net_energy_total <- metabolism_result$net_energy * current_weight - spawn_energy
-    weight_change <- net_energy_total / predator_ed
-    current_weight <- pmax(0.01, current_weight + weight_change)
+    # Calculate daily growth using existing function
+    growth_result <- calculate_daily_growth(
+      current_weight = current_weight,
+      net_energy = metabolism_result$net_energy,
+      spawn_energy = spawn_energy,
+      predator_energy_density = predator_ed
+    )
+    current_weight <- growth_result$final_weight
     
-    # 6. Save daily data
+    # Store daily values
     p_values[day] <- consumption_result$effective_p
     
+    # Store daily results if requested
     if (output_daily) {
       daily_output$Weight[day] <- current_weight
       daily_output$Consumption_gg[day] <- consumption_result$consumption_gg
@@ -480,29 +348,37 @@ run_fb4_simulation_with_ration <- function(initial_weight, ration_type, ration_v
       daily_output$SDA[day] <- metabolism_result$sda_energy
       daily_output$Net_energy[day] <- metabolism_result$net_energy
       daily_output$P_value[day] <- consumption_result$effective_p
-      daily_output$Ration_value[day] <- ration_value
+      
+      # Add method-specific values
+      if (consumption_params$type %in% c("ration_percent", "ration_grams")) {
+        daily_output$Ration_value[day] <- consumption_params$value
+      }
     }
     
-    # 7. Update totals
+    # Update cumulative consumption
     total_consumption <- total_consumption + (consumption_result$consumption_gg * current_weight)
     
-    # 8. Validation
+    # Check for fish mortality
     if (current_weight <= 0) {
-      warning("Fish died on day ", day)
+      warning("Fish mortality occurred on day ", day)
       break
     }
   }
   
-  # Return results
+  # Prepare return results
   result <- list(
     final_weight = current_weight,
     initial_weight = initial_weight,
     total_consumption = total_consumption,
     simulation_days = n_days,
-    p_value = mean(p_values, na.rm = TRUE),
-    ration_type = ration_type,
-    ration_value = ration_value
+    p_value = if (consumption_params$type == "p_value") consumption_params$value else mean(p_values, na.rm = TRUE)
   )
+  
+  # Add method-specific results
+  if (consumption_params$type %in% c("ration_percent", "ration_grams")) {
+    result$ration_type <- if (consumption_params$type == "ration_percent") "percent" else "grams"
+    result$ration_value <- consumption_params$value
+  }
   
   if (output_daily) {
     result$daily_output <- daily_output

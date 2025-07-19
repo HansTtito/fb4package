@@ -2,20 +2,20 @@
 % Please edit documentation in R/01-consumption.R
 \name{calculate_consumption_params_eq2}
 \alias{calculate_consumption_params_eq2}
-\title{Calcular parámetros adicionales para ecuación de consumo 2}
+\title{Calculate additional parameters for consumption equation 2 (Mid-level)}
 \usage{
 calculate_consumption_params_eq2(CQ, CTM, CTO)
 }
 \arguments{
-\item{CQ}{Coeficiente de temperatura}
+\item{CQ}{Temperature coefficient}
 
-\item{CTM}{Temperatura máxima}
+\item{CTM}{Maximum temperature}
 
-\item{CTO}{Temperatura óptima}
+\item{CTO}{Optimum temperature}
 }
 \value{
-Lista con CY, CZ, CX
+List with CY, CZ, CX
 }
 \description{
-Calcular parámetros adicionales para ecuación de consumo 2
+Calculates derived parameters needed for temperature equation 2
 }

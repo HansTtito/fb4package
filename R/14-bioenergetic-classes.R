@@ -177,7 +177,6 @@ Bioenergetic <- function(species_params,
       reproduction_data = reproduction_data,
       model_options = model_options,
       simulation_settings = simulation_settings,
-      results = NULL,
       fitted = FALSE
     ),
     class = c("Bioenergetic", "list")

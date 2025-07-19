@@ -2,18 +2,18 @@
 % Please edit documentation in R/08-mortality-reproduction.R
 \name{calculate_cumulative_survival}
 \alias{calculate_cumulative_survival}
-\title{Calcular supervivencia acumulativa}
+\title{Calculate cumulative survival (Utility)}
 \usage{
 calculate_cumulative_survival(survival_rates, initial_population = 1)
 }
 \arguments{
-\item{survival_rates}{Vector de tasas de supervivencia diarias}
+\item{survival_rates}{Vector of daily survival rates}
 
-\item{initial_population}{Población inicial}
+\item{initial_population}{Initial population}
 }
 \value{
-Vector con población superviviente por día
+Vector with surviving population by day
 }
 \description{
-Calcula la supervivencia a lo largo de múltiples períodos
+Calculates survival across multiple periods
 }

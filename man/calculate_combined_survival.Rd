@@ -2,19 +2,19 @@
 % Please edit documentation in R/08-mortality-reproduction.R
 \name{calculate_combined_survival}
 \alias{calculate_combined_survival}
-\title{Calcular supervivencia diaria combinada}
+\title{Calculate combined daily survival (Low-level)}
 \usage{
 calculate_combined_survival(mortality_rates, method = "independent")
 }
 \arguments{
-\item{mortality_rates}{Vector de tasas de mortalidad por fuente (fracción diaria 0-1)}
+\item{mortality_rates}{Vector of mortality rates by source (daily fraction 0-1)}
 
-\item{method}{Método de combinación ("independent", "additive")}
+\item{method}{Combination method ("independent", "additive")}
 }
 \value{
-Tasa de supervivencia combinada
+Combined survival rate
 }
 \description{
-Calcula la supervivencia considerando múltiples fuentes de mortalidad
+Calculates survival considering multiple mortality sources
 }
 \keyword{internal}

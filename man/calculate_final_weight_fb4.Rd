@@ -2,33 +2,30 @@
 % Please edit documentation in R/04-predator-energy-density.R
 \name{calculate_final_weight_fb4}
 \alias{calculate_final_weight_fb4}
-\title{Calcular peso final usando ecuaciones exactas de FB4 (CORREGIDO)}
+\title{Calculate final weight using FB4 equations (Mid-level)}
 \usage{
 calculate_final_weight_fb4(
   initial_weight,
   net_energy,
   spawn_energy = 0,
   predator_params,
-  day = 1,
-  energy_data = NULL
+  day = 1
 )
 }
 \arguments{
-\item{initial_weight}{Peso inicial (g)}
+\item{initial_weight}{Initial weight (g)}
 
-\item{net_energy}{Energía neta disponible (J)}
+\item{net_energy}{Net available energy (J)}
 
-\item{spawn_energy}{Energía perdida por reproducción (J)}
+\item{spawn_energy}{Energy lost to reproduction (J)}
 
-\item{day}{Día actual}
+\item{predator_params}{Predator parameters}
 
-\item{energy_data}{Vector de densidades energéticas por día (para PREDEDEQ=1)}
-
-\item{species_params_predator}{Parámetros del depredador}
+\item{day}{Current day}
 }
 \value{
-Lista con peso final y cambio de peso
+List with final weight and change
 }
 \description{
-Calcular peso final usando ecuaciones exactas de FB4 (CORREGIDO)
+Main function for calculating final weight from energy balance
 }

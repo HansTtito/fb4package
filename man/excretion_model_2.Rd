@@ -2,29 +2,29 @@
 % Please edit documentation in R/03-egestion-excretion.R
 \name{excretion_model_2}
 \alias{excretion_model_2}
-\title{Modelo de excreción 2 - Con dependencia de temperatura y alimentación}
+\title{Excretion model 2 - With temperature and feeding dependence (Low-level)}
 \usage{
 excretion_model_2(consumption, egestion, temperature, p_value, UA, UB, UG)
 }
 \arguments{
-\item{consumption}{Consumo (J/g)}
+\item{consumption}{Consumption (J/g)}
 
-\item{egestion}{Egestión (J/g)}
+\item{egestion}{Egestion (J/g)}
 
-\item{temperature}{Temperatura del agua (°C)}
+\item{temperature}{Water temperature (°C)}
 
-\item{p_value}{Proporción del consumo máximo (p-value)}
+\item{p_value}{Proportion of maximum consumption (p-value)}
 
-\item{UA}{Parámetro base de excreción}
+\item{UA}{Base excretion parameter}
 
-\item{UB}{Coeficiente de dependencia de temperatura}
+\item{UB}{Temperature dependence coefficient}
 
-\item{UG}{Coeficiente de dependencia del nivel de alimentación}
+\item{UG}{Feeding level dependence coefficient}
 }
 \value{
-Excreción (J/g)
+Excretion (J/g)
 }
 \description{
-Modelo de excreción 2 - Con dependencia de temperatura y alimentación
+Excretion model dependent on temperature and feeding level
 }
 \keyword{internal}

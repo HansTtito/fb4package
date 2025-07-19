@@ -5,8 +5,6 @@
 \title{Process Bioenergetic object data for simulation}
 \usage{
 process_bioenergetic_data(bio_obj, first_day, last_day)
-
-process_bioenergetic_data(bio_obj, first_day, last_day)
 }
 \arguments{
 \item{bio_obj}{Bioenergetic object (must be pre-validated)}
@@ -17,13 +15,8 @@ process_bioenergetic_data(bio_obj, first_day, last_day)
 }
 \value{
 List with processed data ready for simulation
-
-List with processed data ready for simulation
 }
 \description{
-Converts a Bioenergetic object into the data structures required for FB4 simulation.
-Performs interpolation, normalization, and formatting of all temporal data.
-
 Converts a Bioenergetic object into the data structures required for FB4 simulation.
 Performs interpolation, normalization, and formatting of all temporal data.
 }

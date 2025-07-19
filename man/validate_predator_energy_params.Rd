@@ -2,24 +2,19 @@
 % Please edit documentation in R/04-predator-energy-density.R
 \name{validate_predator_energy_params}
 \alias{validate_predator_energy_params}
-\title{Validar parámetros de densidad energética}
+\title{Validate predator energy density parameters (Utility)}
 \usage{
-validate_predator_energy_params(
-  predator_params,
-  weight_range = c(1, 1000),
-  energy_data = NULL
-)
+validate_predator_energy_params(predator_params, weight_range = c(1, 1000))
 }
 \arguments{
-\item{predator_params}{Lista con parámetros}
+\item{predator_params}{List with parameters}
 
-\item{weight_range}{Rango de pesos para probar}
-
-\item{energy_data}{Vector de datos de energía (opcional)}
+\item{weight_range}{Weight range for testing}
 }
 \value{
-Lista con resultados de validación
+List with validation results
 }
 \description{
-Validar parámetros de densidad energética
+Comprehensive validation of predator parameters across weight ranges
+Includes validation since this may be called independently
 }
