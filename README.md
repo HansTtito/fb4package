@@ -112,6 +112,8 @@ plot(results, plot_type = "growth", show_cumulative = TRUE)
 # 2. Cumulative weight gain from initial weight
 ```
 
+![](man/figures/growth_analysis.png)
+
 ### Consumption Analysis
 
 ```r
@@ -125,6 +127,8 @@ plot(results, plot_type = "consumption", show_diet_breakdown = TRUE)
 # 4. Consumption by diet items (anchoveta vs sardina)
 ```
 
+![](man/figures/consumption_analysis.png)
+
 ### Temperature Effects
 
 ```r
@@ -135,6 +139,7 @@ plot(results, plot_type = "temperature", add_smooth = TRUE)
 # 1. Temperature profile over time with smoothed trend
 # 2. Scatter plot of temperature vs consumption rate with correlation
 ```
+![](man/figures/temperature_analysis.png)
 
 ### Energy Budget
 
@@ -145,6 +150,7 @@ plot(results, plot_type = "energy",
 
 # Shows energy flow through consumption, respiration, and net energy
 ```
+![](man/figures/energy_budget.png)
 
 ### Comprehensive Dashboard
 
@@ -158,6 +164,7 @@ plot(results, plot_type = "dashboard")
 # - Temperature profile
 # - Growth efficiency or feeding level
 ```
+![](man/figures/simulation_dashboard.png)
 
 ### Save Plots
 
