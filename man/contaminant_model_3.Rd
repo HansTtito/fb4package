@@ -26,13 +26,13 @@ contaminant_model_3(
 
 \item{weight}{Fish weight (g)}
 
-\item{temperature}{Water temperature (°C)}
+\item{temperature}{Water temperature (deg C)}
 
-\item{prey_concentrations}{Vector of concentrations in prey (μg/g)}
+\item{prey_concentrations}{Vector of concentrations in prey (ug/g)}
 
 \item{assimilation_efficiency}{Vector of assimilation efficiencies}
 
-\item{current_burden}{Current body burden (μg)}
+\item{current_burden}{Current body burden (ug)}
 
 \item{gill_efficiency}{Gill uptake efficiency}
 

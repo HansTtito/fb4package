@@ -34,24 +34,24 @@ NULL
 #' bioenergetic model components:
 #'
 #' \strong{Required Components:}
-#' \itemize{
-#'   \item{species_params: }{Parameter sets for consumption, respiration, etc.}
-#'   \item{species_info: }{Species identification with scientific_name or common_name}
+#' \describe{
+#'   \item{species_params}{Parameter sets for consumption, respiration, etc.}
+#'   \item{species_info}{Species identification with scientific_name or common_name}
 #' }
 #'
 #' \strong{Optional Components:}
-#' \itemize{
-#'   \item{environmental_data: }{Temperature and other environmental variables}
-#'   \item{diet_data: }{Diet composition and prey energy densities}
-#'   \item{model_options: }{Sub-model toggles and advanced settings}
-#'   \item{simulation_settings: }{Initial conditions and duration}
+#' \describe{
+#'   \item{environmental_data}{Temperature and other environmental variables}
+#'   \item{diet_data}{Diet composition and prey energy densities}
+#'   \item{model_options}{Sub-model toggles and advanced settings}
+#'   \item{simulation_settings}{Initial conditions and duration}
 #' }
 #'
 #' \strong{Species Information:}
 #' The species_info list should contain at minimum one of:
-#' \itemize{
-#'   \item{scientific_name: }{Scientific species name (e.g., "Salmo salar")}
-#'   \item{common_name: }{Common species name (e.g., "Atlantic salmon")}
+#' \describe{
+#'   \item{scientific_name}{Scientific species name (e.g., "Salmo salar")}
+#'   \item{common_name}{Common species name (e.g., "Atlantic salmon")}
 #' }
 #' Optional fields include life_stage, source, notes, etc.
 #'
@@ -83,7 +83,7 @@ NULL
 #' )
 #' }
 #'
-#' @seealso \code{\link{new_bioenergetic}}, \code{\link{run_fb4.Bioenergetic}}
+#' @seealso \code{\link{run_fb4}}
 Bioenergetic <- function(species_params,
                          species_info = NULL,
                          environmental_data = NULL,
@@ -213,7 +213,8 @@ Bioenergetic <- function(species_params,
 #'
 #' @export
 print.Bioenergetic <- function(x, ...) {
-  cat("=== FB4 Bioenergetic Model ===\n\n")
+  message("FB4 Bioenergetic Model")
+  message("")
   
   # Species information
   info <- x$species_info
@@ -222,15 +223,15 @@ print.Bioenergetic <- function(x, ...) {
     common_part <- if (!is.null(info$common_name) && !is.null(info$scientific_name)) {
       paste0(" (", info$common_name, ")")
     } else ""
-    cat("Species:", species_name, common_part, "\n")
+    message("Species: ", species_name, common_part)
   } else {
-    cat("Species: Not specified\n")
+    message("Species: Not specified")
   }
   
   # Basic simulation info
   initial_weight <- x$simulation_settings$initial_weight %||% "Not set"
   duration <- x$simulation_settings$duration %||% "Not set"
-  cat("Setup:", initial_weight, "g →", duration, "days\n")
+  message("Setup: ", initial_weight, "g -> ", duration, " days")
   
   # Component status
   has_params <- !is.null(x$species_params) && length(x$species_params) > 0
@@ -239,11 +240,11 @@ print.Bioenergetic <- function(x, ...) {
   has_sim <- !is.null(x$simulation_settings$initial_weight)
   
   components_ready <- sum(has_params, has_temp, has_diet, has_sim)
-  cat("Components:", components_ready, "/4", 
-      if (components_ready == 4) " Ready" else " Incomplete", "\n")
+  message("Components: ", components_ready, "/4", 
+          if (components_ready == 4) " Ready" else " Incomplete")
   
   # Fit status
-  cat("Status:", if (x$fitted) "Fitted" else "Not fitted", "\n")
+  message("Status: ", if (x$fitted) "Fitted" else "Not fitted")
   
   invisible(x)
 }
@@ -264,30 +265,33 @@ print.Bioenergetic <- function(x, ...) {
 #' including statistical summaries of environmental and diet data.
 #'
 #' @export
+#' @importFrom utils head
 summary.Bioenergetic <- function(object, ...) {
-  cat("=== FB4 Bioenergetic Model Summary ===\n\n")
+  message("FB4 Bioenergetic Model Summary")
+  message("")
   
   # Species Information
-  cat("SPECIES INFORMATION:\n")
+  message("SPECIES INFORMATION:")
   info <- object$species_info
   if (!is.null(info) && length(info) > 0) {
     for (field in names(info)) {
       if (!is.null(info[[field]]) && nzchar(as.character(info[[field]]))) {
-        cat("  ", tools::toTitleCase(gsub("_", " ", field)), ":", info[[field]], "\n")
+        message("  ", tools::toTitleCase(gsub("_", " ", field)), ": ", info[[field]])
       }
     }
   } else {
-    cat("  No species information provided\n")
+    message("  No species information provided")
   }
   
   # Species Parameters
-  cat("\nSPECIES PARAMETERS:\n")
+  message("")
+  message("SPECIES PARAMETERS:")
   if (!is.null(object$species_params)) {
     param_categories <- c("consumption", "respiration", "egestion", "excretion", "predator")
     present_categories <- intersect(names(object$species_params), param_categories)
     
     if (length(present_categories) > 0) {
-      cat("  Categories:", paste(present_categories, collapse = ", "), "\n")
+      message("  Categories: ", paste(present_categories, collapse = ", "))
       
       # Show key parameters for each category
       for (cat_name in present_categories) {
@@ -295,54 +299,55 @@ summary.Bioenergetic <- function(object, ...) {
         if (is.list(params) && length(params) > 0) {
           key_params <- head(names(params), 3)  # Show first 3 parameters
           param_values <- sapply(key_params, function(p) params[[p]])
-          cat("  ", tools::toTitleCase(cat_name), ":", 
-              paste(paste(key_params, param_values, sep = "="), collapse = ", "))
-          if (length(params) > 3) cat(" ...")
-          cat("\n")
+          message("  ", tools::toTitleCase(cat_name), ": ", 
+                  paste(paste(key_params, param_values, sep = "="), collapse = ", "),
+                  if (length(params) > 3) " ..." else "")
         }
       }
     } else {
-      cat("  No recognized parameter categories found\n")
+      message("  No recognized parameter categories found")
     }
   } else {
-    cat("  No parameters provided\n")
+    message("  No parameters provided")
   }
   
   # Environmental Data
-  cat("\nENVIRONMENTAL DATA:\n")
+  message("")
+  message("ENVIRONMENTAL DATA:")
   if (!is.null(object$environmental_data$temperature)) {
     temp_data <- object$environmental_data$temperature
     temp_range <- range(temp_data$Temperature, na.rm = TRUE)
     temp_mean <- mean(temp_data$Temperature, na.rm = TRUE)
     day_range <- range(temp_data$Day, na.rm = TRUE)
     
-    cat("  Temperature: ", round(temp_mean, 1), "°C (range: ", 
-        round(temp_range[1], 1), "-", round(temp_range[2], 1), "°C)\n", sep = "")
-    cat("  Duration:", nrow(temp_data), "days (", day_range[1], "-", day_range[2], ")\n")
+    message("  Temperature: ", round(temp_mean, 1), "C (range: ", 
+            round(temp_range[1], 1), "-", round(temp_range[2], 1), "C)")
+    message("  Duration: ", nrow(temp_data), " days (", day_range[1], "-", day_range[2], ")")
   } else {
-    cat("  No temperature data provided\n")
+    message("  No temperature data provided")
   }
   
   # Diet Data
-  cat("\nDIET DATA:\n")
+  message("")
+  message("DIET DATA:")
   if (!is.null(object$diet_data)) {
     if (!is.null(object$diet_data$proportions)) {
       diet_props <- object$diet_data$proportions
       prey_cols <- setdiff(names(diet_props), "Day")
       
       if (length(prey_cols) > 0) {
-        cat("  Prey species:", length(prey_cols), "(", paste(prey_cols, collapse = ", "), ")\n")
+        message("  Prey species: ", length(prey_cols), " (", paste(prey_cols, collapse = ", "), ")")
         
         # Show proportion ranges
         for (prey in prey_cols) {
           prop_range <- range(diet_props[[prey]], na.rm = TRUE)
           prop_mean <- mean(diet_props[[prey]], na.rm = TRUE)
-          cat("    ", prey, ": ", round(prop_mean * 100, 1), "% (", 
-              round(prop_range[1] * 100, 1), "-", round(prop_range[2] * 100, 1), "%)\n", sep = "")
+          message("    ", prey, ": ", round(prop_mean * 100, 1), "% (", 
+                  round(prop_range[1] * 100, 1), "-", round(prop_range[2] * 100, 1), "%)")
         }
       }
       
-      cat("  Days covered:", nrow(diet_props), "\n")
+      message("  Days covered: ", nrow(diet_props))
     }
     
     if (!is.null(object$diet_data$energies)) {
@@ -353,49 +358,51 @@ summary.Bioenergetic <- function(object, ...) {
         energy_ranges <- sapply(prey_cols, function(p) {
           range(energy_data[[p]], na.rm = TRUE)
         })
-        cat("  Energy range:", round(min(energy_ranges)), "-", 
-            round(max(energy_ranges)), "J/g\n")
+        message("  Energy range: ", round(min(energy_ranges)), "-", 
+                round(max(energy_ranges)), " J/g")
       }
     }
   } else {
-    cat("  No diet data provided\n")
+    message("  No diet data provided")
   }
   
   # Simulation Settings
-  cat("\nSIMULATION SETTINGS:\n")
+  message("")
+  message("SIMULATION SETTINGS:")
   if (!is.null(object$simulation_settings)) {
     settings <- object$simulation_settings
     for (setting in names(settings)) {
       if (!is.null(settings[[setting]])) {
-        cat("  ", tools::toTitleCase(gsub("_", " ", setting)), ":", settings[[setting]])
-        if (setting == "initial_weight") cat(" g")
-        if (setting == "duration") cat(" days")
-        cat("\n")
+        setting_value <- paste0(settings[[setting]], 
+                                if (setting == "initial_weight") " g" else if (setting == "duration") " days" else "")
+        message("  ", tools::toTitleCase(gsub("_", " ", setting)), ": ", setting_value)
       }
     }
   } else {
-    cat("  No simulation settings provided\n")
+    message("  No simulation settings provided")
   }
   
   # Model Options
   if (!is.null(object$model_options) && length(object$model_options) > 0) {
-    cat("\nMODEL OPTIONS:\n")
+    message("")
+    message("MODEL OPTIONS:")
     enabled_options <- names(Filter(isTRUE, object$model_options))
     disabled_options <- names(Filter(function(x) !isTRUE(x), object$model_options))
     
     if (length(enabled_options) > 0) {
-      cat("  Enabled:", paste(enabled_options, collapse = ", "), "\n")
+      message("  Enabled: ", paste(enabled_options, collapse = ", "))
     }
     if (length(disabled_options) > 0) {
-      cat("  Disabled:", paste(disabled_options, collapse = ", "), "\n")
+      message("  Disabled: ", paste(disabled_options, collapse = ", "))
     }
   }
   
   # Overall Status
-  cat("\nSTATUS:\n")
-  cat("  Fitted:", if (object$fitted) "Yes" else "No", "\n")
+  message("")
+  message("STATUS:")
+  message("  Fitted: ", if (object$fitted) "Yes" else "No")
   if (object$fitted && !is.null(object$results)) {
-    cat("  Results available: Yes\n")
+    message("  Results available: Yes")
   }
   
   invisible(object)
@@ -416,8 +423,10 @@ summary.Bioenergetic <- function(object, ...) {
 #' and advanced users who need to understand the internal organization.
 #'
 #' @export
+#' @importFrom utils str
 str.Bioenergetic <- function(object, ...) {
-  cat("=== FB4 Bioenergetic Object Structure ===\n\n")
+  message("FB4 Bioenergetic Object Structure")
+  message("")
   
   # Remove class temporarily to avoid recursion
   obj_copy <- object
@@ -447,16 +456,16 @@ str.Bioenergetic <- function(object, ...) {
 #'
 #' @details
 #' The temperature data frame must contain:
-#' \itemize{
-#'   \item{Day: }{Numeric sequence of simulation days}
-#'   \item{Temperature: }{Temperature values in °C}
+#' \describe{
+#'   \item{Day}{Numeric sequence of simulation days}
+#'   \item{Temperature}{Temperature values in degrees C}
 #' }
 #'
 #' The function automatically:
 #' \itemize{
-#'   \item{Validates temperature data structure and values}
-#'   \item{Interpolates missing days to create complete daily series}
-#'   \item{Reports any interpolation performed}
+#'   \item Validates temperature data structure and values
+#'   \item Interpolates missing days to create complete daily series
+#'   \item Reports any interpolation performed
 #' }
 #'
 #' Setting new environmental data resets the fitted status and clears
@@ -466,7 +475,7 @@ str.Bioenergetic <- function(object, ...) {
 #'
 #' @examples
 #' \dontrun{
-#' bio_obj <- new_bioenergetic("Salmo salar", 10)
+#' bio_obj <- Bioenergetic(species_params, temperature_data)
 #' temp_data <- data.frame(Day = 1:100, Temperature = 15 + 5*sin(1:100/50))
 #' bio_obj <- set_environment(bio_obj, temp_data)
 #' 
@@ -532,18 +541,18 @@ set_environment.Bioenergetic <- function(x, temperature_data) {
 #' @details
 #' Both data frames must:
 #' \itemize{
-#'   \item{Contain a "Day" column}
-#'   \item{Have identical prey species columns}
-#'   \item{Use consistent prey naming between datasets}
+#'   \item Contain a "Day" column
+#'   \item Have identical prey species columns
+#'   \item Use consistent prey naming between datasets
 #' }
 #'
 #' The function automatically:
 #' \itemize{
-#'   \item{Validates diet and energy data structure and values}
-#'   \item{Interpolates missing days to create complete daily series}
-#'   \item{Normalizes diet proportions to sum to 1.0 each day (if normalize_diet = TRUE)}
-#'   \item{Creates default indigestible data with zero percent if not provided}
-#'   \item{Reports any processing performed}
+#'   \item Validates diet and energy data structure and values
+#'   \item Interpolates missing days to create complete daily series
+#'   \item Normalizes diet proportions to sum to 1.0 each day (if normalize_diet = TRUE)
+#'   \item Creates default indigestible data with zero percent if not provided
+#'   \item Reports any processing performed
 #' }
 #'
 #' Diet proportions should be non-negative values.
@@ -553,7 +562,7 @@ set_environment.Bioenergetic <- function(x, temperature_data) {
 #'
 #' @examples
 #' \dontrun{
-#' bio_obj <- new_bioenergetic("Salmo salar", 10)
+#' bio_obj <- Bioenergetic(species_params, temperature_data)
 #' 
 #' # Complete daily data
 #' diet_props <- data.frame(Day = 1:365, fish = 0.6, zooplankton = 0.4)
@@ -581,7 +590,7 @@ set_diet.Bioenergetic <- function(x, diet_proportions, prey_energies,
                             c("Day"))
   
   # Cross-validation between datasets
-  validate_diet_consistency(diet_proportions, prey_energies, check_temporal = TRUE)
+  validate_diet_consistency(diet_proportions, prey_energies)
   
   # Get prey columns
   prey_cols <- setdiff(names(diet_proportions), "Day")
@@ -694,17 +703,17 @@ set_diet.Bioenergetic <- function(x, diet_proportions, prey_energies,
 #' @details
 #' The function follows a lenient input approach:
 #' \itemize{
-#'   \item{Accepts partial settings without complete validation}
-#'   \item{Auto-detects duration from environmental or diet data when available}
-#'   \item{Provides warnings for conflicts but allows overrides}
-#'   \item{Defers complete validation to simulation execution}
+#'   \item Accepts partial settings without complete validation
+#'   \item Auto-detects duration from environmental or diet data when available
+#'   \item Provides warnings for conflicts but allows overrides
+#'   \item Defers complete validation to simulation execution
 #' }
 #'
 #' Duration precedence (highest to lowest):
 #' \itemize{
-#'   \item{Explicitly provided duration parameter}
-#'   \item{Maximum day from environmental data}
-#'   \item{Maximum day from diet data}
+#'   \item Explicitly provided duration parameter
+#'   \item Maximum day from environmental data
+#'   \item Maximum day from diet data
 #' }
 #'
 #' @export
@@ -834,15 +843,15 @@ set_simulation_settings.Bioenergetic <- function(x, initial_weight = NULL, durat
 #' Model options control the complexity and output detail of simulations:
 #'
 #' \strong{Sub-model toggles:}
-#' \itemize{
-#'   \item{calc_mortality: Enables mortality rate calculations}
-#'   \item{calc_reproduction: Enables reproductive cost calculations}
+#' \describe{
+#'   \item{calc_mortality}{Enables mortality rate calculations}
+#'   \item{calc_reproduction}{Enables reproductive cost calculations}
 #' }
 #'
 #' \strong{Output control:}
-#' \itemize{
-#'   \item{output_daily: Save results for each day vs final values only}
-#'   \item{detailed_output: Include intermediate values (consumption, respiration, etc.)}
+#' \describe{
+#'   \item{output_daily}{Save results for each day vs final values only}
+#'   \item{detailed_output}{Include intermediate values (consumption, respiration, etc.)}
 #' }
 #'
 #' The function follows a lenient approach, allowing partial updates
@@ -981,7 +990,7 @@ set_model_options.Bioenergetic <- function(x,
 #'
 #' @examples
 #' \dontrun{
-#' bio_obj <- new_bioenergetic("Salmo salar", 10)
+#' bio_obj <- Bioenergetic(species_params, temperature_data)
 #' is.Bioenergetic(bio_obj)  # TRUE
 #' is.Bioenergetic(list())   # FALSE
 #' }
@@ -1015,14 +1024,35 @@ is.Bioenergetic <- function(x) inherits(x, "Bioenergetic")
 #' salmon_species <- list_species(family = "Salmonidae")
 #' }
 #'
-#' @seealso \code{\link{species_info}}, \code{\link{new_bioenergetic}}
+#' @seealso \code{\link{species_info}}
 list_species <- function(fish4_db = NULL, family = NULL) {
   if (is.null(fish4_db)) {
-    if (exists("fish4_parameters")) fish4_db <- fish4_parameters
-    else if (file.exists("fish4_parameters.RData")) {
-      load("fish4_parameters.RData"); fish4_db <- fish4_parameters
-    } else stop("Database not found")
+    # Try different approaches to load the database
+    fish4_parameters <- NULL
+    
+    # 1. Check if exists in current environment
+    if (exists("fish4_parameters", envir = parent.frame())) {
+      fish4_parameters <- get("fish4_parameters", envir = parent.frame())
+    } 
+    # 2. Try to load from package data
+    else if (requireNamespace("utils", quietly = TRUE)) {
+      tryCatch({
+        utils::data("fish4_parameters", envir = environment())
+      }, error = function(e) NULL)
+    }
+    # 3. Try to load from file
+    if (is.null(fish4_parameters) && file.exists("fish4_parameters.RData")) {
+      load("fish4_parameters.RData", envir = environment())
+    }
+    
+    # 4. Final check
+    if (is.null(fish4_parameters)) {
+      stop("fish4_parameters database not found. Please load the data or provide fish4_db parameter.")
+    }
+    
+    fish4_db <- fish4_parameters
   }
+  
   sp <- names(fish4_db)
   if (!is.null(family)) {
     fams <- sapply(fish4_db, function(x) x$species_info$family %||% NA)
@@ -1045,10 +1075,10 @@ list_species <- function(fish4_db = NULL, family = NULL) {
 #' @details
 #' Returns comprehensive species information including:
 #' \itemize{
-#'   \item{Taxonomic information (family, common names)}
-#'   \item{Available life stages and their parameters}
-#'   \item{Literature sources and references}
-#'   \item{Parameter derivation methods}
+#'   \item Taxonomic information (family, common names)
+#'   \item Available life stages and their parameters
+#'   \item Literature sources and references
+#'   \item Parameter derivation methods
 #' }
 #'
 #' @export
@@ -1060,15 +1090,42 @@ list_species <- function(fish4_db = NULL, family = NULL) {
 #' print(salmon_info$available_life_stages)
 #' }
 #'
-#' @seealso \code{\link{list_species}}, \code{\link{new_bioenergetic}}
+#' @seealso \code{\link{list_species}}
 species_info <- function(species, fish4_db = NULL) {
   if (is.null(fish4_db)) {
-    if (exists("fish4_parameters")) fish4_db <- fish4_parameters
-    else if (file.exists("fish4_parameters.RData")) {
-      load("fish4_parameters.RData"); fish4_db <- fish4_parameters
-    } else stop("Database not found")
+    # Try different approaches to load the database
+    fish4_parameters <- NULL
+    
+    # 1. Check if exists in current environment
+    if (exists("fish4_parameters", envir = parent.frame())) {
+      fish4_parameters <- get("fish4_parameters", envir = parent.frame())
+    } 
+    # 2. Try to load from package data
+    else if (requireNamespace("utils", quietly = TRUE)) {
+      tryCatch({
+        utils::data("fish4_parameters", envir = environment())
+      }, error = function(e) NULL)
+    }
+    # 3. Try to load from file
+    if (is.null(fish4_parameters) && file.exists("fish4_parameters.RData")) {
+      load("fish4_parameters.RData", envir = environment())
+    }
+    
+    # 4. Final check
+    if (is.null(fish4_parameters)) {
+      stop("fish4_parameters database not found. Please load the data or provide fish4_db parameter.")
+    }
+    
+    fish4_db <- fish4_parameters
   }
-  stopifnot(species %in% names(fish4_db))
+  
+  if (!species %in% names(fish4_db)) {
+    available_species <- names(fish4_db)
+    stop("Species '", species, "' not found in database. Available species: ", 
+         paste(head(available_species, 5), collapse = ", "), 
+         if (length(available_species) > 5) "..." else "")
+  }
+  
   sp <- fish4_db[[species]]
   list(
     scientific_name = species,
@@ -1077,6 +1134,7 @@ species_info <- function(species, fish4_db = NULL) {
     sources = sp$sources
   )
 }
+
 
 #' Get Parameter Value
 #'
@@ -1147,4 +1205,3 @@ set_parameter_value <- function(params, param, value) {
   }
   stop("Parameter '", param, "' not found in any category.")
 }
-

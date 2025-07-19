@@ -4,10 +4,10 @@
 \alias{plot.fb4_result}
 \title{Main plotting function for FB4 results}
 \usage{
-\method{plot}{fb4_result}(fb4_result, plot_type = "growth", save_plot = NULL, ...)
+\method{plot}{fb4_result}(x, plot_type = "growth", save_plot = NULL, ...)
 }
 \arguments{
-\item{fb4_result}{Object of class fb4_result}
+\item{x}{Object of class fb4_result}
 
 \item{plot_type}{Type of plot: "growth", "consumption", "temperature", "energy", "dashboard"}
 

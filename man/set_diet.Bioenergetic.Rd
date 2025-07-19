@@ -34,18 +34,18 @@ interpolates missing days, and normalizes diet proportions.
 \details{
 Both data frames must:
 \itemize{
-  \item{Contain a "Day" column}
-  \item{Have identical prey species columns}
-  \item{Use consistent prey naming between datasets}
+  \item Contain a "Day" column
+  \item Have identical prey species columns
+  \item Use consistent prey naming between datasets
 }
 
 The function automatically:
 \itemize{
-  \item{Validates diet and energy data structure and values}
-  \item{Interpolates missing days to create complete daily series}
-  \item{Normalizes diet proportions to sum to 1.0 each day (if normalize_diet = TRUE)}
-  \item{Creates default indigestible data with zero percent if not provided}
-  \item{Reports any processing performed}
+  \item Validates diet and energy data structure and values
+  \item Interpolates missing days to create complete daily series
+  \item Normalizes diet proportions to sum to 1.0 each day (if normalize_diet = TRUE)
+  \item Creates default indigestible data with zero percent if not provided
+  \item Reports any processing performed
 }
 
 Diet proportions should be non-negative values.
@@ -53,7 +53,7 @@ Prey energies should be positive values in J/g.
 }
 \examples{
 \dontrun{
-bio_obj <- new_bioenergetic("Salmo salar", 10)
+bio_obj <- Bioenergetic(species_params, temperature_data)
 
 # Complete daily data
 diet_props <- data.frame(Day = 1:365, fish = 0.6, zooplankton = 0.4)

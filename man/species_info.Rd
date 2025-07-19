@@ -21,10 +21,10 @@ fish bioenergetics parameter database.
 \details{
 Returns comprehensive species information including:
 \itemize{
-  \item{Taxonomic information (family, common names)}
-  \item{Available life stages and their parameters}
-  \item{Literature sources and references}
-  \item{Parameter derivation methods}
+  \item Taxonomic information (family, common names)
+  \item Available life stages and their parameters
+  \item Literature sources and references
+  \item Parameter derivation methods
 }
 }
 \examples{
@@ -36,5 +36,5 @@ print(salmon_info$available_life_stages)
 
 }
 \seealso{
-\code{\link{list_species}}, \code{\link{new_bioenergetic}}
+\code{\link{list_species}}
 }

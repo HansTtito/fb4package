@@ -126,21 +126,23 @@ calculate_nutrient_balance <- function(consumption, weight_gain, nutrient_params
   p_assimilation_efficiency <- standardize_vector_length(p_assimilation_efficiency, consumption_length, "p_assimilation_efficiency")
   
   # Calculate nitrogen fluxes
-  nitrogen_result <- calculate_nitrogen_allocation(
+  nitrogen_result <- calculate_nutrient_allocation(
     consumption = consumption,
-    prey_n_concentrations = prey_n_concentrations,
-    n_assimilation_efficiency = n_assimilation_efficiency,
+    prey_nutrient_concentrations = prey_n_concentrations,
+    nutrient_assimilation_efficiency = n_assimilation_efficiency,
     weight_gain = weight_gain,
-    predator_n_concentration = predator_n_concentration
+    predator_nutrient_concentration = predator_n_concentration,
+    nutrient_name = "nitrogen"
   )
   
   # Calculate phosphorus fluxes
-  phosphorus_result <- calculate_phosphorus_allocation(
+  phosphorus_result <- calculate_nutrient_allocation(
     consumption = consumption,
-    prey_p_concentrations = prey_p_concentrations,
-    p_assimilation_efficiency = p_assimilation_efficiency,
+    prey_nutrient_concentrations = prey_p_concentrations,
+    nutrient_assimilation_efficiency = p_assimilation_efficiency,
     weight_gain = weight_gain,
-    predator_p_concentration = predator_p_concentration
+    predator_nutrient_concentration = predator_p_concentration,
+    nutrient_name = "phosphorus"
   )
   
   # Calculate N:P ratios

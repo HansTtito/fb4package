@@ -17,7 +17,7 @@ Tests whether an object inherits from the Bioenergetic class.
 }
 \examples{
 \dontrun{
-bio_obj <- new_bioenergetic("Salmo salar", 10)
+bio_obj <- Bioenergetic(species_params, temperature_data)
 is.Bioenergetic(bio_obj)  # TRUE
 is.Bioenergetic(list())   # FALSE
 }

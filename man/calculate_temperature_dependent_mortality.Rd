@@ -13,13 +13,13 @@ calculate_temperature_dependent_mortality(
 )
 }
 \arguments{
-\item{temperature}{Current temperature (°C)}
+\item{temperature}{Current temperature (deg C)}
 
 \item{base_mortality}{Base daily mortality rate}
 
-\item{optimal_temp}{Optimal temperature (°C)}
+\item{optimal_temp}{Optimal temperature (deg C)}
 
-\item{thermal_tolerance}{Thermal tolerance range (°C)}
+\item{thermal_tolerance}{Thermal tolerance range (deg C)}
 
 \item{stress_factor}{Multiplication factor for thermal stress}
 }

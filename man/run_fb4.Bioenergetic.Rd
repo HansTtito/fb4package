@@ -5,7 +5,7 @@
 \title{Execute Fish Bioenergetics 4.0 Model with Bioenergetic Object}
 \usage{
 \method{run_fb4}{Bioenergetic}(
-  bio_obj,
+  x,
   fit_to = "Weight",
   fit_value,
   first_day = 1,
@@ -18,7 +18,7 @@
 )
 }
 \arguments{
-\item{bio_obj}{Object of class 'Bioenergetic' with configured parameters and data}
+\item{x}{Object of class 'Bioenergetic' with configured parameters and data}
 
 \item{fit_to}{Fitting method: "Weight", "Consumption", "p-value", "Ration", "Ration_prey"}
 

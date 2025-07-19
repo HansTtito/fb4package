@@ -21,16 +21,16 @@ the temperature series if needed.
 }
 \details{
 The temperature data frame must contain:
-\itemize{
-  \item{Day: }{Numeric sequence of simulation days}
-  \item{Temperature: }{Temperature values in °C}
+\describe{
+  \item{Day}{Numeric sequence of simulation days}
+  \item{Temperature}{Temperature values in degrees C}
 }
 
 The function automatically:
 \itemize{
-  \item{Validates temperature data structure and values}
-  \item{Interpolates missing days to create complete daily series}
-  \item{Reports any interpolation performed}
+  \item Validates temperature data structure and values
+  \item Interpolates missing days to create complete daily series
+  \item Reports any interpolation performed
 }
 
 Setting new environmental data resets the fitted status and clears
@@ -38,7 +38,7 @@ any existing results, as the model needs to be re-run.
 }
 \examples{
 \dontrun{
-bio_obj <- new_bioenergetic("Salmo salar", 10)
+bio_obj <- Bioenergetic(species_params, temperature_data)
 temp_data <- data.frame(Day = 1:100, Temperature = 15 + 5*sin(1:100/50))
 bio_obj <- set_environment(bio_obj, temp_data)
 

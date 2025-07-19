@@ -27,10 +27,10 @@ calculate_combined_survival <- function(mortality_rates, method = "independent")
   }
   
   if (method == "independent") {
-    # Independent survival: S = Π(1 - mi)
+    # Independent survival computed as the product of (1 - mortality values)
     survival_rate <- prod(1 - mortality_rates)
   } else if (method == "additive") {
-    # Additive mortality: M = Σmi, S = 1 - M
+    # Additive mortality: total mortality is sum of mortalities; survival is 1 minus total mortality
     combined_mortality <- sum(mortality_rates)
     survival_rate <- max(0, 1 - combined_mortality)
   } else {
@@ -81,10 +81,10 @@ calculate_weight_dependent_mortality <- function(current_weight, base_mortality,
 #'
 #' Adjusts mortality based on thermal stress
 #'
-#' @param temperature Current temperature (°C)
+#' @param temperature Current temperature (deg C)
 #' @param base_mortality Base daily mortality rate
-#' @param optimal_temp Optimal temperature (°C)
-#' @param thermal_tolerance Thermal tolerance range (°C)
+#' @param optimal_temp Optimal temperature (deg C)
+#' @param thermal_tolerance Thermal tolerance range (deg C)
 #' @param stress_factor Multiplication factor for thermal stress
 #' @return Adjusted mortality rate
 #' @keywords internal
@@ -213,7 +213,7 @@ generate_reproduction_pattern <- function(days, peak_day, duration,
 #' Main function for calculating mortality and reproduction effects
 #'
 #' @param current_weight Current fish weight (g)
-#' @param temperature Water temperature (°C)
+#' @param temperature Water temperature (deg C)
 #' @param day_of_year Day of year (1-365)
 #' @param mortality_params List with mortality parameters
 #' @param reproduction_params List with reproduction parameters (optional)
@@ -456,7 +456,7 @@ validate_mortality_parameters <- function(mortality_params, typical_mortality_ra
       opt_temp <- mortality_params$optimal_temp
       if (opt_temp < -5 || opt_temp > 40) {
         validation$warnings <- c(validation$warnings, 
-                                 "optimal_temp outside typical range (-5 to 40°C)")
+                                 "optimal_temp outside typical range (-5 to 40 deg C)")
       }
     }
     

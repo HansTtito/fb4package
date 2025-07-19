@@ -1,3 +1,27 @@
+---
+title: "Introduction to FB4 Package"
+author: "Fish Bioenergetics 4.0 Development Team"
+date: "`r Sys.Date()`"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Introduction to FB4 Package}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>",
+  fig.width = 7,
+  fig.height = 5
+)
+```
+
+```{r setup}
+library(fb4package)
+```
+
 # About FB4 Package
 
 ## Overview
@@ -31,6 +55,48 @@ Building on the foundation of the original FB4 application, this R package provi
 - **Uncertainty Analysis**: Tools for sensitivity analysis and parameter uncertainty assessment
 - **Validation Support**: Comparison with empirical data and model validation workflows
 
+## Quick Start Example
+
+Here's a simple example of how to use the FB4 package:
+
+```{r example, eval=FALSE}
+# Load package data
+data(fish4_parameters)
+
+# List available species
+available_species <- list_species()
+head(available_species)
+
+# Get information for a specific species
+salmon_info <- species_info("Oncorhynchus mykiss")
+print(salmon_info$available_life_stages)
+
+# Create a bioenergetic object
+bio_obj <- Bioenergetic(
+  species_params = salmon_info$life_stages$juvenile,
+  species_info = salmon_info$species_info
+)
+
+# Add environmental data
+temp_data <- data.frame(
+  Day = 1:365,
+  Temperature = 15 + 5 * sin(2 * pi * (1:365) / 365)
+)
+
+bio_obj <- set_environment(bio_obj, temp_data)
+
+# Add simulation settings
+bio_obj <- set_simulation_settings(bio_obj, 
+                                   initial_weight = 10, 
+                                   duration = 365)
+
+# Run simulation
+results <- run_fb4(bio_obj, fit_to = "p-value", fit_value = 0.5)
+
+# Plot results
+plot(results, plot_type = "growth")
+```
+
 ## Research Applications
 
 This package facilitates bioenergetics modeling applications across a wide spectrum of questions in:
@@ -40,6 +106,45 @@ This package facilitates bioenergetics modeling applications across a wide spect
 - **Fisheries Management**: Stock assessment, habitat evaluation, climate change impacts
 - **Aquaculture**: Feed optimization, growth prediction, production planning
 - **Conservation Biology**: Species responses to environmental change, habitat restoration
+
+## Package Structure
+
+The FB4 package is organized into several key components:
+
+### Core Classes
+- `Bioenergetic`: Main S3 class for fish bioenergetics models
+- Methods for `print()`, `summary()`, and `str()` for model objects
+
+### Data Management
+- `fish4_parameters`: Comprehensive database of species-specific parameters
+- `list_species()`: Browse available species
+- `species_info()`: Get detailed species information
+
+### Model Configuration
+- `set_environment()`: Set temperature and environmental conditions
+- `set_diet()`: Configure diet composition and prey energies
+- `set_simulation_settings()`: Define initial conditions and duration
+- `set_model_options()`: Control model complexity and outputs
+
+### Simulation and Analysis
+- `run_fb4()`: Execute bioenergetics simulations
+- `plot.fb4_result()`: Visualization of simulation results
+- `export_fb4_results()`: Export results to CSV
+
+## Model Theory
+
+The bioenergetics model implemented in this package follows the fundamental energy balance equation:
+
+$$G = C - (M + F + U)$$
+
+Where:
+- **G** = Growth (energy allocated to somatic and gonadal growth)
+- **C** = Consumption (energy intake from food)
+- **M** = Metabolism (energy used for maintenance, activity, and specific dynamic action)
+- **F** = Egestion (energy lost as feces)
+- **U** = Excretion (energy lost as nitrogenous wastes)
+
+Each component is modeled using temperature-dependent functions with species-specific parameters derived from laboratory and field studies.
 
 ## Scientific Reference
 

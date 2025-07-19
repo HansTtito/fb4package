@@ -14,11 +14,11 @@ contaminant_model_1(
 \arguments{
 \item{consumption}{Vector of consumption by prey (g/day)}
 
-\item{prey_concentrations}{Vector of concentrations in prey (μg/g)}
+\item{prey_concentrations}{Vector of concentrations in prey (ug/g)}
 
 \item{transfer_efficiency}{Vector of transfer efficiencies}
 
-\item{current_burden}{Current body burden (μg)}
+\item{current_burden}{Current body burden (ug)}
 }
 \value{
 List with clearance, uptake, and new burden

@@ -35,5 +35,5 @@ salmon_species <- list_species(family = "Salmonidae")
 
 }
 \seealso{
-\code{\link{species_info}}, \code{\link{new_bioenergetic}}
+\code{\link{species_info}}
 }

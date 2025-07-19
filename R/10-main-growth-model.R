@@ -125,8 +125,8 @@ calculate_daily_metabolism <- function(consumption_energy, current_weight, tempe
   
   # Calculate SDA (Specific Dynamic Action)
   sda_energy <- calculate_sda(
-    consumption = consumption_energy,
-    egestion = egestion_energy,
+    consumption_energy = consumption_energy,
+    egestion_energy = egestion_energy,
     SDA_coeff = species_params$sda$SDA %||% 0.1
   )
   

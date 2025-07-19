@@ -8,7 +8,7 @@
 #' Main function to execute Fish Bioenergetics 4.0 model simulations
 #' using a Bioenergetic class object that already contains all necessary parameters.
 #'
-#' @param bio_obj Object of class 'Bioenergetic' with configured parameters and data
+#' @param x Object of class 'Bioenergetic' with configured parameters and data
 #' @param fit_to Fitting method: "Weight", "Consumption", "p-value", "Ration", "Ration_prey"
 #' @param fit_value Target value according to the fitting method
 #' @param first_day First simulation day (default 1)
@@ -21,7 +21,7 @@
 #'
 #' @return Object of class 'fb4_result' with simulation results
 #' @export
-run_fb4.Bioenergetic <- function(bio_obj,
+run_fb4.Bioenergetic <- function(x,
                                  fit_to = "Weight",
                                  fit_value,
                                  first_day = 1,
@@ -33,33 +33,33 @@ run_fb4.Bioenergetic <- function(bio_obj,
                                  ...) {
   
   # Validate Bioenergetic object
-  if (!inherits(bio_obj, "Bioenergetic")) {
-    stop("bio_obj must be an object of class 'Bioenergetic'")
+  if (!inherits(x, "Bioenergetic")) {
+    stop("x must be an object of class 'Bioenergetic'")
   }
   
   # Extract model options
-  model_options <- bio_obj$model_options %||% list()
+  model_options <- x$model_options %||% list()
   
   # Extract simulation parameters
-  initial_weight <- bio_obj$simulation_settings$initial_weight
+  initial_weight <- x$simulation_settings$initial_weight
   if (is.null(last_day)) {
-    last_day <- bio_obj$simulation_settings$duration %||% 
-      max(bio_obj$environmental_data$temperature$Day)
+    last_day <- x$simulation_settings$duration %||% 
+      max(x$environmental_data$temperature$Day)
   }
   
   # Record start time
   start_time <- proc.time()
   
   # Comprehensive validation
-  validate_fb4_inputs(bio_obj, fit_to, fit_value, first_day, last_day)
+  validate_fb4_inputs(x, fit_to, fit_value, first_day, last_day)
   
   # Process input data from Bioenergetic object
-  processed_data <- process_bioenergetic_data(bio_obj, first_day, last_day)
+  processed_data <- process_bioenergetic_data(x, first_day, last_day)
   
   # Execute simulation based on method
   if (fit_to %in% c("Weight", "Consumption")) {
     result <- fit_fb4_binary_search(
-      species_params = bio_obj$species_params,
+      species_params = x$species_params,
       initial_weight = initial_weight,
       fit_to = tolower(fit_to),
       fit_value = fit_value,
@@ -80,7 +80,7 @@ run_fb4.Bioenergetic <- function(bio_obj,
     )
     
     result <- run_fb4_with_method(
-      species_params = bio_obj$species_params,
+      species_params = x$species_params,
       initial_weight = initial_weight,
       method = method_map[[fit_to]],
       value = fit_value,
@@ -99,7 +99,7 @@ run_fb4.Bioenergetic <- function(bio_obj,
   
   # Update fitted status if successful
   if (result$fit_info$fit_successful) {
-    bio_obj$fitted <- TRUE
+    x$fitted <- TRUE
   }
   
   # Prepare final result
@@ -119,7 +119,7 @@ run_fb4.Bioenergetic <- function(bio_obj,
       timestamp = Sys.time(),
       fit_successful = result$fit_info$fit_successful %||% TRUE
     ),
-    bioenergetic_object = bio_obj
+    bioenergetic_object = x
   )
   
   class(final_result) <- "fb4_result"

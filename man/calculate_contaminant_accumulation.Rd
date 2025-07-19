@@ -20,9 +20,9 @@ calculate_contaminant_accumulation(
 
 \item{weight}{Fish weight (g)}
 
-\item{temperature}{Water temperature (°C)}
+\item{temperature}{Water temperature (deg C)}
 
-\item{current_concentration}{Current concentration in predator (μg/g)}
+\item{current_concentration}{Current concentration in predator (ug/g)}
 
 \item{contaminant_params}{List with contaminant parameters}
 }

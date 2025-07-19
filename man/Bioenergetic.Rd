@@ -42,24 +42,24 @@ The Bioenergetic object serves as a comprehensive container for all
 bioenergetic model components:
 
 \strong{Required Components:}
-\itemize{
-  \item{species_params: }{Parameter sets for consumption, respiration, etc.}
-  \item{species_info: }{Species identification with scientific_name or common_name}
+\describe{
+  \item{species_params}{Parameter sets for consumption, respiration, etc.}
+  \item{species_info}{Species identification with scientific_name or common_name}
 }
 
 \strong{Optional Components:}
-\itemize{
-  \item{environmental_data: }{Temperature and other environmental variables}
-  \item{diet_data: }{Diet composition and prey energy densities}
-  \item{model_options: }{Sub-model toggles and advanced settings}
-  \item{simulation_settings: }{Initial conditions and duration}
+\describe{
+  \item{environmental_data}{Temperature and other environmental variables}
+  \item{diet_data}{Diet composition and prey energy densities}
+  \item{model_options}{Sub-model toggles and advanced settings}
+  \item{simulation_settings}{Initial conditions and duration}
 }
 
 \strong{Species Information:}
 The species_info list should contain at minimum one of:
-\itemize{
-  \item{scientific_name: }{Scientific species name (e.g., "Salmo salar")}
-  \item{common_name: }{Common species name (e.g., "Atlantic salmon")}
+\describe{
+  \item{scientific_name}{Scientific species name (e.g., "Salmo salar")}
+  \item{common_name}{Common species name (e.g., "Atlantic salmon")}
 }
 Optional fields include life_stage, source, notes, etc.
 
@@ -91,5 +91,5 @@ bio_obj <- Bioenergetic(
 
 }
 \seealso{
-\code{\link{new_bioenergetic}}, \code{\link{run_fb4.Bioenergetic}}
+\code{\link{run_fb4}}
 }

@@ -19,6 +19,8 @@ NULL
 #' @param fill_na_method Method to fill missing values ("extend", "zero", "mean")
 #' @param validate_input Validate input structure
 #' @return Data frame with interpolated data
+#' @importFrom stats approx spline
+#' @importFrom utils tail
 #' @keywords internal
 interpolate_time_series <- function(data, value_columns, target_days, 
                                     method = "linear", fill_na_method = "extend",
@@ -64,18 +66,18 @@ interpolate_time_series <- function(data, value_columns, target_days,
     
     # Perform interpolation according to method
     if (method == "linear") {
-      interpolated <- approx(x = clean_days, y = clean_values,
-                             xout = target_days, method = "linear", rule = 2)$y
+      interpolated <- stats::approx(x = clean_days, y = clean_values,
+                                    xout = target_days, method = "linear", rule = 2)$y
     } else if (method == "constant") {
-      interpolated <- approx(x = clean_days, y = clean_values,
-                             xout = target_days, method = "constant", rule = 2)$y
+      interpolated <- stats::approx(x = clean_days, y = clean_values,
+                                    xout = target_days, method = "constant", rule = 2)$y
     } else if (method == "spline") {
       if (length(clean_days) < 4) {
-        interpolated <- approx(x = clean_days, y = clean_values,
-                               xout = target_days, method = "linear", rule = 2)$y
+        interpolated <- stats::approx(x = clean_days, y = clean_values,
+                                      xout = target_days, method = "linear", rule = 2)$y
       } else {
-        interpolated <- spline(x = clean_days, y = clean_values,
-                               xout = target_days, method = "natural")$y
+        interpolated <- stats::spline(x = clean_days, y = clean_values,
+                                      xout = target_days, method = "natural")$y
       }
     } else {
       stop("Invalid interpolation method: ", method)
@@ -92,7 +94,7 @@ interpolate_time_series <- function(data, value_columns, target_days,
     if (any(is.na(interpolated))) {
       if (fill_na_method == "extend") {
         first_valid <- which(!is.na(interpolated))[1]
-        last_valid <- tail(which(!is.na(interpolated)), 1)
+        last_valid <- utils::tail(which(!is.na(interpolated)), 1)
         
         if (!is.na(first_valid) && first_valid > 1) {
           interpolated[1:(first_valid-1)] <- interpolated[first_valid]

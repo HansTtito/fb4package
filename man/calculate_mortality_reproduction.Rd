@@ -16,7 +16,7 @@ calculate_mortality_reproduction(
 \arguments{
 \item{current_weight}{Current fish weight (g)}
 
-\item{temperature}{Water temperature (°C)}
+\item{temperature}{Water temperature (deg C)}
 
 \item{day_of_year}{Day of year (1-365)}
 

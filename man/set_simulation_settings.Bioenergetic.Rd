@@ -24,17 +24,17 @@ from existing data when not specified.
 \details{
 The function follows a lenient input approach:
 \itemize{
-  \item{Accepts partial settings without complete validation}
-  \item{Auto-detects duration from environmental or diet data when available}
-  \item{Provides warnings for conflicts but allows overrides}
-  \item{Defers complete validation to simulation execution}
+  \item Accepts partial settings without complete validation
+  \item Auto-detects duration from environmental or diet data when available
+  \item Provides warnings for conflicts but allows overrides
+  \item Defers complete validation to simulation execution
 }
 
 Duration precedence (highest to lowest):
 \itemize{
-  \item{Explicitly provided duration parameter}
-  \item{Maximum day from environmental data}
-  \item{Maximum day from diet data}
+  \item Explicitly provided duration parameter
+  \item Maximum day from environmental data
+  \item Maximum day from diet data
 }
 }
 \examples{

@@ -27,6 +27,8 @@ NULL
 #' This operator is useful for providing default values when working with
 #' potentially NULL parameters or list elements.
 #'
+#' @name null-coalescing
+#' @rdname null-coalescing
 #' @export
 #'
 #' @examples

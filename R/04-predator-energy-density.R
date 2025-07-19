@@ -231,6 +231,7 @@ calculate_predator_energy_density <- function(weight, day = 1, predator_params) 
 #' @param initial_guess Initial weight estimate
 #' @return Final weight
 #' @keywords internal
+#' @importFrom stats optimize
 solve_weight_iterative <- function(target_energy, predator_params, day = 1, initial_guess = 1000) {
 
   # Objective function: find weight where energy_density * weight = target_energy

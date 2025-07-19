@@ -37,15 +37,15 @@ controlling which sub-models are enabled and output settings.
 Model options control the complexity and output detail of simulations:
 
 \strong{Sub-model toggles:}
-\itemize{
-  \item{calc_mortality: Enables mortality rate calculations}
-  \item{calc_reproduction: Enables reproductive cost calculations}
+\describe{
+  \item{calc_mortality}{Enables mortality rate calculations}
+  \item{calc_reproduction}{Enables reproductive cost calculations}
 }
 
 \strong{Output control:}
-\itemize{
-  \item{output_daily: Save results for each day vs final values only}
-  \item{detailed_output: Include intermediate values (consumption, respiration, etc.)}
+\describe{
+  \item{output_daily}{Save results for each day vs final values only}
+  \item{detailed_output}{Include intermediate values (consumption, respiration, etc.)}
 }
 
 The function follows a lenient approach, allowing partial updates

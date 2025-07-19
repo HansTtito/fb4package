@@ -13,14 +13,14 @@ NULL
 #' Simple model without elimination, only accumulation from food
 #'
 #' @param consumption Vector of consumption by prey (g/day)
-#' @param prey_concentrations Vector of concentrations in prey (μg/g)
+#' @param prey_concentrations Vector of concentrations in prey (ug/g)
 #' @param transfer_efficiency Vector of transfer efficiencies
-#' @param current_burden Current body burden (μg)
+#' @param current_burden Current body burden (ug)
 #' @return List with clearance, uptake, and new burden
 #' @keywords internal
 contaminant_model_1 <- function(consumption, prey_concentrations, transfer_efficiency, current_burden) {
 
-  # Uptake from food (μg/day)
+  # Uptake from food (ug/day)
   uptake <- sum(consumption * prey_concentrations * transfer_efficiency, na.rm = TRUE)
   
   # No elimination in this model
@@ -43,16 +43,16 @@ contaminant_model_1 <- function(consumption, prey_concentrations, transfer_effic
 #'
 #' @param consumption Vector of consumption by prey (g/day)
 #' @param weight Fish weight (g)
-#' @param temperature Water temperature (°C)
-#' @param prey_concentrations Vector of concentrations in prey (μg/g)
+#' @param temperature Water temperature (deg C)
+#' @param prey_concentrations Vector of concentrations in prey (ug/g)
 #' @param assimilation_efficiency Vector of assimilation efficiencies
-#' @param current_burden Current body burden (μg)
+#' @param current_burden Current body burden (ug)
 #' @return List with clearance, uptake, and new burden
 #' @keywords internal
 contaminant_model_2 <- function(consumption, weight, temperature, prey_concentrations, 
                                 assimilation_efficiency, current_burden) {
 
-  # Uptake from food (μg/day)
+  # Uptake from food (ug/day)
   uptake <- sum(consumption * prey_concentrations * assimilation_efficiency, na.rm = TRUE)
   
   # MeHg elimination coefficient (Trudel & Rasmussen 1997)
@@ -62,7 +62,7 @@ contaminant_model_2 <- function(consumption, weight, temperature, prey_concentra
   
   Kx <- safe_exp(0.066 * safe_temp - 0.2 * log(safe_weight) - 6.56)
   
-  # Elimination (μg/day)
+  # Elimination (ug/day)
   clearance <- Kx * current_burden
   
   # New body burden
@@ -82,10 +82,10 @@ contaminant_model_2 <- function(consumption, weight, temperature, prey_concentra
 #' @param respiration_o2 Respiration (g O2/g/day)
 #' @param consumption Vector of consumption by prey (g/day)
 #' @param weight Fish weight (g)
-#' @param temperature Water temperature (°C)
-#' @param prey_concentrations Vector of concentrations in prey (μg/g)
+#' @param temperature Water temperature (deg C)
+#' @param prey_concentrations Vector of concentrations in prey (ug/g)
 #' @param assimilation_efficiency Vector of assimilation efficiencies
-#' @param current_burden Current body burden (μg)
+#' @param current_burden Current body burden (ug)
 #' @param gill_efficiency Gill uptake efficiency
 #' @param fish_water_partition Fish:water partition coefficient
 #' @param water_concentration Total concentration in water (mg/L)
@@ -110,10 +110,10 @@ contaminant_model_3 <- function(respiration_o2, consumption, weight, temperature
   # Water elimination rate (L/g/day)
   K1 <- gill_efficiency * VOx / COx
   
-  # Uptake from water (μg/day)
+  # Uptake from water (ug/day)
   uptake_water <- weight * K1 * dissolved_fraction * water_concentration * 1000
   
-  # Uptake from food (μg/day)
+  # Uptake from food (ug/day)
   uptake_food <- sum(consumption * prey_concentrations * assimilation_efficiency, na.rm = TRUE)
   
   # Total uptake
@@ -122,7 +122,7 @@ contaminant_model_3 <- function(respiration_o2, consumption, weight, temperature
   # Elimination coefficient
   Kx <- K1 / fish_water_partition
   
-  # Elimination (μg/day)
+  # Elimination (ug/day)
   clearance <- Kx * current_burden
   
   # New body burden
@@ -148,15 +148,15 @@ contaminant_model_3 <- function(respiration_o2, consumption, weight, temperature
 #' @param respiration_o2 Respiration in g O2/g/day
 #' @param consumption Vector of consumption by prey type (g/day)
 #' @param weight Fish weight (g)
-#' @param temperature Water temperature (°C)
-#' @param current_concentration Current concentration in predator (μg/g)
+#' @param temperature Water temperature (deg C)
+#' @param current_concentration Current concentration in predator (ug/g)
 #' @param contaminant_params List with contaminant parameters
 #' @return List with contaminant results
 #' @export
 calculate_contaminant_accumulation <- function(respiration_o2, consumption, weight, temperature,
                                                current_concentration, contaminant_params) {
 
-  # Calculate initial body burden (μg)
+  # Calculate initial body burden (ug)
   current_burden <- current_concentration * weight
   
   # Determine model to use
@@ -351,7 +351,7 @@ validate_contaminant_params <- function(contaminant_params) {
     }
     
     if (any(contaminant_params$prey_concentrations > 1000, na.rm = TRUE)) {
-      validation$warnings <- c(validation$warnings, "Very high prey concentrations (>1000 μg/g)")
+      validation$warnings <- c(validation$warnings, "Very high prey concentrations (>1000 ug/g)")
     }
   }
   
