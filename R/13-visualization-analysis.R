@@ -161,9 +161,9 @@ plot_consumption_components <- function(fb4_result, show_diet_breakdown = TRUE) 
 plot_diet_consumption <- function(fb4_result) {
   
   daily_data <- fb4_result$daily_output
-  diet_info <- fb4_result$bioenergetic_object$diet
+  diet_info <- fb4_result$bioenergetic_object$diet_data
   
-  if (is.null(diet_info$proportions) || is.null(diet_info$items)) {
+  if (is.null(diet_info$proportions) || is.null(diet_info$prey_names)) {
     # Fallback to P-value plot
     if ("P_value" %in% names(daily_data)) {
       plot(daily_data$Day, daily_data$P_value, type = "l", lwd = 2, col = "brown",
@@ -175,31 +175,31 @@ plot_diet_consumption <- function(fb4_result) {
   
   # Calculate consumption by diet items
   total_consumption <- daily_data$Consumption_gg * daily_data$Weight
-  n_items <- length(diet_info$items)
+  n_items <- length(diet_info$prey_names) + 1
   
-  if (n_items <= 4) {
+  if (n_items <= 5) {
     colors <- c("red", "blue", "green", "orange")[1:n_items]
     
     # Stacked area plot or individual lines
-    plot(daily_data$Day, total_consumption * diet_info$proportions[1], 
-         type = "l", lwd = 2, col = colors[1],
+    plot(daily_data$Day, total_consumption * diet_info$proportions[[1]], 
+         type = "n", lwd = 2, col = colors[1],
          xlab = "Day", ylab = "Consumption by Item (g/day)", 
          main = "Diet Item Consumption", las = 1,
          ylim = c(0, max(total_consumption) * 1.1))
     
     if (n_items > 1) {
       for (i in 2:n_items) {
-        lines(daily_data$Day, total_consumption * diet_info$proportions[i], 
-              lwd = 2, col = colors[i])
+        lines(daily_data$Day, total_consumption * diet_info$proportions[[i]], 
+              lwd = 2, col = colors[i - 1])
       }
     }
     
-    legend("topright", legend = diet_info$items, col = colors, 
+    legend("topright", legend = diet_info$prey_names, col = colors, 
            lwd = 2, cex = 0.8, bg = "white")
     grid(col = "lightgray", lty = "dotted")
   } else {
     # Too many items, show pie chart of proportions
-    pie(diet_info$proportions, labels = diet_info$items, 
+    pie(diet_info$proportions, labels = diet_info$prey_names, 
         main = "Diet Composition", cex = 0.8)
   }
 }

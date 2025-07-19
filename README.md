@@ -286,7 +286,8 @@ We welcome contributions from the bioenergetics modeling community! Whether you'
 ## References
 
 **Primary Reference:**
-Deslauriers, D., Chipps, S.R., Breck, J.E., Rice, J.A., and Madenjian, C.P. (2017). Fish Bioenergetics 4.0: An R-Based Modeling Application. *Fisheries*, 42(11), 586-596.
+Deslauriers, D., Chipps, S. R., Breck, J. E., Rice, J. A., & Madenjian, C. P. (2017). Fish Bioenergetics 4.0: An R-Based Modeling Application. Fisheries, 42(11), 586–596. https://doi.org/10.1080/03632415.2017.1377558
+
 
 **Original FB4 Application:**
 - Website: [fishbioenergetics.org](http://fishbioenergetics.org)
