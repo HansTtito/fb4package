@@ -11,7 +11,8 @@ run_fb4_simulation_unified(
   processed_data,
   model_options,
   oxycal = 13560,
-  output_daily = TRUE
+  output_daily = TRUE,
+  verbose = FALSE
 )
 }
 \arguments{
@@ -28,6 +29,8 @@ run_fb4_simulation_unified(
 \item{oxycal}{Oxycalorific coefficient (J/g O2)}
 
 \item{output_daily}{Whether to save daily outputs}
+
+\item{verbose}{Logical, whether to show progress messages (default FALSE)}
 }
 \value{
 List with simulation results

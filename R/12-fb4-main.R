@@ -1,5 +1,5 @@
 # ============================================================================
-# MAIN FB4 EXECUTION FUNCTIONS - OPTIMIZED VERSION
+# MAIN FB4 EXECUTION FUNCTIONS - OPTIMIZED VERSION WITH VERBOSE
 # ============================================================================
 
 #' Execute Fish Bioenergetics 4.0 Model with Bioenergetic Object
@@ -17,6 +17,7 @@
 #' @param output_daily Logical, whether to include daily output, default TRUE
 #' @param tolerance Tolerance for iterative fitting, default 0.001
 #' @param max_iterations Maximum number of iterations, default 25
+#' @param verbose Logical, whether to show progress messages (default FALSE)
 #' @param ... Additional arguments
 #'
 #' @return Object of class 'fb4_result' with simulation results
@@ -30,6 +31,7 @@ run_fb4.Bioenergetic <- function(x,
                                  output_daily = TRUE,
                                  tolerance = 0.001,
                                  max_iterations = 25,
+                                 verbose = FALSE,
                                  ...) {
   
   # Validate Bioenergetic object
@@ -50,6 +52,13 @@ run_fb4.Bioenergetic <- function(x,
   # Record start time
   start_time <- proc.time()
   
+  # Initial verbose message
+  if (verbose) {
+    message("Starting FB4 simulation with ", fit_to, " fitting")
+    message("Target value: ", fit_value, ", Initial weight: ", initial_weight, "g")
+    message("Simulation period: Day ", first_day, " to ", last_day)
+  }
+  
   # Comprehensive validation
   validate_fb4_inputs(x, fit_to, fit_value, first_day, last_day)
   
@@ -68,7 +77,8 @@ run_fb4.Bioenergetic <- function(x,
       oxycal = oxycal,
       tolerance = tolerance,
       max_iterations = max_iterations,
-      output_daily = output_daily
+      output_daily = output_daily,
+      verbose = verbose
     )
     
   } else if (fit_to %in% c("p-value", "Ration", "Ration_prey")) {
@@ -87,7 +97,8 @@ run_fb4.Bioenergetic <- function(x,
       processed_data = processed_data,
       model_options = model_options,
       oxycal = oxycal,
-      output_daily = output_daily
+      output_daily = output_daily,
+      verbose = verbose
     )
     
   } else {
@@ -96,6 +107,17 @@ run_fb4.Bioenergetic <- function(x,
   
   # Calculate elapsed time
   elapsed_time <- proc.time() - start_time
+  
+  # Final verbose message
+  if (verbose) {
+    message("Simulation completed in ", round(elapsed_time[3], 2), " seconds")
+    message("Final weight: ", round(result$final_weight, 2), "g")
+    if (result$fit_info$fit_successful) {
+      message("Fitting successful")
+    } else {
+      message("Fitting failed - using best approximation")
+    }
+  }
   
   # Update fitted status if successful
   if (result$fit_info$fit_successful) {
@@ -166,12 +188,13 @@ run_fb4.default <- function(x, ...) {
 #' @param model_options Model configuration options
 #' @param oxycal Oxycalorific coefficient (J/g O2)
 #' @param output_daily Whether to include daily output
+#' @param verbose Logical, whether to show progress messages (default FALSE)
 #'
 #' @return List with simulation results
 #' @keywords internal
 run_fb4_with_method <- function(species_params, initial_weight, method, value,
                                 processed_data, model_options, oxycal = 13560,
-                                output_daily = TRUE) {
+                                output_daily = TRUE, verbose = FALSE) {
   
   # Method-specific validation and consumption parameters setup
   if (method == "p_value") {
@@ -200,6 +223,10 @@ run_fb4_with_method <- function(species_params, initial_weight, method, value,
     stop("Unknown method: ", method, ". Must be 'p_value', 'ration_percent', or 'ration_grams'")
   }
   
+  if (verbose) {
+    message("Using direct simulation method: ", method, " = ", value)
+  }
+  
   # Execute unified simulation
   simulation_result <- run_fb4_simulation_unified(
     initial_weight = initial_weight,
@@ -208,7 +235,8 @@ run_fb4_with_method <- function(species_params, initial_weight, method, value,
     processed_data = processed_data,
     model_options = model_options,
     oxycal = oxycal,
-    output_daily = output_daily
+    output_daily = output_daily,
+    verbose = verbose
   )
   
   # Add fit info
@@ -237,12 +265,13 @@ run_fb4_with_method <- function(species_params, initial_weight, method, value,
 #' @param model_options Model configuration options
 #' @param oxycal Oxycalorific coefficient (J/g O2)
 #' @param output_daily Whether to save daily outputs
+#' @param verbose Logical, whether to show progress messages (default FALSE)
 #'
 #' @return List with simulation results
 #' @keywords internal
 run_fb4_simulation_unified <- function(initial_weight, consumption_params, species_params,
                                        processed_data, model_options, oxycal = 13560,
-                                       output_daily = TRUE) {
+                                       output_daily = TRUE, verbose = FALSE) {
   
   # Extract processed data
   temperature <- processed_data$temperature
@@ -250,6 +279,13 @@ run_fb4_simulation_unified <- function(initial_weight, consumption_params, speci
   prey_energies <- processed_data$prey_energies
   n_days <- processed_data$duration
   prey_indigestible <- processed_data$prey_indigestible
+  
+  # Initial verbose message
+  if (verbose) {
+    message("Starting unified FB4 simulation: ", n_days, " days, initial weight: ", 
+            round(initial_weight, 2), "g")
+    message("Method: ", consumption_params$type, ", Value: ", consumption_params$value)
+  }
   
   # Initialize simulation variables
   current_weight <- initial_weight
@@ -278,6 +314,9 @@ run_fb4_simulation_unified <- function(initial_weight, consumption_params, speci
       daily_output$Ration_value <- numeric(n_days)
     }
   }
+  
+  # Progress tracking for verbose mode
+  progress_interval <- if (n_days > 100) 50 else if (n_days > 20) 10 else max(1, n_days %/% 5)
   
   # Main simulation loop - day by day
   for (day in 1:n_days) {
@@ -337,6 +376,15 @@ run_fb4_simulation_unified <- function(initial_weight, consumption_params, speci
     # Store daily values
     p_values[day] <- consumption_result$effective_p
     
+    # Progress reporting for verbose mode
+    if (verbose && (day %% progress_interval == 0 || day == n_days)) {
+      growth_rate <- ((current_weight / initial_weight - 1) * 100)
+      message("Day ", day, "/", n_days, ": Weight = ", round(current_weight, 2), 
+              "g (", round(growth_rate, 1), "% growth), P-value = ", 
+              round(consumption_result$effective_p, 3), 
+              ", Temp = ", round(temperature[day], 1), "°C")
+    }
+    
     # Store daily results if requested
     if (output_daily) {
       daily_output$Weight[day] <- current_weight
@@ -360,9 +408,34 @@ run_fb4_simulation_unified <- function(initial_weight, consumption_params, speci
     
     # Check for fish mortality
     if (current_weight <= 0) {
-      warning("Fish mortality occurred on day ", day)
+      if (verbose) {
+        message("WARNING: Fish mortality occurred on day ", day)
+        message("Weight became: ", current_weight, "g")
+      } else {
+        warning("Fish mortality occurred on day ", day)
+      }
       break
     }
+    
+    # Check for unrealistic growth (potential numerical issues)
+    if (current_weight > initial_weight * 50) {
+      if (verbose) {
+        message("WARNING: Unrealistic growth detected on day ", day)
+        message("Weight: ", round(current_weight, 2), "g (", 
+                round((current_weight/initial_weight - 1) * 100, 1), "% growth)")
+      }
+      warning("Unrealistic growth detected - check parameters and conditions")
+    }
+  }
+  
+  # Final verbose summary
+  if (verbose) {
+    final_growth <- ((current_weight / initial_weight - 1) * 100)
+    message("Simulation completed successfully")
+    message("Final weight: ", round(current_weight, 2), "g (", 
+            round(final_growth, 1), "% growth)")
+    message("Total consumption: ", round(total_consumption, 2), "g")
+    message("Average P-value: ", round(mean(p_values, na.rm = TRUE), 3))
   }
   
   # Prepare return results

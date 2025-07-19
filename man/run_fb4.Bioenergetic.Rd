@@ -14,6 +14,7 @@
   output_daily = TRUE,
   tolerance = 0.001,
   max_iterations = 25,
+  verbose = FALSE,
   ...
 )
 }
@@ -35,6 +36,8 @@
 \item{tolerance}{Tolerance for iterative fitting, default 0.001}
 
 \item{max_iterations}{Maximum number of iterations, default 25}
+
+\item{verbose}{Logical, whether to show progress messages (default FALSE)}
 
 \item{...}{Additional arguments}
 }

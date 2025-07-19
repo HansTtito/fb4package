@@ -12,7 +12,8 @@ run_fb4_with_method(
   processed_data,
   model_options,
   oxycal = 13560,
-  output_daily = TRUE
+  output_daily = TRUE,
+  verbose = FALSE
 )
 }
 \arguments{
@@ -31,6 +32,8 @@ run_fb4_with_method(
 \item{oxycal}{Oxycalorific coefficient (J/g O2)}
 
 \item{output_daily}{Whether to include daily output}
+
+\item{verbose}{Logical, whether to show progress messages (default FALSE)}
 }
 \value{
 List with simulation results
