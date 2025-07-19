@@ -2,7 +2,7 @@
 % Please edit documentation in R/10-main-growth-model.R
 \name{simulation-engine}
 \alias{simulation-engine}
-\title{Motor de Simulación Principal FB4}
+\title{FB4 Main Simulation Engine}
 \description{
-Motor de Simulación Principal FB4
+FB4 Main Simulation Engine
 }

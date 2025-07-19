@@ -2,7 +2,7 @@
 % Please edit documentation in R/11-data-processing.R
 \name{data-processing}
 \alias{data-processing}
-\title{Funciones de Procesamiento de Datos para FB4}
+\title{Data Processing Functions for FB4}
 \description{
-Funciones de Procesamiento de Datos para FB4
+Data Processing Functions for FB4
 }

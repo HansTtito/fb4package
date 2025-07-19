@@ -2,7 +2,7 @@
 % Please edit documentation in R/10-main-growth-model.R
 \name{calculate_daily_consumption}
 \alias{calculate_daily_consumption}
-\title{Calcular consumo diario}
+\title{Calculate daily consumption}
 \usage{
 calculate_daily_consumption(
   current_weight,
@@ -16,26 +16,26 @@ calculate_daily_consumption(
 )
 }
 \arguments{
-\item{current_weight}{Peso actual del pez (g)}
+\item{current_weight}{Current fish weight (g)}
 
-\item{temperature}{Temperatura del agua (°C)}
+\item{temperature}{Water temperature (°C)}
 
-\item{p_value}{Proporción del consumo máximo (0-5)}
+\item{p_value}{Proportion of maximum consumption (0-5)}
 
-\item{ration_percent}{Ración como porcentaje del peso corporal}
+\item{ration_percent}{Ration as percentage of body weight}
 
-\item{ration_grams}{Ración en gramos por día}
+\item{ration_grams}{Ration in grams per day}
 
-\item{method}{Método de cálculo ("p_value", "ration_percent", "ration_grams")}
+\item{method}{Calculation method ("p_value", "ration_percent", "ration_grams")}
 
-\item{consumption_params}{Parámetros de consumo de la especie}
+\item{consumption_params}{Species consumption parameters}
 
-\item{mean_prey_energy}{Densidad energética media de las presas (J/g)}
+\item{mean_prey_energy}{Mean prey energy density (J/g)}
 }
 \value{
-Lista con consumo específico y energético
+List with specific and energetic consumption
 }
 \description{
-Calcular consumo diario
+Calculate daily consumption
 }
 \keyword{internal}

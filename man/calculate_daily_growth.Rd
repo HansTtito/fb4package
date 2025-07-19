@@ -2,7 +2,7 @@
 % Please edit documentation in R/10-main-growth-model.R
 \name{calculate_daily_growth}
 \alias{calculate_daily_growth}
-\title{Calcula el peso final del día considerando crecimiento y reproducción}
+\title{Calculate final daily weight considering growth and reproduction}
 \usage{
 calculate_daily_growth(
   current_weight,
@@ -12,18 +12,18 @@ calculate_daily_growth(
 )
 }
 \arguments{
-\item{current_weight}{Peso inicial del día (g)}
+\item{current_weight}{Initial weight of the day (g)}
 
-\item{net_energy}{Energía neta disponible (J/g/día)}
+\item{net_energy}{Net energy available (J/g/day)}
 
-\item{spawn_energy}{Energía perdida por reproducción (J)}
+\item{spawn_energy}{Energy lost to reproduction (J)}
 
-\item{predator_energy_density}{Densidad energética del depredador (J/g)}
+\item{predator_energy_density}{Predator energy density (J/g)}
 }
 \value{
-Lista con peso final y cambio de peso
+List with final weight and weight change
 }
 \description{
-Calcula el peso final del día considerando crecimiento y reproducción
+Calculate final daily weight considering growth and reproduction
 }
 \keyword{internal}

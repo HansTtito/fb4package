@@ -2,7 +2,7 @@
 % Please edit documentation in R/10-main-growth-model.R
 \name{calculate_daily_metabolism}
 \alias{calculate_daily_metabolism}
-\title{Calcula egestion, excreción, respiración y SDA para un día}
+\title{Calculate egestion, excretion, respiration and SDA for one day}
 \usage{
 calculate_daily_metabolism(
   consumption_energy,
@@ -16,22 +16,26 @@ calculate_daily_metabolism(
 )
 }
 \arguments{
-\item{consumption_energy}{Consumo energético (J/g/día)}
+\item{consumption_energy}{Energy consumption (J/g/day)}
 
-\item{current_weight}{Peso actual (g)}
+\item{current_weight}{Current weight (g)}
 
-\item{temperature}{Temperatura (°C)}
+\item{temperature}{Temperature (°C)}
 
-\item{p_value}{P-value efectivo}
+\item{p_value}{Effective p-value}
 
-\item{species_params}{Parámetros de la especie}
+\item{species_params}{Species parameters}
 
-\item{oxycal}{Coeficiente oxicalórico (J/g O2)}
+\item{oxycal}{Oxycalorific coefficient (J/g O2)}
+
+\item{diet_proportions}{Diet item proportions}
+
+\item{indigestible_fractions}{Indigestible fractions by diet item}
 }
 \value{
-Lista con procesos metabólicos
+List with metabolic processes
 }
 \description{
-Calcula egestion, excreción, respiración y SDA para un día
+Calculate egestion, excretion, respiration and SDA for one day
 }
 \keyword{internal}

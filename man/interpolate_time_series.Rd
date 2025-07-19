@@ -2,7 +2,7 @@
 % Please edit documentation in R/11-data-processing.R
 \name{interpolate_time_series}
 \alias{interpolate_time_series}
-\title{Interpolar series de tiempo}
+\title{Interpolate time series}
 \usage{
 interpolate_time_series(
   data,
@@ -14,22 +14,22 @@ interpolate_time_series(
 )
 }
 \arguments{
-\item{data}{Data frame con columna Day y columnas de valores}
+\item{data}{Data frame with Day column and value columns}
 
-\item{value_columns}{Vector con nombres de columnas a interpolar}
+\item{value_columns}{Vector with names of columns to interpolate}
 
-\item{target_days}{Vector de días objetivo}
+\item{target_days}{Vector of target days}
 
-\item{method}{Método de interpolación ("linear", "constant", "spline")}
+\item{method}{Interpolation method ("linear", "constant", "spline")}
 
-\item{fill_na_method}{Método para llenar valores faltantes ("extend", "zero", "mean")}
+\item{fill_na_method}{Method to fill missing values ("extend", "zero", "mean")}
 
-\item{validate_input}{Validar estructura de entrada}
+\item{validate_input}{Validate input structure}
 }
 \value{
-Data frame con datos interpolados
+Data frame with interpolated data
 }
 \description{
-Función robusta para interpolar datos temporales
+Robust function for interpolating temporal data
 }
 \keyword{internal}
