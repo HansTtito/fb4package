@@ -171,43 +171,11 @@ plot(results, plot_type = "dashboard", save_plot = "simulation_dashboard.pdf")
 
 ```r
 # Export daily data to CSV
-export_fb4_results(results, "simulation_results.csv", include_summary = TRUE)
+export_fb4_results(results, "simulation_results.csv")
 
 # This creates:
 # - simulation_results.csv (daily data)
 # - simulation_results_summary.txt (summary statistics)
-```
-
-## Advanced Visualization Examples
-
-### Custom Growth Analysis
-
-```r
-# Plot specific growth rate over time
-plot_growth_rate(results, smooth_trend = TRUE, save_plot = "sgr_analysis.png")
-
-# Shows specific growth rate (SGR) with trend analysis
-```
-
-### Energy Components Analysis
-
-```r
-# Plot individual energy components
-plot_energy_components(results, 
-                       components = c("Consumption_energy", "Respiration", 
-                                     "Egestion", "Excretion", "Net_energy"),
-                       colors = c("blue", "red", "brown", "orange", "green"),
-                       save_plot = "energy_budget.png")
-```
-
-### Temperature-Consumption Relationship
-
-```r
-# Analyze temperature effects on feeding
-plot_consumption_temperature(results, add_trend = TRUE, 
-                           save_plot = "temp_consumption.png")
-
-# Shows scatter plot with trend line and correlation coefficient
 ```
 
 ## Advanced Usage
