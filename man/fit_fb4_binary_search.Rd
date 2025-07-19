@@ -14,7 +14,8 @@ fit_fb4_binary_search(
   oxycal = 13560,
   output_daily = TRUE,
   tolerance = 0.001,
-  max_iterations = 25
+  max_iterations = 25,
+  verbose = FALSE
 )
 }
 \arguments{
@@ -37,6 +38,8 @@ fit_fb4_binary_search(
 \item{tolerance}{Tolerance for convergence}
 
 \item{max_iterations}{Maximum number of iterations}
+
+\item{verbose}{Logical, whether to show progress messages (default FALSE)}
 }
 \value{
 List with fitting result and final simulation
@@ -44,3 +47,4 @@ List with fitting result and final simulation
 \description{
 Robust implementation of binary search algorithm based on critical functions
 }
+\keyword{internal}

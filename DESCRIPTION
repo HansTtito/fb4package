@@ -1,6 +1,6 @@
 Package: fb4package
 Type: Package
-Title: Bioenergetic Package
+Title: Fish Bioenergetics 4.0 Model Implementation
 Version: 0.1.0
 Authors@R: c(
     person(
@@ -9,13 +9,22 @@ Authors@R: c(
       role = c("aut", "cre")
     )
   )
-Description: fb4package is an R implementation of fish bioenergetics modeling based on Fish Bioenergetics 4.0 (Deslauriers et al., 2017). It provides automated parameter optimization, multi-prey diet modeling, and comprehensive energy budget simulations for fisheries research and aquaculture applications. 
-    Continuation lines should be indented.
+Description: An R implementation of fish bioenergetics modeling based on Fish Bioenergetics 4.0 (Deslauriers et al., 2017). Provides automated parameter optimization, multi-prey diet modeling, and comprehensive energy budget simulations for fisheries research and aquaculture applications. The package includes species-specific parameter databases and tools for modeling fish growth, consumption, and metabolism under varying environmental conditions.
 License: MIT + file LICENSE
 Encoding: UTF-8
 LazyData: true
 RoxygenNote: 7.3.2
 VignetteBuilder: knitr
+Depends: 
+    R (>= 3.5.0)
+Imports:
+    graphics,
+    grDevices,
+    stats,
+    tools,
+    utils
 Suggests: 
+    testthat (>= 3.0.0),
     knitr,
     rmarkdown
+Config/testthat/edition: 3

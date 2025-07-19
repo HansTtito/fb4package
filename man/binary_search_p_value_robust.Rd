@@ -13,7 +13,8 @@ binary_search_p_value_robust(
   model_options,
   oxycal = 13560,
   tolerance = 0.001,
-  max_iterations = 25
+  max_iterations = 25,
+  verbose = FALSE
 )
 }
 \arguments{
@@ -34,6 +35,8 @@ binary_search_p_value_robust(
 \item{tolerance}{Tolerance for convergence}
 
 \item{max_iterations}{Maximum number of iterations}
+
+\item{verbose}{Logical, whether to show progress messages (default FALSE)}
 }
 \value{
 List with fitted p-value and fitting information
@@ -41,3 +44,4 @@ List with fitted p-value and fitting information
 \description{
 Improved version based on critical function from first script
 }
+\keyword{internal}

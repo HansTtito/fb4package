@@ -300,6 +300,7 @@ validate_diet_consistency <- function(diet_data, energy_data) {
   }
 }
 
+
 #' Check Numeric Value
 #'
 #' @param value Value to validate
@@ -317,13 +318,18 @@ check_numeric_value <- function(value, name, min_val = -Inf, max_val = Inf,
     stop(name, " cannot be NULL", call. = FALSE)
   }
   
+  # Check for NA first (works for any type)
+  if (anyNA(value)) {
+    stop(name, " cannot contain NA, NaN, or Inf values", call. = FALSE)
+  }
+  
   # Fast type check
   if (!is.numeric(value)) {
     stop(name, " must be numeric, got ", class(value)[1], call. = FALSE)
   }
   
   # Fast finite check (más eficiente que individually checking)
-  if (anyNA(value) || !all(is.finite(value))) {
+  if (!all(is.finite(value))) {
     stop(name, " cannot contain NA, NaN, or Inf values", call. = FALSE)
   }
   

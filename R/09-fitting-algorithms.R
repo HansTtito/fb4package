@@ -22,10 +22,13 @@ NULL
 #' @param output_daily Return daily output
 #' @param tolerance Tolerance for convergence
 #' @param max_iterations Maximum number of iterations
+#' @param verbose Logical, whether to show progress messages (default FALSE)
 #' @return List with fitting result and final simulation
+#' @keywords internal
 fit_fb4_binary_search <- function(species_params, initial_weight, fit_to, fit_value,
                                   processed_data, model_options, oxycal = 13560,
-                                  output_daily = TRUE, tolerance = 0.001, max_iterations = 25) {
+                                  output_daily = TRUE, tolerance = 0.001, 
+                                  max_iterations = 25, verbose = FALSE) {
   
   # Validations
   if (!fit_to %in% c("weight", "consumption")) {
@@ -44,7 +47,8 @@ fit_fb4_binary_search <- function(species_params, initial_weight, fit_to, fit_va
     model_options = model_options,
     oxycal = oxycal,
     tolerance = tolerance,
-    max_iterations = max_iterations
+    max_iterations = max_iterations,
+    verbose = verbose
   )
   
   # If fitting was successful, execute final complete simulation
@@ -79,6 +83,9 @@ fit_fb4_binary_search <- function(species_params, initial_weight, fit_to, fit_va
     
   } else {
     # If fitting failed, return error information
+    warning("Model fitting did not converge within ", max_iterations, 
+            " iterations. Final error: ", round(fit_result$final_error, 6))
+    
     result <- list(
       fit_info = fit_result,
       final_weight = NA,
@@ -107,13 +114,16 @@ fit_fb4_binary_search <- function(species_params, initial_weight, fit_to, fit_va
 #' @param oxycal Oxycalorific coefficient
 #' @param tolerance Tolerance for convergence
 #' @param max_iterations Maximum number of iterations
+#' @param verbose Logical, whether to show progress messages (default FALSE)
 #' @return List with fitted p-value and fitting information
+#' @keywords internal
 binary_search_p_value_robust <- function(target_value, fit_type,
                                          species_params, initial_weight,
                                          processed_data, model_options,
                                          oxycal = 13560,
                                          tolerance = 0.001,
-                                         max_iterations = 25) {
+                                         max_iterations = 25,
+                                         verbose = FALSE) {
   
   # Initial range for p_value
   lower <- 0.01
@@ -124,79 +134,130 @@ binary_search_p_value_robust <- function(target_value, fit_type,
   best_p <- NA
   best_error <- Inf
   
-  # INITIAL PRINT
-  cat("\n=== BINARY SEARCH START ===\n")
-  cat("Target value:", target_value, "\n")
-  cat("Fit type:", fit_type, "\n")
-  cat("Initial weight:", initial_weight, "\n")
-  cat("Initial range: [", lower, ",", upper, "]\n")
-  cat("Tolerance:", tolerance, "\n\n")
+  # Initial progress message
+  if (verbose) {
+    message("Starting binary search for ", fit_type, " fitting")
+    message("Target value: ", target_value)
+    message("Initial weight: ", initial_weight, " g")
+    message("Tolerance: ", tolerance)
+  }
   
   while (iteration < max_iterations) {
     iteration <- iteration + 1
     mid_p <- (lower + upper) / 2
     
-    # ITERATION PRINT
-    cat("Iteration", iteration, "p-value =", mid_p)
-    
     # Execute simulation with candidate p_value
-    sim <- run_fb4_simulation_unified(
-      initial_weight = initial_weight,
-      consumption_params = list(type = "p_value", value = mid_p),
-      species_params = species_params,
-      processed_data = processed_data,
-      model_options = model_options,
-      oxycal = oxycal,
-      output_daily = FALSE
-    )
+    sim <- tryCatch({
+      run_fb4_simulation_unified(
+        initial_weight = initial_weight,
+        consumption_params = list(type = "p_value", value = mid_p),
+        species_params = species_params,
+        processed_data = processed_data,
+        model_options = model_options,
+        oxycal = oxycal,
+        output_daily = FALSE
+      )
+    }, error = function(e) {
+      if (verbose) {
+        warning("Simulation failed at iteration ", iteration, 
+                " with p-value ", round(mid_p, 4), ": ", e$message)
+      }
+      return(NULL)
+    })
+    
+    # Check if simulation failed
+    if (is.null(sim)) {
+      # Adjust range to avoid problematic p-value
+      if (mid_p > 1) {
+        upper <- mid_p
+      } else {
+        lower <- mid_p
+      }
+      next
+    }
     
     # Select metric to evaluate according to fit_type
     metric <- if (fit_type == "weight") sim$final_weight else sim$total_consumption
     
+    # Check for invalid results
+    if (is.na(metric) || !is.finite(metric) || metric <= 0) {
+      if (verbose) {
+        warning("Invalid simulation result at iteration ", iteration, 
+                " with p-value ", round(mid_p, 4))
+      }
+      # Adjust range to avoid problematic p-value
+      if (mid_p > 1) {
+        upper <- mid_p
+      } else {
+        lower <- mid_p
+      }
+      next
+    }
+    
     error <- abs(metric - target_value)
     
-    # PRINT ITERATION RESULTS
-    cat(" Result =", round(metric, 6), "Target =", target_value)
-    cat(" Error =", round(error, 6))
+    # Progress message for verbose mode
+    if (verbose) {
+      message("Iteration ", iteration, ": p-value = ", round(mid_p, 4), 
+              ", result = ", round(metric, 2), 
+              ", error = ", round(error, 4))
+    }
     
     # Save best result
     if (error < best_error) {
       best_error <- error
       best_p <- mid_p
-      cat(" [BEST]")
     }
     
     # Check convergence
     if (error <= tolerance) {
       fit_successful <- TRUE
-      cat(" [CONVERGED]\n")
+      if (verbose) {
+        message("Convergence achieved at iteration ", iteration)
+      }
       break
     }
     
     # Adjust range for next iteration
     if (metric < target_value) {
       lower <- mid_p
-      cat(" [INCREASE p]")
     } else {
       upper <- mid_p
-      cat(" [DECREASE p]")
     }
     
-    cat(" New range: [", round(lower, 6), ",", round(upper, 6), "]\n")
+    # Check if range is too narrow (potential infinite loop)
+    if ((upper - lower) < 1e-10) {
+      if (verbose) {
+        warning("Search range became too narrow. Stopping search.")
+      }
+      break
+    }
   }
   
-  # FINAL PRINT
-  cat("\n=== FINAL RESULT ===\n")
-  cat("Converged:", fit_successful, "\n")
-  cat("Iterations:", iteration, "\n")
-  cat("Best p-value:", best_p, "\n")
-  cat("Final error:", best_error, "\n")
-  cat("==================\n\n")
+  # Final status message
+  if (verbose) {
+    if (fit_successful) {
+      message("Fitting completed successfully in ", iteration, " iterations")
+      message("Final p-value: ", round(best_p, 6))
+      message("Final error: ", round(best_error, 6))
+    } else {
+      message("Fitting did not converge after ", iteration, " iterations")
+      message("Best p-value found: ", round(best_p, 6))
+      message("Best error achieved: ", round(best_error, 6))
+    }
+  }
+  
+  # Issue warning if convergence failed
+  if (!fit_successful && best_error > tolerance * 10) {
+    warning("Binary search did not achieve good convergence. ",
+            "Consider adjusting tolerance or checking model parameters.")
+  }
   
   return(list(
     p_value = best_p,
     fit_successful = fit_successful,
     iterations = iteration,
-    final_error = best_error
+    final_error = best_error,
+    convergence_tolerance = tolerance
   ))
 }
