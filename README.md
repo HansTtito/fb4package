@@ -14,6 +14,7 @@ The **fb4package** provides a modern R-based implementation of fish bioenergetic
 - **Environmental Integration**: Temperature effects and habitat-dependent functions (dissolved oxygen, salinity)
 - **Flexible Diet Modeling**: Multi-prey diet compositions with daily variation and indigestible fractions
 - **Temporal Dynamics**: Daily resolution with seasonal environmental variation support
+- **Advanced Visualization**: Comprehensive plotting functions for growth, consumption, energy budgets, and diet analysis
 - **Research Reproducibility**: Scriptable, version-controlled bioenergetics analyses
 
 ## Installation
@@ -21,7 +22,6 @@ The **fb4package** provides a modern R-based implementation of fish bioenergetic
 ```r
 # Install from GitHub (development version)
 devtools::install_github("HansTtito/fb4package")
-
 ```
 
 ## Quick Start
@@ -33,7 +33,7 @@ library(fb4package)
 
 # Load built-in species parameters
 data("fish4_parameters", package = "fb4package")
-chinook_params <- fish4_parameters[["Oncorhynchus tshawytscha"]]$life_stages$adult
+chinook_params <- fish4_parameters[["Oncorhynchus tshawytscha"]]
 
 # Create temperature data (seasonal variation)
 temperature_data <- data.frame(
@@ -64,7 +64,8 @@ indigestible_data <- data.frame(
 
 # Create bioenergetic object
 bio_obj <- Bioenergetic(
-  species_params = chinook_params,
+  species_info = chinook_params$species_info,
+  species_params = chinook_params$life_stages$adult,
   environmental_data = list(temperature = temperature_data),
   diet_data = list(
     proportions = diet_data,
@@ -82,7 +83,6 @@ bio_obj <- Bioenergetic(
 bio_obj$species_params <- set_parameter_value(bio_obj$species_params, "ED_ini", 6308.570)
 bio_obj$species_params <- set_parameter_value(bio_obj$species_params, "ED_end", 6320.776)
 
-
 # Run simulation with automatic fitting to target weight
 results <- run_fb4(
   bio_obj,
@@ -97,28 +97,117 @@ print(paste("Optimal p-value:", round(results$summary$p_value, 6)))
 print(paste("Converged:", results$fit_info$fit_successful))
 ```
 
-### Visualization
+## Visualization
+
+The package includes comprehensive visualization functions for analyzing simulation results:
+
+### Growth Analysis
 
 ```r
-# Extract daily data
-daily_data <- results$daily_output
+# Plot growth trajectory with cumulative growth
+plot(results, plot_type = "growth", show_cumulative = TRUE)
 
-# Plot growth trajectory
-plot(daily_data$Day, daily_data$Weight.g, 
-     type = "l", lwd = 2, col = "blue",
-     xlab = "Day", ylab = "Weight (g)",
-     main = "Fish Growth Simulation")
+# This creates two panels:
+# 1. Weight trajectory over time with growth statistics
+# 2. Cumulative weight gain from initial weight
+```
 
-# Plot energy budget components
-plot(daily_data$Day, daily_data$Consumption.J.g.d, 
-     type = "l", lwd = 2, col = "green",
-     xlab = "Day", ylab = "Energy (J/g/d)",
-     main = "Daily Energy Budget")
-lines(daily_data$Day, daily_data$Respiration.J.g.d, col = "red", lwd = 2)
-lines(daily_data$Day, daily_data$Egestion.J.g.d, col = "brown", lwd = 2)
-legend("topright", 
-       legend = c("Consumption", "Respiration", "Egestion"),
-       col = c("green", "red", "brown"), lty = 1, lwd = 2)
+### Consumption Analysis
+
+```r
+# Plot consumption components including diet breakdown
+plot(results, plot_type = "consumption", show_diet_breakdown = TRUE)
+
+# This creates a 4-panel plot showing:
+# 1. Daily consumption rate (g/g/day)
+# 2. Total daily consumption (g/day)  
+# 3. Cumulative food consumption
+# 4. Consumption by diet items (anchoveta vs sardina)
+```
+
+### Temperature Effects
+
+```r
+# Plot temperature profile and its relationship with consumption
+plot(results, plot_type = "temperature", add_smooth = TRUE)
+
+# This creates two panels:
+# 1. Temperature profile over time with smoothed trend
+# 2. Scatter plot of temperature vs consumption rate with correlation
+```
+
+### Energy Budget
+
+```r
+# Plot energy components
+plot(results, plot_type = "energy", 
+     components = c("Consumption_energy", "Respiration", "Net_energy"))
+
+# Shows energy flow through consumption, respiration, and net energy
+```
+
+### Comprehensive Dashboard
+
+```r
+# Create a complete simulation dashboard
+plot(results, plot_type = "dashboard")
+
+# 2x2 dashboard showing:
+# - Growth trajectory
+# - Consumption rate  
+# - Temperature profile
+# - Growth efficiency or feeding level
+```
+
+### Save Plots
+
+```r
+# Save any plot to file
+plot(results, plot_type = "growth", save_plot = "growth_analysis.png")
+plot(results, plot_type = "dashboard", save_plot = "simulation_dashboard.pdf")
+```
+
+### Export Results
+
+```r
+# Export daily data to CSV
+export_fb4_results(results, "simulation_results.csv", include_summary = TRUE)
+
+# This creates:
+# - simulation_results.csv (daily data)
+# - simulation_results_summary.txt (summary statistics)
+```
+
+## Advanced Visualization Examples
+
+### Custom Growth Analysis
+
+```r
+# Plot specific growth rate over time
+plot_growth_rate(results, smooth_trend = TRUE, save_plot = "sgr_analysis.png")
+
+# Shows specific growth rate (SGR) with trend analysis
+```
+
+### Energy Components Analysis
+
+```r
+# Plot individual energy components
+plot_energy_components(results, 
+                       components = c("Consumption_energy", "Respiration", 
+                                     "Egestion", "Excretion", "Net_energy"),
+                       colors = c("blue", "red", "brown", "orange", "green"),
+                       save_plot = "energy_budget.png")
+```
+
+### Temperature-Consumption Relationship
+
+```r
+# Analyze temperature effects on feeding
+plot_consumption_temperature(results, add_trend = TRUE, 
+                           save_plot = "temp_consumption.png")
+
+# Shows scatter plot with trend line and correlation coefficient
 ```
 
 ## Advanced Usage
@@ -156,13 +245,36 @@ results_precise <- run_fb4(
 )
 ```
 
+
 ## Package Structure
 
 - **Core Functions**: `Bioenergetic()`, `run_fb4()`, `run_fb4_simulation_complete()`
 - **Parameter Management**: `set_parameter_value()`, `get_parameter_value()`
+- **Visualization**: `plot.fb4_result()`, `plot_growth_components()`, `plot_consumption_components()`, `plot_temperature_profile()`, `plot_energy_components()`, `plot_dashboard()`
+- **Data Export**: `export_fb4_results()`, `summary.fb4_result()`
 - **Built-in Data**: `fish4_parameters` - comprehensive species database
 - **Validation Tools**: Model checking and parameter validation functions
-- **Visualization**: Built-in plotting and analysis utilities
+
+## Visualization Features
+
+### Automatic Plot Types
+- **Growth**: Weight trajectory, cumulative growth, growth statistics
+- **Consumption**: Consumption rates, total consumption, diet breakdown by prey species
+- **Temperature**: Temperature profiles, temperature-consumption relationships  
+- **Energy**: Energy budget components, growth efficiency
+- **Dashboard**: Multi-panel overview of key metrics
+
+### Customization Options
+- Multiple color schemes (default, colorblind-friendly, monochrome)
+- Flexible plot layouts (single, panel, dashboard)
+- Save options (PNG, PDF, JPEG) with custom dimensions
+- Statistical annotations and trend lines
+- Diet composition analysis for multiple prey species
+
+### Data Export
+- CSV export of daily simulation data
+- Summary statistics in text format
+- Publication-ready plots in multiple formats
 
 ## Scientific Applications
 
@@ -173,6 +285,7 @@ This package supports research in:
 - **Fisheries Management**: Stock assessment, habitat evaluation, climate change impacts
 - **Aquaculture**: Feed optimization, growth prediction, production planning
 - **Conservation Biology**: Species responses to environmental change, habitat restoration
+- **Ecosystem Modeling**: Predator-prey dynamics, energy flow analysis
 
 ## Contributing
 
@@ -181,6 +294,7 @@ We welcome contributions from the bioenergetics modeling community! Whether you'
 - Adding new species parameters
 - Improving existing functions
 - Developing new modeling capabilities  
+- Enhancing visualization functions
 - Reporting bugs or suggesting features
 - Improving documentation or examples
 
@@ -197,8 +311,9 @@ We welcome contributions from the bioenergetics modeling community! Whether you'
 ## Documentation
 
 - **Introduction**: `vignette("fb4-introduction")` - Scientific background and package overview
-- **Function Reference**: `help(package = "fb4package")` - Complete function documentation ## Developing
-- **Examples**: `vignette("fb4-examples")` - Additional usage examples and case studies ## Developing
+- **Function Reference**: `help(package = "fb4package")` - Complete function documentation
+- **Visualization Guide**: `vignette("fb4-visualization")` - Comprehensive plotting examples
+- **Examples**: `vignette("fb4-examples")` - Additional usage examples and case studies
 
 ## References
 
