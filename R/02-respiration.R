@@ -12,71 +12,54 @@ NULL
 #'
 #' Implements temperature equation 1 (simple exponential)
 #'
-#' @param temperature Water temperature (°C)
+#' @param temperature Water temperature (deg C)
 #' @param RQ Q10 rate for low temperatures
 #' @return Temperature factor
 #' @keywords internal
 respiration_temp_eq1 <- function(temperature, RQ) {
-  safe_temp <- clamp(temperature, -50, 50)
-  safe_RQ <- clamp(RQ, -1, 1)
-  ft <- safe_exp(safe_RQ * safe_temp)
-  return(pmax(0.001, ft))  # Minimum value to avoid zero
+  ft <- safe_exp(RQ * temperature, param_name = "Temperature function for respiration - Eq 1")
+  return(ft)
 }
 
 #' Temperature function for respiration - Equation 2 (Low-level)
 #'
-#' Implements temperature equation 2 (Kitchell et al. 1977)
+#' @description
+#' Implements temperature equation 2 (Kitchell et al. 1977).
+#' With user notifications about edge cases and fallback values.
 #'
-#' @param temperature Water temperature (°C)
+#' @param temperature Water temperature (deg C)
 #' @param RTM Maximum (lethal) temperature
 #' @param RTO Optimum temperature for respiration
 #' @param RX Calculated parameter
+#' @param warn Logical, whether to issue warnings about calculations, default TRUE
+#'
 #' @return Temperature factor
-#' @keywords internal
-respiration_temp_eq2 <- function(temperature, RTM, RTO, RX) {
-  if (temperature >= RTM) return(0.001)
-  
-  V <- (RTM - temperature) / (RTM - RTO)
-  if (V <= 0) return(0.001)
-  
-  safe_RX <- clamp(RX, 0, 10)
-  ft <- V^safe_RX * safe_exp(safe_RX * (1 - V))
-  
-  return(pmax(0.001, ft))
-}
-
-#' Activity factor calculation (Low-level)
 #'
-#' Implements activity function with temperature component
-#'
-#' @param weight Fish weight (g)
-#' @param temperature Water temperature (°C)
-#' @param RTL Cutoff temperature for activity relationship change
-#' @param ACT Activity multiplier
-#' @param RK4 Mass dependence coefficient for swimming speed
-#' @param BACT Temperature dependence coefficient for swimming speed
-#' @param RK1 Intercept for swimming speed above cutoff temperature
-#' @param RK5 Temperature coefficient for swimming speed
-#' @param RTO Optimum temperature for respiration
-#' @return Activity factor
+#' @details
+#' This function calculates temperature effects on respiration using:
+#' V = (RTM - temperature) / (RTM - RTO)
+#' ft = V^RX × exp(RX × (1 - V))
+#' 
+#' Special cases:
+#' - When temperature ≥ RTM: returns 0.000001 (lethal temperature)
+#' - When ft < 0: returns 0.000001 (mathematical protection)
+#' 
+#' Note: Negative values can occur with certain RX parameters, hence the minimum bound.
 #' @keywords internal
-calculate_activity_factor <- function(weight, temperature, RTL, ACT, RK4, BACT, RK1, RK5, RTO) {
-
-  # Calculate velocity based on temperature
-  if (temperature <= RTL) {
-    VEL <- ACT * weight^RK4 * safe_exp(BACT * temperature)
-  } else {
-    VEL <- RK1 * weight^RK4 * safe_exp(RK5 * temperature)
+respiration_temp_eq2 <- function(temperature, RTM, RTO, RX, warn = TRUE) {
+  if (temperature >= RTM) {
+    if (warn) {
+      warning("respiration_temp_eq2: temperature (", temperature, "deg C) ≥ RTM (", RTM, "deg C), returning 0.000001 (lethal temperature)", call. = FALSE)
+    }
+    return(0.000001)
   }
   
-  # Limit velocity to avoid extreme values
-  VEL <- clamp(VEL, 0, 100)
+  V <- (RTM - temperature) / (RTM - RTO)
+  ft <- V^RX * safe_exp(RX * (1 - V), warn = warn, param_name = "Temperature function for respiration - Eq 2")
   
-  # Calculate activity factor
-  ACTIVITY <- safe_exp(RTO * VEL)
-  
-  return(pmax(1.0, ACTIVITY))  # Minimum of 1.0
+  return(pmax(0.000001, ft))
 }
+
 
 # ============================================================================
 # MID-LEVEL FUNCTIONS: Coordination and Business Logic
@@ -87,67 +70,59 @@ calculate_activity_factor <- function(weight, temperature, RTL, ACT, RK4, BACT, 
 #' Coordinates temperature equation selection and calculation
 #'
 #' @param temperature Water temperature (°C)
-#' @param respiration_params List with respiration parameters
+#' @param processed_respiration_params List with processed respiration parameters
 #' @return Temperature factor
 #' @keywords internal
-calculate_temperature_factor_respiration <- function(temperature, respiration_params) {
-  REQ <- respiration_params$REQ
+calculate_temperature_factor_respiration <- function(temperature, processed_respiration_params) {
+  
+  REQ <- processed_respiration_params$REQ
   
   if (REQ == 1) {
-    RQ <- respiration_params$RQ
-    return(respiration_temp_eq1(temperature, RQ))
+    return(respiration_temp_eq1(temperature, processed_respiration_params$RQ))
     
   } else if (REQ == 2) {
-    RTM <- respiration_params$RTM
-    RTO <- respiration_params$RTO
-    
-    # Calculate RX if not present
-    if (is.null(respiration_params$RX)) {
-      RQ <- respiration_params$RQ
-      extra_params <- calculate_respiration_params_eq2(RQ, RTM, RTO)
-      RX <- extra_params$RX
-    } else {
-      RX <- respiration_params$RX
-    }
-    
-    return(respiration_temp_eq2(temperature, RTM, RTO, RX))
-    
-  } else {
-    # Fallback to equation 1
-    RQ <- respiration_params$RQ %||% 0.1
-    return(respiration_temp_eq1(temperature, RQ))
+    return(respiration_temp_eq2(temperature, processed_respiration_params$RTM, 
+                                processed_respiration_params$RTO, processed_respiration_params$RX))
   }
 }
 
 #' Calculate activity factor for respiration (Mid-level)
 #'
-#' Coordinates activity calculation based on respiration equation
+#' Calculates activity factor based on respiration equation with support for
+#' both simple and complex activity calculations
 #'
 #' @param weight Fish weight (g)
 #' @param temperature Water temperature (°C)
-#' @param respiration_params List with respiration parameters
-#' @param activity_params List with activity parameters
+#' @param processed_respiration_params List with processed respiration parameters (includes activity data)
 #' @return Activity factor
 #' @keywords internal
-calculate_activity_factor_respiration <- function(weight, temperature, respiration_params, activity_params) {
-  REQ <- respiration_params$REQ
+calculate_activity_factor_respiration <- function(weight, temperature, processed_respiration_params) {
   
-  if (REQ == 1) {
-    # Complex activity - requires BOTH parameter sets
-    RTL <- respiration_params$RTL
-    RK4 <- respiration_params$RK4
-    RK1 <- respiration_params$RK1
-    RK5 <- respiration_params$RK5
-    RTO <- respiration_params$RTO
-    ACT <- activity_params$ACT
-    BACT <- activity_params$BACT
-    
-    return(calculate_activity_factor(weight, temperature, RTL, ACT, RK4, BACT, RK1, RK5, RTO))
-    
-  } else {
-    # Fallback to simple activity
-    return(activity_params$ACT %||% 1.0)
+  REQ <- processed_respiration_params$REQ
+  ACT <- processed_respiration_params$ACT
+  
+  if (REQ != 1) {
+    return(ACT)
   }
+  
+  # Complex activity calculation (REQ == 1)
+  RTL <- processed_respiration_params$RTL
+  RK4 <- processed_respiration_params$RK4
+  RK1 <- processed_respiration_params$RK1
+  RK5 <- processed_respiration_params$RK5
+  RTO <- processed_respiration_params$RTO
+  BACT <- processed_respiration_params$BACT
+  
+  if (temperature <= RTL) {
+    VEL <- ACT * weight^RK4 * safe_exp(BACT * temperature, param_name = "Activity factor - low temp")
+  } else {
+    VEL <- RK1 * weight^RK4 * safe_exp(RK5 * temperature, param_name = "Activity factor - high temp")
+  }
+  
+  VEL <- clamp(VEL, 0, 100, param_name = "Activity velocity")
+  ACTIVITY <- safe_exp(RTO * VEL, param_name = "Activity factor")
+  
+  return(pmax(1.0, ACTIVITY))
 }
 
 #' Calculate daily respiration (Mid-level - Main function)
@@ -156,31 +131,26 @@ calculate_activity_factor_respiration <- function(weight, temperature, respirati
 #'
 #' @param temperature Water temperature (°C)
 #' @param weight Fish weight (g)
-#' @param respiration_params List with respiration parameters
-#' @param activity_params List with activity parameters
+#' @param processed_respiration_params List with processed respiration parameters (includes activity params)
 #' @return Respiration (g O2/g fish/day)
 #' @export
-calculate_respiration <- function(temperature, weight, respiration_params, activity_params) {
-
-  # Extract basic parameters (assume they exist and are valid)
-  RA <- respiration_params$RA
-  RB <- respiration_params$RB
+calculate_respiration <- function(temperature, weight, processed_respiration_params) {
   
   # Calculate maximum respiration
-  Rmax <- RA * weight^RB
+  Rmax <- processed_respiration_params$RA * weight^processed_respiration_params$RB
   
   # Calculate temperature factor
-  ft <- calculate_temperature_factor_respiration(temperature, respiration_params)
+  ft <- calculate_temperature_factor_respiration(temperature, processed_respiration_params)
   
   # Calculate activity factor
-  activity_factor <- calculate_activity_factor_respiration(weight, temperature, respiration_params, activity_params)
+  activity_factor <- calculate_activity_factor_respiration(weight, temperature, processed_respiration_params)
   
   # Total respiration
   total_respiration <- Rmax * ft * activity_factor
   
   # Ensure valid result (minimum safety check)
   if (!is.finite(total_respiration) || total_respiration <= 0) {
-    return(0.001)
+    return(0.000001)
   }
   
   return(total_respiration)
@@ -196,18 +166,7 @@ calculate_respiration <- function(temperature, weight, respiration_params, activ
 #' @return List with RY, RZ, RX
 #' @export
 calculate_respiration_params_eq2 <- function(RQ, RTM, RTO) {
-  if (any(is.na(c(RQ, RTM, RTO)))) {
-    stop("All parameters must be valid (not NA)", call. = FALSE)
-  }
-  
-  if (RTM <= RTO) {
-    stop("RTM must be greater than RTO", call. = FALSE)
-  }
-  
-  if (RQ <= 0) {
-    stop("RQ must be positive", call. = FALSE)
-  }
-  
+
   RY <- log(RQ) * (RTM - RTO + 2)
   RZ <- log(RQ) * (RTM - RTO)
   
@@ -230,26 +189,31 @@ calculate_respiration_params_eq2 <- function(RQ, RTM, RTO) {
 # UTILITY FUNCTIONS: Conversions and Calculations
 # ============================================================================
 
-#' Calculate Specific Dynamic Action (SDA) (Utility)
+#' Calculate Specific Dynamic Action (SDA) (Low-level)
 #'
-#' Calculates metabolic cost of feeding and digestion
+#' Implements SDA calculation for metabolic cost of feeding and digestion
 #'
 #' @param consumption_energy Consumption in energy (J/g)
 #' @param egestion_energy Egestion in energy (J/g)
 #' @param SDA_coeff Specific dynamic action coefficient
 #' @return SDA in energy (J/g)
-#' @export
+#' 
+#' @details
+#' Calculates SDA using: SDA = SDA_coeff × (consumption - egestion)
+#' 
+#' Special cases:
+#' - When egestion > consumption: egestion is capped at consumption value
+#' - Result is always ≥ 0
+#' 
+#' @keywords internal
 calculate_sda <- function(consumption_energy, egestion_energy, SDA_coeff) {
-  consumption_energy <- check_numeric_value(consumption_energy, "consumption_energy", min_val = 0)
-  egestion_energy <- check_numeric_value(egestion_energy, "egestion_energy", min_val = 0)
-  SDA_coeff <- check_numeric_value(SDA_coeff, "SDA_coeff", min_val = 0, max_val = 1)
   
-  # Ensure egestion is not greater than consumption
+  # Ensure egestion is not greater than consumption (biologically impossible)
   egestion_energy <- pmin(egestion_energy, consumption_energy)
   
   sda <- SDA_coeff * (consumption_energy - egestion_energy)
   
-  return(pmax(0, sda))
+  return(sda)
 }
 
 #' Convert respiration from O2 to energy units (Utility)
@@ -259,12 +223,7 @@ calculate_sda <- function(consumption_energy, egestion_energy, SDA_coeff) {
 #' @param respiration_o2 Respiration in g O2/g fish/day
 #' @param oxycal Oxycalorific conversion factor (J/g O2)
 #' @return Respiration in J/g fish/day
-#' @export
+#' @keywords internal
 convert_respiration_to_energy <- function(respiration_o2, oxycal = 13560) {
-  respiration_o2 <- check_numeric_value(respiration_o2, "respiration_o2", min_val = 0)
-  oxycal <- check_numeric_value(oxycal, "oxycal", min_val = 1000, max_val = 20000)
-  
-  respiration_energy <- respiration_o2 * oxycal
-  
-  return(respiration_energy)
+  return(respiration_o2 * oxycal)
 }

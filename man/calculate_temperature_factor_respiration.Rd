@@ -4,12 +4,15 @@
 \alias{calculate_temperature_factor_respiration}
 \title{Calculate temperature factor for respiration (Mid-level)}
 \usage{
-calculate_temperature_factor_respiration(temperature, respiration_params)
+calculate_temperature_factor_respiration(
+  temperature,
+  processed_respiration_params
+)
 }
 \arguments{
 \item{temperature}{Water temperature (°C)}
 
-\item{respiration_params}{List with respiration parameters}
+\item{processed_respiration_params}{List with processed respiration parameters}
 }
 \value{
 Temperature factor

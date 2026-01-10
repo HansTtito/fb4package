@@ -8,40 +8,33 @@ NULL
 # LOW-LEVEL FUNCTIONS
 # ============================================================================
 
-#' Estimate protein content from water (Low-level)
+#' Estimate composition from water using Breck (2014) regression (Low-level)
 #'
-#' Estimates grams of protein based on water content using Breck (2014) regression
-#'
-#' @param water_content Water content (g)
-#' @return Protein content (g)
-#' @keywords internal
-#' @references Breck, J.E. 2014. Body composition in fishes: body size matters. Aquaculture 433:40-49.
-calculate_protein_from_water <- function(water_content) {
-  if (water_content <= 0) return(0)
-  
-  # Breck (2014) regression, N = 101, r² = 0.9917
-  # log10(Protein) = -0.8068 + 1.0750 * log10(H2O)
-  protein <- 10^(-0.8068 + 1.0750 * log10(water_content))
-  
-  return(pmax(0, protein))
-}
-
-#' Estimate ash content from water (Low-level)
-#'
-#' Estimates grams of ash based on water content using Breck (2014) regression
+#' Estimates grams of component based on water content using Breck regression
 #'
 #' @param water_content Water content (g)
-#' @return Ash content (g)
+#' @param component_type Type of component ("protein" or "ash")
+#' @return Component content (g)
 #' @keywords internal
 #' @references Breck, J.E. 2014. Body composition in fishes: body size matters. Aquaculture 433:40-49.
-calculate_ash_from_water <- function(water_content) {
+calculate_component_from_water <- function(water_content, component_type) {
   if (water_content <= 0) return(0)
   
-  # Breck (2014) regression, N = 101, r² = 0.9932
-  # log10(Ash) = -1.6765 + 1.0384 * log10(H2O)
-  ash <- 10^(-1.6765 + 1.0384 * log10(water_content))
+  # Breck (2014) regression coefficients
+  if (component_type == "protein") {
+    # N = 101, r² = 0.9917
+    intercept <- -0.8068
+    slope <- 1.0750
+  } else if (component_type == "ash") {
+    # N = 101, r² = 0.9932
+    intercept <- -1.6765
+    slope <- 1.0384
+  }
   
-  return(pmax(0, ash))
+  # log10(Component) = intercept + slope * log10(H2O)
+  component <- 10^(intercept + slope * log10(water_content))
+  
+  return(component)
 }
 
 #' Calculate fat content by subtraction (Low-level)
@@ -56,14 +49,6 @@ calculate_ash_from_water <- function(water_content) {
 #' @keywords internal
 calculate_fat_by_subtraction <- function(total_weight, water_content, protein_content, ash_content) {
   fat_content <- total_weight - water_content - protein_content - ash_content
-  
-  # Ensure fat is not negative
-  fat_content <- pmax(0, fat_content)
-  
-  # Apply biological limits (maximum ~35% of weight)
-  max_fat <- total_weight * 0.35
-  fat_content <- pmin(fat_content, max_fat)
-  
   return(fat_content)
 }
 
@@ -78,16 +63,8 @@ calculate_fat_by_subtraction <- function(total_weight, water_content, protein_co
 #' @param protein_energy Energy per gram of protein (J/g)
 #' @return Energy density (J/g wet weight)
 #' @keywords internal
-calculate_energy_density <- function(fat_content, protein_content, total_weight, 
-                                     fat_energy = 36200, protein_energy = 23600) {
-  if (total_weight <= 0) return(4500)  # Default value
-  
-  # Calculate energy density
+calculate_energy_density <- function(fat_content, protein_content, total_weight, fat_energy, protein_energy) {
   energy_density <- (fat_content * fat_energy + protein_content * protein_energy) / total_weight
-  
-  # Limit to typical biological range
-  energy_density <- clamp(energy_density, 2000, 10000)
-  
   return(energy_density)
 }
 
@@ -98,26 +75,52 @@ calculate_energy_density <- function(fat_content, protein_content, total_weight,
 #' Calculate complete body composition (Mid-level - Main function)
 #'
 #' Main function that calculates all body composition components
-#' and energy density from weight and water fraction
+#' and energy density from weight and processed parameters
 #'
 #' @param weight Total wet weight (g)
-#' @param water_fraction Water fraction (0-1), default 0.728
-#' @param fat_energy Energy per gram of fat (J/g)
-#' @param protein_energy Energy per gram of protein (J/g)
+#' @param processed_composition_params List with processed composition parameters
 #' @return List with complete body composition
 #' @export
-calculate_body_composition <- function(weight, 
-                                       water_fraction = 0.728, 
-                                       fat_energy = 39300, 
-                                       protein_energy = 23600) {
-
+calculate_body_composition <- function(weight, processed_composition_params) {
+  
+  # Early return for invalid weight
+  if (weight <= 0) {
+    return(create_empty_composition())
+  }
+  
+  # Extract processed parameters
+  water_fraction <- processed_composition_params$water_fraction
+  fat_energy <- processed_composition_params$fat_energy
+  protein_energy <- processed_composition_params$protein_energy
+  max_fat_fraction <- processed_composition_params$max_fat_fraction
+  
   # Calculate water content
   water_content <- water_fraction * weight
   
   # Calculate other components using Breck (2014) regressions
-  protein_content <- calculate_protein_from_water(water_content)
-  ash_content <- calculate_ash_from_water(water_content)
+  protein_content <- calculate_component_from_water(water_content, "protein")
+  ash_content <- calculate_component_from_water(water_content, "ash")
+  
+  # Check if components exceed total weight
+  total_components <- water_content + protein_content + ash_content
+  if (total_components > weight) {
+    # Proportional adjustment if components exceed weight
+    adjustment_factor <- weight / total_components
+    water_content <- water_content * adjustment_factor
+    protein_content <- protein_content * adjustment_factor
+    ash_content <- ash_content * adjustment_factor
+  }
+  
+  # Calculate fat by subtraction
   fat_content <- calculate_fat_by_subtraction(weight, water_content, protein_content, ash_content)
+  
+  # Apply biological limits to fat
+  max_fat <- weight * max_fat_fraction
+  if (fat_content < 0) {
+    fat_content <- 0
+  } else if (fat_content > max_fat) {
+    fat_content <- max_fat
+  }
   
   # Calculate energy density
   energy_density <- calculate_energy_density(fat_content, protein_content, weight, fat_energy, protein_energy)
@@ -158,6 +161,7 @@ calculate_body_composition <- function(weight,
   ))
 }
 
+
 #' Update body composition during simulation (Mid-level)
 #'
 #' Updates body composition as fish grows or changes condition
@@ -170,10 +174,9 @@ calculate_body_composition <- function(weight,
 #' @return New body composition
 #' @export
 update_body_composition <- function(old_weight, new_weight, old_composition = NULL, 
-                                    water_fraction_new = 0.728) {
-
+                                    processed_composition_params) {
   # Calculate new composition
-  new_composition <- calculate_body_composition(new_weight, water_fraction_new)
+  new_composition <- calculate_body_composition(new_weight, processed_composition_params)
   
   # If we have previous composition, calculate changes
   if (!is.null(old_composition)) {
@@ -191,118 +194,3 @@ update_body_composition <- function(old_weight, new_weight, old_composition = NU
   return(new_composition)
 }
 
-# ============================================================================
-# UTILITY FUNCTIONS: Analysis and Validation
-# ============================================================================
-
-#' Analyze body composition by size range (Utility)
-#'
-#' Analyzes body composition across a range of fish sizes
-#'
-#' @param weight_range Weight range to analyze (2-element vector)
-#' @param n_points Number of points to analyze
-#' @param water_fraction Water fraction (constant or function of weight)
-#' @return Data frame with composition analysis by size
-#' @export
-analyze_composition_by_size <- function(weight_range = c(1, 500), 
-                                        n_points = 50, 
-                                        water_fraction = 0.728) {
-
-  # Create weight sequence
-  weights <- seq(weight_range[1], weight_range[2], length.out = n_points)
-  
-  # Allow variable water fraction if function
-  if (is.function(water_fraction)) {
-    water_fractions <- sapply(weights, water_fraction)
-  } else {
-    water_fractions <- rep(water_fraction, n_points)
-  }
-  
-  # Calculate compositions
-  compositions <- mapply(
-    calculate_body_composition,
-    weight = weights,
-    water_fraction = water_fractions,
-    SIMPLIFY = FALSE
-  )
-  
-  # Convert to data frame
-  result_df <- data.frame(
-    Weight = weights,
-    Water_g = sapply(compositions, function(x) x$water_g),
-    Protein_g = sapply(compositions, function(x) x$protein_g),
-    Ash_g = sapply(compositions, function(x) x$ash_g),
-    Fat_g = sapply(compositions, function(x) x$fat_g),
-    Water_fraction = sapply(compositions, function(x) x$water_fraction),
-    Protein_fraction = sapply(compositions, function(x) x$protein_fraction),
-    Ash_fraction = sapply(compositions, function(x) x$ash_fraction),
-    Fat_fraction = sapply(compositions, function(x) x$fat_fraction),
-    Energy_density = sapply(compositions, function(x) x$energy_density)
-  )
-  
-  return(result_df)
-}
-
-#' Validate body composition (Utility)
-#'
-#' Validates body composition against typical biological ranges
-#'
-#' @param composition Body composition list
-#' @return List with validation results
-#' @export
-validate_body_composition <- function(composition) {
-
-  validation <- list(
-    valid = TRUE,
-    warnings = character(),
-    errors = character()
-  )
-  
-  # Typical ranges for fish (fractions)
-  typical_ranges <- list(
-    water = c(0.65, 0.85),
-    protein = c(0.10, 0.25),
-    ash = c(0.02, 0.08),
-    fat = c(0.02, 0.25),
-    energy_density = c(2000, 8000)
-  )
-  
-  # Validate ranges
-  if (composition$water_fraction < typical_ranges$water[1] || 
-      composition$water_fraction > typical_ranges$water[2]) {
-    validation$warnings <- c(validation$warnings,
-                             paste("Water fraction outside typical range:",
-                                   round(composition$water_fraction, 3)))
-  }
-  
-  if (composition$protein_fraction < typical_ranges$protein[1] || 
-      composition$protein_fraction > typical_ranges$protein[2]) {
-    validation$warnings <- c(validation$warnings,
-                             paste("Protein fraction outside typical range:",
-                                   round(composition$protein_fraction, 3)))
-  }
-  
-  if (composition$energy_density < typical_ranges$energy_density[1] || 
-      composition$energy_density > typical_ranges$energy_density[2]) {
-    validation$warnings <- c(validation$warnings,
-                             paste("Energy density outside typical range:",
-                                   round(composition$energy_density, 0), "J/g"))
-  }
-  
-  # Validate fraction balance
-  if (!composition$balanced) {
-    validation$errors <- c(validation$errors, 
-                           paste("Fractions do not sum to ~1.0:",
-                                 round(composition$total_fraction, 3)))
-    validation$valid <- FALSE
-  }
-  
-  # Validate negative values
-  if (any(c(composition$water_g, composition$protein_g, 
-            composition$ash_g, composition$fat_g) < 0)) {
-    validation$errors <- c(validation$errors, "Negative components detected")
-    validation$valid <- FALSE
-  }
-  
-  return(validation)
-}

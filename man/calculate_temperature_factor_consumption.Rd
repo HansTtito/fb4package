@@ -4,12 +4,15 @@
 \alias{calculate_temperature_factor_consumption}
 \title{Calculate temperature factor for consumption (Mid-level)}
 \usage{
-calculate_temperature_factor_consumption(temperature, consumption_params)
+calculate_temperature_factor_consumption(
+  temperature,
+  processed_consumption_params
+)
 }
 \arguments{
 \item{temperature}{Water temperature (°C)}
 
-\item{consumption_params}{List with consumption parameters}
+\item{processed_consumption_params}{List with processed consumption parameters}
 }
 \value{
 Temperature factor

@@ -2,7 +2,7 @@
 % Please edit documentation in R/06-contaminant-accumulation.R
 \name{calculate_gill_efficiency}
 \alias{calculate_gill_efficiency}
-\title{Calculate gill uptake efficiency (Utility)}
+\title{Calculate gill uptake efficiency (Low-level)}
 \usage{
 calculate_gill_efficiency(kow)
 }
@@ -15,3 +15,4 @@ Gill uptake efficiency
 \description{
 Calculates gill efficiency based on Kow according to Arnot & Gobas (2004)
 }
+\keyword{internal}

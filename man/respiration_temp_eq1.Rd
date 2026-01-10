@@ -7,7 +7,7 @@
 respiration_temp_eq1(temperature, RQ)
 }
 \arguments{
-\item{temperature}{Water temperature (°C)}
+\item{temperature}{Water temperature (deg C)}
 
 \item{RQ}{Q10 rate for low temperatures}
 }

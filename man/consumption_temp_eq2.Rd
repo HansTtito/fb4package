@@ -4,21 +4,28 @@
 \alias{consumption_temp_eq2}
 \title{Temperature function for consumption - Equation 2 (Low-level)}
 \usage{
-consumption_temp_eq2(temperature, CTM, CTO, CX)
+consumption_temp_eq2(temperature, CTM, CTO, CX, warn = TRUE)
 }
 \arguments{
-\item{temperature}{Water temperature (°C)}
+\item{temperature}{Water temperature (deg C)}
 
 \item{CTM}{Maximum temperature where consumption ceases}
 
 \item{CTO}{Laboratory optimum temperature}
 
 \item{CX}{Calculated parameter}
+
+\item{warn}{Logical, whether to issue warnings about calculations, default TRUE}
 }
 \value{
 Temperature factor
 }
 \description{
 Implements temperature equation 2 (Kitchell et al. 1977)
+}
+\details{
+Special cases:
+- When temperature ≥ CTM: returns 0 (typically approximated by the upper incipient lethal temperature)
+- When V ≤ 0: returns 0 (mathematical fallback)
 }
 \keyword{internal}

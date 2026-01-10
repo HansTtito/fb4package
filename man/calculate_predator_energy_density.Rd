@@ -4,14 +4,14 @@
 \alias{calculate_predator_energy_density}
 \title{Calculate predator energy density (Mid-level - Main function)}
 \usage{
-calculate_predator_energy_density(weight, day = 1, predator_params)
+calculate_predator_energy_density(weight, day = 1, processed_predator_params)
 }
 \arguments{
 \item{weight}{Fish weight (g)}
 
 \item{day}{Simulation day (for equation 1)}
 
-\item{predator_params}{List with energy density parameters}
+\item{processed_predator_params}{List with processed predator parameters}
 }
 \value{
 Energy density (J/g)

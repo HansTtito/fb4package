@@ -7,8 +7,7 @@
 calculate_activity_factor_respiration(
   weight,
   temperature,
-  respiration_params,
-  activity_params
+  processed_respiration_params
 )
 }
 \arguments{
@@ -16,14 +15,13 @@ calculate_activity_factor_respiration(
 
 \item{temperature}{Water temperature (°C)}
 
-\item{respiration_params}{List with respiration parameters}
-
-\item{activity_params}{List with activity parameters}
+\item{processed_respiration_params}{List with processed respiration parameters (includes activity data)}
 }
 \value{
 Activity factor
 }
 \description{
-Coordinates activity calculation based on respiration equation
+Calculates activity factor based on respiration equation with support for
+both simple and complex activity calculations
 }
 \keyword{internal}

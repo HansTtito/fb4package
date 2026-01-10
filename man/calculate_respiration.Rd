@@ -4,16 +4,14 @@
 \alias{calculate_respiration}
 \title{Calculate daily respiration (Mid-level - Main function)}
 \usage{
-calculate_respiration(temperature, weight, respiration_params, activity_params)
+calculate_respiration(temperature, weight, processed_respiration_params)
 }
 \arguments{
 \item{temperature}{Water temperature (°C)}
 
 \item{weight}{Fish weight (g)}
 
-\item{respiration_params}{List with respiration parameters}
-
-\item{activity_params}{List with activity parameters}
+\item{processed_respiration_params}{List with processed respiration parameters (includes activity params)}
 }
 \value{
 Respiration (g O2/g fish/day)

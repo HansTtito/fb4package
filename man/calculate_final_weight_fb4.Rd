@@ -8,7 +8,7 @@ calculate_final_weight_fb4(
   initial_weight,
   net_energy,
   spawn_energy = 0,
-  predator_params,
+  processed_predator_params,
   day = 1
 )
 }
@@ -19,7 +19,7 @@ calculate_final_weight_fb4(
 
 \item{spawn_energy}{Energy lost to reproduction (J)}
 
-\item{predator_params}{Predator parameters}
+\item{processed_predator_params}{Processed predator parameters}
 
 \item{day}{Current day}
 }

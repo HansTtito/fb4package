@@ -4,14 +4,14 @@
 \alias{calculate_nutrient_balance}
 \title{Calculate nutrient balance (Mid-level - Main function)}
 \usage{
-calculate_nutrient_balance(consumption, weight_gain, nutrient_params)
+calculate_nutrient_balance(consumption, weight_gain, processed_nutrient_params)
 }
 \arguments{
 \item{consumption}{Vector of consumption by prey type (g/day)}
 
 \item{weight_gain}{Predator weight gain (g/day)}
 
-\item{nutrient_params}{List with nutrient parameters}
+\item{processed_nutrient_params}{List with processed nutrient parameters}
 }
 \value{
 List with nutrient results

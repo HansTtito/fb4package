@@ -8,8 +8,7 @@ calculate_mortality_reproduction(
   current_weight,
   temperature,
   day_of_year,
-  mortality_params,
-  reproduction_params = NULL,
+  processed_mortality_params,
   initial_weight = NULL
 )
 }
@@ -20,9 +19,7 @@ calculate_mortality_reproduction(
 
 \item{day_of_year}{Day of year (1-365)}
 
-\item{mortality_params}{List with mortality parameters}
-
-\item{reproduction_params}{List with reproduction parameters (optional)}
+\item{processed_mortality_params}{List with processed mortality parameters}
 
 \item{initial_weight}{Initial weight for relative calculations (optional)}
 }

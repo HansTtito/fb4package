@@ -11,9 +11,9 @@ excretion_model_2(consumption, egestion, temperature, p_value, UA, UB, UG)
 
 \item{egestion}{Egestion (J/g)}
 
-\item{temperature}{Water temperature (°C)}
+\item{temperature}{Water temperature (deg C)}
 
-\item{p_value}{Proportion of maximum consumption (p-value)}
+\item{p_value}{Proportion of maximum consumption (p_value)}
 
 \item{UA}{Base excretion parameter}
 

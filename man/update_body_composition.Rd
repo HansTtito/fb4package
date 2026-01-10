@@ -8,7 +8,7 @@ update_body_composition(
   old_weight,
   new_weight,
   old_composition = NULL,
-  water_fraction_new = 0.728
+  processed_composition_params
 )
 }
 \arguments{

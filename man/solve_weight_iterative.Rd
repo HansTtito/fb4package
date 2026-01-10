@@ -6,7 +6,7 @@
 \usage{
 solve_weight_iterative(
   target_energy,
-  predator_params,
+  processed_predator_params,
   day = 1,
   initial_guess = 1000
 )
@@ -14,7 +14,7 @@ solve_weight_iterative(
 \arguments{
 \item{target_energy}{Target body energy}
 
-\item{predator_params}{Predator parameters}
+\item{processed_predator_params}{Processed predator parameters}
 
 \item{day}{Current day}
 

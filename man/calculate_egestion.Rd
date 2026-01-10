@@ -8,20 +8,17 @@ calculate_egestion(
   consumption,
   temperature,
   p_value,
-  egestion_params,
-  indigestible_fraction = 0
+  processed_egestion_params
 )
 }
 \arguments{
 \item{consumption}{Consumption (J/g)}
 
-\item{temperature}{Water temperature (°C)}
+\item{temperature}{Water temperature (deg C)}
 
-\item{p_value}{Proportion of maximum consumption (p-value)}
+\item{p_value}{Proportion of maximum consumption (p_value)}
 
-\item{egestion_params}{List with egestion parameters}
-
-\item{indigestible_fraction}{Indigestible fraction (for model 3)}
+\item{processed_egestion_params}{List with processed egestion parameters}
 }
 \value{
 Egestion (J/g)

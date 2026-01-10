@@ -7,8 +7,8 @@
 calculate_weight_dependent_mortality(
   current_weight,
   base_mortality,
-  weight_threshold = 0,
-  starvation_factor = 5,
+  weight_threshold,
+  starvation_factor,
   initial_weight = NULL
 )
 }

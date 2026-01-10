@@ -4,7 +4,7 @@
 \alias{calculate_consumption_params_eq2}
 \title{Calculate additional parameters for consumption equation 2 (Mid-level)}
 \usage{
-calculate_consumption_params_eq2(CQ, CTM, CTO)
+calculate_consumption_params_eq2(CQ, CTM, CTO, warn = TRUE)
 }
 \arguments{
 \item{CQ}{Temperature coefficient}
@@ -19,3 +19,4 @@ List with CY, CZ, CX
 \description{
 Calculates derived parameters needed for temperature equation 2
 }
+\keyword{internal}

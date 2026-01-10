@@ -9,7 +9,7 @@ calculate_excretion(
   egestion,
   temperature,
   p_value,
-  excretion_params
+  processed_excretion_params
 )
 }
 \arguments{
@@ -17,11 +17,11 @@ calculate_excretion(
 
 \item{egestion}{Egestion (J/g)}
 
-\item{temperature}{Water temperature (°C)}
+\item{temperature}{Water temperature (deg C)}
 
-\item{p_value}{Proportion of maximum consumption (p-value)}
+\item{p_value}{Proportion of maximum consumption (p_value)}
 
-\item{excretion_params}{List with excretion parameters}
+\item{processed_excretion_params}{List with processed excretion parameters}
 }
 \value{
 Excretion (J/g)

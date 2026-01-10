@@ -11,7 +11,7 @@ excretion_model_4(consumption, egestion, temperature, UA, UB)
 
 \item{egestion}{Egestion (J/g)}
 
-\item{temperature}{Water temperature (°C)}
+\item{temperature}{Water temperature (deg C)}
 
 \item{UA}{Base excretion parameter}
 

@@ -11,15 +11,15 @@ egestion_model_3(
   FA,
   FB,
   FG,
-  indigestible_fraction = 0
+  indigestible_fraction
 )
 }
 \arguments{
 \item{consumption}{Consumption (J/g)}
 
-\item{temperature}{Water temperature (°C)}
+\item{temperature}{Water temperature (deg C)}
 
-\item{p_value}{Proportion of maximum consumption (p-value)}
+\item{p_value}{Proportion of maximum consumption (p_value)}
 
 \item{FA}{Base egestion parameter}
 

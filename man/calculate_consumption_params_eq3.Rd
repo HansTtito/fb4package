@@ -25,3 +25,4 @@ List with CG1, CG2
 \description{
 Calculates derived parameters needed for temperature equation 3
 }
+\keyword{internal}

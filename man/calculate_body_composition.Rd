@@ -4,26 +4,17 @@
 \alias{calculate_body_composition}
 \title{Calculate complete body composition (Mid-level - Main function)}
 \usage{
-calculate_body_composition(
-  weight,
-  water_fraction = 0.728,
-  fat_energy = 39300,
-  protein_energy = 23600
-)
+calculate_body_composition(weight, processed_composition_params)
 }
 \arguments{
 \item{weight}{Total wet weight (g)}
 
-\item{water_fraction}{Water fraction (0-1), default 0.728}
-
-\item{fat_energy}{Energy per gram of fat (J/g)}
-
-\item{protein_energy}{Energy per gram of protein (J/g)}
+\item{processed_composition_params}{List with processed composition parameters}
 }
 \value{
 List with complete body composition
 }
 \description{
 Main function that calculates all body composition components
-and energy density from weight and water fraction
+and energy density from weight and processed parameters
 }

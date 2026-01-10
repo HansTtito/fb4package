@@ -2,7 +2,7 @@
 % Please edit documentation in R/06-contaminant-accumulation.R
 \name{calculate_fish_water_partition}
 \alias{calculate_fish_water_partition}
-\title{Calculate fish:water partition coefficient (Utility)}
+\title{Calculate fish:water partition coefficient (Low-level)}
 \usage{
 calculate_fish_water_partition(
   fat_fraction,
@@ -26,3 +26,4 @@ Fish:water partition coefficient
 \description{
 Calculates Kbw based on body composition and Kow according to Arnot & Gobas (2004)
 }
+\keyword{internal}

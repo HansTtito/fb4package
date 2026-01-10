@@ -4,7 +4,14 @@
 \alias{solve_weight_linear_segments}
 \title{Solve weight for linear segments (Low-level)}
 \usage{
-solve_weight_linear_segments(available_energy, predator_params)
+solve_weight_linear_segments(
+  available_energy,
+  Alpha1,
+  Beta1,
+  Alpha2,
+  Beta2,
+  Cutoff
+)
 }
 \arguments{
 \item{available_energy}{Available energy (J)}

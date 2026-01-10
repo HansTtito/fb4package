@@ -2,14 +2,14 @@
 % Please edit documentation in R/03-egestion-excretion.R
 \name{egestion_model_4}
 \alias{egestion_model_4}
-\title{Egestion model 4 - Elliott (1976) without p-value (Low-level)}
+\title{Egestion model 4 - Elliott (1976) without p_value (Low-level)}
 \usage{
 egestion_model_4(consumption, temperature, FA, FB)
 }
 \arguments{
 \item{consumption}{Consumption (J/g)}
 
-\item{temperature}{Water temperature (°C)}
+\item{temperature}{Water temperature (deg C)}
 
 \item{FA}{Base egestion parameter}
 

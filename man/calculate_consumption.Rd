@@ -8,7 +8,7 @@ calculate_consumption(
   temperature,
   weight,
   p_value,
-  consumption_params,
+  processed_consumption_params,
   method = "rate"
 )
 }
@@ -19,7 +19,7 @@ calculate_consumption(
 
 \item{p_value}{Proportion of maximum consumption (0-5)}
 
-\item{consumption_params}{List with consumption parameters}
+\item{processed_consumption_params}{List with processed consumption parameters}
 
 \item{method}{Calculation method ("maximum", "rate", "specific")}
 }

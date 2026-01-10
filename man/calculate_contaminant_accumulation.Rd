@@ -10,7 +10,7 @@ calculate_contaminant_accumulation(
   weight,
   temperature,
   current_concentration,
-  contaminant_params
+  processed_contaminant_params
 )
 }
 \arguments{
@@ -24,7 +24,7 @@ calculate_contaminant_accumulation(
 
 \item{current_concentration}{Current concentration in predator (ug/g)}
 
-\item{contaminant_params}{List with contaminant parameters}
+\item{processed_contaminant_params}{List with processed contaminant parameters}
 }
 \value{
 List with contaminant results

@@ -9,8 +9,7 @@ calculate_nutrient_allocation(
   prey_nutrient_concentrations,
   nutrient_assimilation_efficiency,
   weight_gain,
-  predator_nutrient_concentration,
-  nutrient_name = "nutrient"
+  predator_nutrient_concentration
 )
 }
 \arguments{
@@ -23,8 +22,6 @@ calculate_nutrient_allocation(
 \item{weight_gain}{Predator weight gain (g/day)}
 
 \item{predator_nutrient_concentration}{Nutrient concentration in predator (g nutrient/g wet weight)}
-
-\item{nutrient_name}{Name of nutrient for error messages}
 }
 \value{
 List with nutrient fluxes

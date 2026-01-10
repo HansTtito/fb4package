@@ -8,7 +8,7 @@ generate_reproduction_pattern(
   days,
   peak_day,
   duration,
-  max_spawn_fraction = 0.15,
+  max_spawn_fraction,
   pattern_type = "gaussian"
 )
 }

@@ -2,7 +2,7 @@
 % Please edit documentation in R/02-respiration.R
 \name{calculate_sda}
 \alias{calculate_sda}
-\title{Calculate Specific Dynamic Action (SDA) (Utility)}
+\title{Calculate Specific Dynamic Action (SDA) (Low-level)}
 \usage{
 calculate_sda(consumption_energy, egestion_energy, SDA_coeff)
 }
@@ -17,5 +17,13 @@ calculate_sda(consumption_energy, egestion_energy, SDA_coeff)
 SDA in energy (J/g)
 }
 \description{
-Calculates metabolic cost of feeding and digestion
+Implements SDA calculation for metabolic cost of feeding and digestion
 }
+\details{
+Calculates SDA using: SDA = SDA_coeff × (consumption - egestion)
+
+Special cases:
+- When egestion > consumption: egestion is capped at consumption value
+- Result is always ≥ 0
+}
+\keyword{internal}

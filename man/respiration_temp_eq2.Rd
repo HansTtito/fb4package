@@ -4,21 +4,35 @@
 \alias{respiration_temp_eq2}
 \title{Temperature function for respiration - Equation 2 (Low-level)}
 \usage{
-respiration_temp_eq2(temperature, RTM, RTO, RX)
+respiration_temp_eq2(temperature, RTM, RTO, RX, warn = TRUE)
 }
 \arguments{
-\item{temperature}{Water temperature (°C)}
+\item{temperature}{Water temperature (deg C)}
 
 \item{RTM}{Maximum (lethal) temperature}
 
 \item{RTO}{Optimum temperature for respiration}
 
 \item{RX}{Calculated parameter}
+
+\item{warn}{Logical, whether to issue warnings about calculations, default TRUE}
 }
 \value{
 Temperature factor
 }
 \description{
-Implements temperature equation 2 (Kitchell et al. 1977)
+Implements temperature equation 2 (Kitchell et al. 1977).
+With user notifications about edge cases and fallback values.
+}
+\details{
+This function calculates temperature effects on respiration using:
+V = (RTM - temperature) / (RTM - RTO)
+ft = V^RX × exp(RX × (1 - V))
+
+Special cases:
+- When temperature ≥ RTM: returns 0.000001 (lethal temperature)
+- When ft < 0: returns 0.000001 (mathematical protection)
+
+Note: Negative values can occur with certain RX parameters, hence the minimum bound.
 }
 \keyword{internal}

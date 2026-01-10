@@ -17,3 +17,4 @@ Respiration in J/g fish/day
 \description{
 Converts respiration from O2 consumption to energy equivalents
 }
+\keyword{internal}

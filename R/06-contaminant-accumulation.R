@@ -19,7 +19,7 @@ NULL
 #' @return List with clearance, uptake, and new burden
 #' @keywords internal
 contaminant_model_1 <- function(consumption, prey_concentrations, transfer_efficiency, current_burden) {
-
+  
   # Uptake from food (ug/day)
   uptake <- sum(consumption * prey_concentrations * transfer_efficiency, na.rm = TRUE)
   
@@ -32,9 +32,10 @@ contaminant_model_1 <- function(consumption, prey_concentrations, transfer_effic
   return(list(
     clearance = clearance,
     uptake = uptake,
-    new_burden = pmax(0, new_burden)
+    new_burden = new_burden
   ))
 }
+
 
 #' Contaminant model 2 - With temperature and weight dependent elimination (Low-level)
 #'
@@ -51,16 +52,13 @@ contaminant_model_1 <- function(consumption, prey_concentrations, transfer_effic
 #' @keywords internal
 contaminant_model_2 <- function(consumption, weight, temperature, prey_concentrations, 
                                 assimilation_efficiency, current_burden) {
-
+  
   # Uptake from food (ug/day)
   uptake <- sum(consumption * prey_concentrations * assimilation_efficiency, na.rm = TRUE)
   
   # MeHg elimination coefficient (Trudel & Rasmussen 1997)
   # Kx = exp(0.066*T - 0.2*log(W) - 6.56)
-  safe_temp <- clamp(temperature, 0, 40)
-  safe_weight <- pmax(0.1, weight)
-  
-  Kx <- safe_exp(0.066 * safe_temp - 0.2 * log(safe_weight) - 6.56)
+  Kx <- safe_exp(0.066 * temperature - 0.2 * log(weight) - 6.56, param_name = "Contaminant model 2")
   
   # Elimination (ug/day)
   clearance <- Kx * current_burden
@@ -71,9 +69,10 @@ contaminant_model_2 <- function(consumption, weight, temperature, prey_concentra
   return(list(
     clearance = clearance,
     uptake = uptake,
-    new_burden = pmax(0, new_burden)
+    new_burden = new_burden
   ))
 }
+
 
 #' Contaminant model 3 - Arnot & Gobas (2004) (Low-level)
 #'
@@ -97,15 +96,13 @@ contaminant_model_3 <- function(respiration_o2, consumption, weight, temperature
                                 prey_concentrations, assimilation_efficiency, current_burden,
                                 gill_efficiency, fish_water_partition, water_concentration,
                                 dissolved_fraction, do_saturation) {
-
+  
   # Convert respiration to mg O2/g/day
   VOx <- 1000 * respiration_o2
   
   # Dissolved oxygen concentration (mg O2/L)
   # Arnot & Gobas (2004) equation
-  safe_temp <- clamp(temperature, 0, 40)
-  COx <- (-0.24 * safe_temp + 14.04) * do_saturation
-  COx <- pmax(1, COx)  # Avoid division by zero
+  COx <- (-0.24 * temperature + 14.04) * do_saturation
   
   # Water elimination rate (L/g/day)
   K1 <- gill_efficiency * VOx / COx
@@ -133,9 +130,65 @@ contaminant_model_3 <- function(respiration_o2, consumption, weight, temperature
     uptake = uptake,
     uptake_water = uptake_water,
     uptake_food = uptake_food,
-    new_burden = pmax(0, new_burden)
+    new_burden = new_burden
   ))
 }
+
+
+# ============================================================================
+# PARAMETER CALCULATION FUNCTIONS (CLEANED)
+# ============================================================================
+
+#' Calculate gill uptake efficiency (Low-level)
+#'
+#' Calculates gill efficiency based on Kow according to Arnot & Gobas (2004)
+#'
+#' @param kow Octanol:water partition coefficient
+#' @return Gill uptake efficiency
+#' @keywords internal
+calculate_gill_efficiency <- function(kow) {
+  # Arnot & Gobas (2004) equation
+  efficiency <- 1 / (1.85 + (155 / kow))
+  return(efficiency)
+}
+
+#' Calculate fish:water partition coefficient (Low-level)
+#'
+#' Calculates Kbw based on body composition and Kow according to Arnot & Gobas (2004)
+#'
+#' @param fat_fraction Fat fraction in fish
+#' @param protein_ash_fraction Protein + ash fraction
+#' @param water_fraction Water fraction
+#' @param kow Octanol:water partition coefficient
+#' @return Fish:water partition coefficient
+#' @keywords internal
+calculate_fish_water_partition <- function(fat_fraction, protein_ash_fraction, water_fraction, kow) {
+  # Arnot & Gobas (2004) equation
+  partition_coeff <- fat_fraction * kow + protein_ash_fraction * 0.035 * kow + water_fraction
+  return(partition_coeff)
+}
+
+#' Calculate dissolved fraction of contaminant (Low-level)
+#'
+#' Calculates dissolved fraction based on organic carbon according to Arnot & Gobas (2004)
+#'
+#' @param poc_concentration Particulate organic carbon concentration (kg/L)
+#' @param doc_concentration Dissolved organic carbon concentration (kg/L)
+#' @param kow Octanol:water partition coefficient
+#' @return Dissolved fraction
+#' @keywords internal
+calculate_dissolved_fraction <- function(poc_concentration, doc_concentration, kow) {
+  # Arnot & Gobas (2004) constants
+  a_poc <- 0.35
+  a_doc <- 0.08
+  
+  # Arnot & Gobas (2004) equation
+  denominator <- 1 + poc_concentration * a_poc * kow + doc_concentration * a_doc * kow
+  dissolved_fraction <- 1 / denominator
+  
+  return(dissolved_fraction)
+}
+
 
 # ============================================================================
 # MID-LEVEL FUNCTIONS: Coordination and Business Logic
@@ -150,85 +203,40 @@ contaminant_model_3 <- function(respiration_o2, consumption, weight, temperature
 #' @param weight Fish weight (g)
 #' @param temperature Water temperature (deg C)
 #' @param current_concentration Current concentration in predator (ug/g)
-#' @param contaminant_params List with contaminant parameters
+#' @param processed_contaminant_params List with processed contaminant parameters
 #' @return List with contaminant results
 #' @export
 calculate_contaminant_accumulation <- function(respiration_o2, consumption, weight, temperature,
-                                               current_concentration, contaminant_params) {
-
+                                               current_concentration, processed_contaminant_params) {
+  
   # Calculate initial body burden (ug)
   current_burden <- current_concentration * weight
   
-  # Determine model to use
-  CONTEQ <- contaminant_params$CONTEQ %||% 1
-  
-  # Extract common parameters
-  prey_concentrations <- contaminant_params$prey_concentrations %||% rep(1.0, length(consumption))
-  
-  # Adjust vector lengths if necessary
-  if (length(prey_concentrations) != length(consumption)) {
-    if (length(prey_concentrations) == 1) {
-      prey_concentrations <- rep(prey_concentrations, length(consumption))
-    } else {
-      # Use shorter length as fallback
-      min_length <- min(length(prey_concentrations), length(consumption))
-      prey_concentrations <- prey_concentrations[1:min_length]
-      consumption <- consumption[1:min_length]
-    }
-  }
+  # Extract processed parameters
+  CONTEQ <- processed_contaminant_params$CONTEQ
+  prey_concentrations <- processed_contaminant_params$prey_concentrations
   
   # Calculate based on model
   if (CONTEQ == 1) {
-    # Model 1: Food uptake only
-    transfer_efficiency <- contaminant_params$transfer_efficiency %||% rep(0.95, length(consumption))
-    if (length(transfer_efficiency) != length(consumption)) {
-      transfer_efficiency <- rep(transfer_efficiency[1], length(consumption))
-    }
-    
-    result <- contaminant_model_1(consumption, prey_concentrations, transfer_efficiency, current_burden)
+    result <- contaminant_model_1(consumption, prey_concentrations, 
+                                  processed_contaminant_params$transfer_efficiency, 
+                                  current_burden)
     
   } else if (CONTEQ == 2) {
-    # Model 2: Uptake + elimination
-    assimilation_efficiency <- contaminant_params$assimilation_efficiency %||% rep(0.80, length(consumption))
-    if (length(assimilation_efficiency) != length(consumption)) {
-      assimilation_efficiency <- rep(assimilation_efficiency[1], length(consumption))
-    }
-    
     result <- contaminant_model_2(consumption, weight, temperature, prey_concentrations,
-                                  assimilation_efficiency, current_burden)
+                                  processed_contaminant_params$assimilation_efficiency, 
+                                  current_burden)
     
   } else if (CONTEQ == 3) {
-    # Model 3: Arnot & Gobas
-    assimilation_efficiency <- contaminant_params$assimilation_efficiency %||% rep(0.80, length(consumption))
-    if (length(assimilation_efficiency) != length(consumption)) {
-      assimilation_efficiency <- rep(assimilation_efficiency[1], length(consumption))
-    }
-    
-    gill_efficiency <- contaminant_params$gill_efficiency %||% 0.5
-    fish_water_partition <- contaminant_params$fish_water_partition %||% 1000
-    water_concentration <- contaminant_params$water_concentration %||% 0.001
-    dissolved_fraction <- contaminant_params$dissolved_fraction %||% 0.8
-    do_saturation <- contaminant_params$do_saturation %||% 0.9
-    
-    # Check if model 3 parameters are available
-    if (is.na(gill_efficiency) || is.na(fish_water_partition) || is.na(water_concentration)) {
-      # Fallback to model 2
-      result <- contaminant_model_2(consumption, weight, temperature, prey_concentrations,
-                                    assimilation_efficiency, current_burden)
-    } else {
-      result <- contaminant_model_3(respiration_o2, consumption, weight, temperature,
-                                    prey_concentrations, assimilation_efficiency, current_burden,
-                                    gill_efficiency, fish_water_partition, water_concentration,
-                                    dissolved_fraction, do_saturation)
-    }
-    
-  } else {
-    # Fallback to model 1
-    transfer_efficiency <- contaminant_params$transfer_efficiency %||% rep(0.95, length(consumption))
-    if (length(transfer_efficiency) != length(consumption)) {
-      transfer_efficiency <- rep(transfer_efficiency[1], length(consumption))
-    }
-    result <- contaminant_model_1(consumption, prey_concentrations, transfer_efficiency, current_burden)
+    result <- contaminant_model_3(respiration_o2, consumption, weight, temperature,
+                                  prey_concentrations, 
+                                  processed_contaminant_params$assimilation_efficiency,
+                                  current_burden,
+                                  processed_contaminant_params$gill_efficiency,
+                                  processed_contaminant_params$fish_water_partition,
+                                  processed_contaminant_params$water_concentration,
+                                  processed_contaminant_params$dissolved_fraction,
+                                  processed_contaminant_params$do_saturation)
   }
   
   # Calculate new concentration
@@ -239,154 +247,9 @@ calculate_contaminant_accumulation <- function(respiration_o2, consumption, weig
   result$weight <- weight
   result$model_used <- CONTEQ
   
+  # Ensure non-negative values
+  result$new_burden <- pmax(0, result$new_burden)
+  result$new_concentration <- pmax(0, result$new_concentration)
+  
   return(result)
-}
-
-# ============================================================================
-# UTILITY FUNCTIONS: Parameter Calculations and Validation
-# ============================================================================
-
-#' Calculate gill uptake efficiency (Utility)
-#'
-#' Calculates gill efficiency based on Kow according to Arnot & Gobas (2004)
-#'
-#' @param kow Octanol:water partition coefficient
-#' @return Gill uptake efficiency
-#' @export
-calculate_gill_efficiency <- function(kow) {
-  kow <- check_numeric_value(kow, "kow", min_val = 0.001)
-  
-  # Arnot & Gobas (2004) equation
-  efficiency <- 1 / (1.85 + (155 / kow))
-  
-  # Limit to valid range
-  efficiency <- clamp(efficiency, 0, 1)
-  
-  return(efficiency)
-}
-
-#' Calculate fish:water partition coefficient (Utility)
-#'
-#' Calculates Kbw based on body composition and Kow according to Arnot & Gobas (2004)
-#'
-#' @param fat_fraction Fat fraction in fish
-#' @param protein_ash_fraction Protein + ash fraction
-#' @param water_fraction Water fraction
-#' @param kow Octanol:water partition coefficient
-#' @return Fish:water partition coefficient
-#' @export
-calculate_fish_water_partition <- function(fat_fraction, protein_ash_fraction, water_fraction, kow) {
-  fat_fraction <- check_numeric_value(fat_fraction, "fat_fraction", min_val = 0, max_val = 1)
-  protein_ash_fraction <- check_numeric_value(protein_ash_fraction, "protein_ash_fraction", min_val = 0, max_val = 1)
-  water_fraction <- check_numeric_value(water_fraction, "water_fraction", min_val = 0, max_val = 1)
-  kow <- check_numeric_value(kow, "kow", min_val = 0.001)
-  
-  total_fraction <- fat_fraction + protein_ash_fraction + water_fraction
-  if (abs(total_fraction - 1) > 0.1) {
-    warning("Fractions deviate significantly from 1.0: ", round(total_fraction, 3), call. = FALSE)
-  }
-  
-  # Arnot & Gobas (2004) equation
-  partition_coeff <- fat_fraction * kow + protein_ash_fraction * 0.035 * kow + water_fraction
-  
-  return(pmax(1, partition_coeff))  # Minimum of 1
-}
-
-#' Calculate dissolved fraction of contaminant (Utility)
-#'
-#' Calculates dissolved fraction based on organic carbon according to Arnot & Gobas (2004)
-#'
-#' @param poc_concentration Particulate organic carbon concentration (kg/L)
-#' @param doc_concentration Dissolved organic carbon concentration (kg/L)
-#' @param kow Octanol:water partition coefficient
-#' @return Dissolved fraction
-#' @export
-calculate_dissolved_fraction <- function(poc_concentration, doc_concentration, kow) {
-  poc_concentration <- check_numeric_value(poc_concentration, "poc_concentration", min_val = 0)
-  doc_concentration <- check_numeric_value(doc_concentration, "doc_concentration", min_val = 0)
-  kow <- check_numeric_value(kow, "kow", min_val = 0.001)
-  
-  # Arnot & Gobas (2004) constants
-  a_poc <- 0.35
-  a_doc <- 0.08
-  
-  # Arnot & Gobas (2004) equation
-  denominator <- 1 + poc_concentration * a_poc * kow + doc_concentration * a_doc * kow
-  dissolved_fraction <- 1 / denominator
-  
-  # Limit to valid range
-  dissolved_fraction <- clamp(dissolved_fraction, 0, 1)
-  
-  return(dissolved_fraction)
-}
-
-#' Validate contaminant parameters (Utility)
-#'
-#' Comprehensive validation of contaminant parameters
-#'
-#' @param contaminant_params List with parameters
-#' @return List with validation results
-#' @export
-validate_contaminant_params <- function(contaminant_params) {
-
-  validation <- list(
-    valid = TRUE,
-    warnings = character(),
-    errors = character()
-  )
-  
-  CONTEQ <- contaminant_params$CONTEQ %||% 1
-  
-  if (!CONTEQ %in% 1:3) {
-    validation$errors <- c(validation$errors, "CONTEQ must be 1, 2, or 3")
-    validation$valid <- FALSE
-    return(validation)
-  }
-  
-  # Validate prey concentrations
-  if ("prey_concentrations" %in% names(contaminant_params)) {
-    if (any(contaminant_params$prey_concentrations < 0, na.rm = TRUE)) {
-      validation$errors <- c(validation$errors, "Prey concentrations cannot be negative")
-      validation$valid <- FALSE
-    }
-    
-    if (any(contaminant_params$prey_concentrations > 1000, na.rm = TRUE)) {
-      validation$warnings <- c(validation$warnings, "Very high prey concentrations (>1000 ug/g)")
-    }
-  }
-  
-  # Validate efficiencies
-  efficiency_params <- c("transfer_efficiency", "assimilation_efficiency")
-  for (param in efficiency_params) {
-    if (param %in% names(contaminant_params)) {
-      values <- contaminant_params[[param]]
-      if (any(values < 0 | values > 1, na.rm = TRUE)) {
-        validation$errors <- c(validation$errors, paste(param, "must be between 0 and 1"))
-        validation$valid <- FALSE
-      }
-    }
-  }
-  
-  # Model 3 specific validations
-  if (CONTEQ == 3) {
-    model3_params <- c("gill_efficiency", "dissolved_fraction")
-    for (param in model3_params) {
-      if (param %in% names(contaminant_params)) {
-        value <- contaminant_params[[param]]
-        if (value < 0 || value > 1) {
-          validation$errors <- c(validation$errors, paste(param, "must be between 0 and 1"))
-          validation$valid <- FALSE
-        }
-      }
-    }
-    
-    if ("fish_water_partition" %in% names(contaminant_params)) {
-      if (contaminant_params$fish_water_partition <= 0) {
-        validation$errors <- c(validation$errors, "fish_water_partition must be positive")
-        validation$valid <- FALSE
-      }
-    }
-  }
-  
-  return(validation)
 }

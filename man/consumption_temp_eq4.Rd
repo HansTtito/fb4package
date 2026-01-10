@@ -7,7 +7,7 @@
 consumption_temp_eq4(temperature, CQ, CK1, CK4)
 }
 \arguments{
-\item{temperature}{Water temperature (°C)}
+\item{temperature}{Water temperature (deg C)}
 
 \item{CQ}{Linear coefficient}
 

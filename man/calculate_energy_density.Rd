@@ -8,8 +8,8 @@ calculate_energy_density(
   fat_content,
   protein_content,
   total_weight,
-  fat_energy = 36200,
-  protein_energy = 23600
+  fat_energy,
+  protein_energy
 )
 }
 \arguments{

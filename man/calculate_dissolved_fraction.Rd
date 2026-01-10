@@ -2,7 +2,7 @@
 % Please edit documentation in R/06-contaminant-accumulation.R
 \name{calculate_dissolved_fraction}
 \alias{calculate_dissolved_fraction}
-\title{Calculate dissolved fraction of contaminant (Utility)}
+\title{Calculate dissolved fraction of contaminant (Low-level)}
 \usage{
 calculate_dissolved_fraction(poc_concentration, doc_concentration, kow)
 }
@@ -19,3 +19,4 @@ Dissolved fraction
 \description{
 Calculates dissolved fraction based on organic carbon according to Arnot & Gobas (2004)
 }
+\keyword{internal}

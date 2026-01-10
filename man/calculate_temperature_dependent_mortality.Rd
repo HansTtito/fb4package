@@ -7,9 +7,9 @@
 calculate_temperature_dependent_mortality(
   temperature,
   base_mortality,
-  optimal_temp = 20,
-  thermal_tolerance = 10,
-  stress_factor = 2
+  optimal_temp,
+  thermal_tolerance,
+  stress_factor
 )
 }
 \arguments{

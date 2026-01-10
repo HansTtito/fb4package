@@ -4,11 +4,7 @@
 \alias{calculate_reproductive_loss}
 \title{Calculate reproductive weight loss (Low-level)}
 \usage{
-calculate_reproductive_loss(
-  spawn_fraction,
-  current_weight,
-  energy_density = 5000
-)
+calculate_reproductive_loss(spawn_fraction, current_weight, energy_density)
 }
 \arguments{
 \item{spawn_fraction}{Fraction of weight lost in reproduction (0-1)}

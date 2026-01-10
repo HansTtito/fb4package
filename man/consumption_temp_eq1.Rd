@@ -7,7 +7,7 @@
 consumption_temp_eq1(temperature, CQ)
 }
 \arguments{
-\item{temperature}{Water temperature (°C)}
+\item{temperature}{Water temperature (deg C)}
 
 \item{CQ}{Temperature coefficient for consumption}
 }
