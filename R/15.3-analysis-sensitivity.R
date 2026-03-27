@@ -398,16 +398,17 @@ analyze_growth_temperature_sensitivity <- function(bio_obj,
   
   # Setup parallel processing if requested
   if (parallel) {
-    library(future)
-    library(furrr)
-    
-    if (is.null(n_cores)) {
-      n_cores <- availableCores() - 1
+    if (!requireNamespace("future", quietly = TRUE) || !requireNamespace("furrr", quietly = TRUE)) {
+      stop("Packages 'future' and 'furrr' are required for parallel processing. ",
+           "Install them with: install.packages(c('future', 'furrr'))")
     }
-    
-    # Setup future plan
-    plan(multisession, workers = min(n_cores, length(temperatures)))
-    on.exit(plan(sequential), add = TRUE)  # Cleanup on exit
+
+    if (is.null(n_cores)) {
+      n_cores <- future::availableCores() - 1L
+    }
+
+    future::plan(future::multisession, workers = min(n_cores, length(temperatures)))
+    on.exit(future::plan(future::sequential), add = TRUE)
   }
   
   # Input validation
@@ -443,11 +444,15 @@ analyze_growth_temperature_sensitivity <- function(bio_obj,
   
   # Choose execution method
   if (parallel) {
-    # Future-based parallel execution (cross-platform)
-    results_list <- future_map(temperatures, ~process_temperature(.x, p_values, processed_data, simulation_days, oxycal, verbose))
+    results_list <- furrr::future_map(
+      temperatures,
+      ~ process_temperature(.x, p_values, processed_data, simulation_days, oxycal, verbose)
+    )
   } else {
-    # Sequential execution
-    results_list <- map(temperatures, ~process_temperature(.x, p_values, processed_data, simulation_days, oxycal, verbose))
+    results_list <- lapply(
+      temperatures,
+      function(t) process_temperature(t, p_values, processed_data, simulation_days, oxycal, verbose)
+    )
   }
 
   # Combine all results
@@ -820,19 +825,18 @@ test_metric_differences <- function(estimates, se_values, scenario_names) {
   comparisons <- comparisons[comparisons$i < comparisons$j, ]
   
   if (nrow(comparisons) > 0) {
+    ci_overlaps <- mapply(function(i, j) {
+      max(ci_lower[i], ci_lower[j]) <= min(ci_upper[i], ci_upper[j])
+    }, comparisons$i, comparisons$j)
+
     comparison_results <- data.frame(
-      scenario_1 = valid_names[comparisons$i],
-      scenario_2 = valid_names[comparisons$j],
-      estimate_1 = valid_est[comparisons$i],
-      estimate_2 = valid_est[comparisons$j],
-      difference = valid_est[comparisons$i] - valid_est[comparisons$j],
-      ci_overlap = mapply(function(i, j) {
-        # Check if confidence intervals overlap
-        max(ci_lower[i], ci_lower[j]) <= min(ci_upper[i], ci_upper[j])
-      }, comparisons$i, comparisons$j),
-      significant_difference = !mapply(function(i, j) {
-        max(ci_lower[i], ci_lower[j]) <= min(ci_upper[i], ci_upper[j])
-      }, comparisons$i, comparisons$j),
+      scenario_1             = valid_names[comparisons$i],
+      scenario_2             = valid_names[comparisons$j],
+      estimate_1             = valid_est[comparisons$i],
+      estimate_2             = valid_est[comparisons$j],
+      difference             = valid_est[comparisons$i] - valid_est[comparisons$j],
+      ci_overlap             = ci_overlaps,
+      significant_difference = !ci_overlaps,
       stringsAsFactors = FALSE
     )
     
