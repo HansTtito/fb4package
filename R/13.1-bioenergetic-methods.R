@@ -13,10 +13,48 @@ NULL
 # BIOENERGETIC CLASS METHODS (Improved)
 # ============================================================================
 
-#' Print Method for Bioenergetic Objects (Improved)
+#' Check Bioenergetic Object Readiness
+#'
+#' @description
+#' Returns a named logical list indicating which of the four required
+#' components (species parameters, temperature, diet, initial weight) are
+#' present in a \code{Bioenergetic} object.  Centralises the readiness
+#' check that is otherwise duplicated across \code{print.Bioenergetic} and
+#' \code{summary.Bioenergetic}.
+#'
+#' @param x A \code{Bioenergetic} object.
+#'
+#' @return Named logical list with elements \code{has_params},
+#'   \code{has_temp}, \code{has_diet}, and \code{has_initial}.
+#'
+#' @keywords internal
+check_bioenergetic_readiness <- function(x) {
+  list(
+    has_params  = !is.null(x$species_params) && length(x$species_params) > 0,
+    has_temp    = !is.null(x$environmental_data$temperature),
+    has_diet    = !is.null(x$diet_data$proportions),
+    has_initial = !is.null(x$simulation_settings$initial_weight)
+  )
+}
+
+#' Print Method for Bioenergetic Objects
+#'
+#' @description
+#' Displays a concise one-page overview of a \code{Bioenergetic} object,
+#' including species identity, initial weight, simulation duration, and the
+#' status of each required component (parameters, temperature, diet).
+#' Readiness for fitting is reported in the final status line.
+#'
 #' @param x Bioenergetic object
 #' @param ... Additional arguments (not used)
 #' @return Invisibly returns the input object
+#'
+#' @examples
+#' \dontrun{
+#' bio <- Bioenergetic("Oncorhynchus mykiss")
+#' print(bio)
+#' }
+#'
 #' @export
 print.Bioenergetic <- function(x, ...) {
   cat("FB4 Bioenergetic Model\n")
@@ -46,57 +84,70 @@ print.Bioenergetic <- function(x, ...) {
   
   # Component status with details
   cat("\nComponents:\n")
-  
+  ready <- check_bioenergetic_readiness(x)
+
   # Parameters
-  has_params <- !is.null(x$species_params) && length(x$species_params) > 0
-  if (has_params) {
+  if (ready$has_params) {
     param_count <- length(unlist(x$species_params))
     categories <- paste(names(x$species_params), collapse = ", ")
     cat("  ✓ Parameters: ", param_count, " params (", categories, ")\n", sep = "")
   } else {
     cat("  ✗ Parameters: Missing\n")
   }
-  
+
   # Temperature
-  has_temp <- !is.null(x$environmental_data$temperature)
-  if (has_temp) {
+  if (ready$has_temp) {
     temp_data <- x$environmental_data$temperature
     temp_range <- range(temp_data$Temperature, na.rm = TRUE)
-    cat("  ✓ Temperature: ", nrow(temp_data), " days (", 
+    cat("  ✓ Temperature: ", nrow(temp_data), " days (",
         round(temp_range[1], 1), "-", round(temp_range[2], 1), "°C)\n", sep = "")
   } else {
     cat("  ✗ Temperature: Missing\n")
   }
-  
+
   # Diet
-  has_diet <- !is.null(x$diet_data$proportions)
-  if (has_diet) {
+  if (ready$has_diet) {
     prey_count <- length(x$diet_data$prey_names)
     diet_days <- nrow(x$diet_data$proportions)
     cat("  ✓ Diet: ", prey_count, " prey species, ", diet_days, " days\n", sep = "")
   } else {
     cat("  ✗ Diet: Missing\n")
   }
-  
+
   # Simulation readiness
-  is_ready <- has_params && has_temp && has_diet && !is.null(initial_weight)
+  is_ready <- ready$has_params && ready$has_temp && ready$has_diet && ready$has_initial
   cat("\nStatus: ")
   if (x$fitted) {
     cat("✓ Fitted and ready\n")
   } else if (is_ready) {
     cat("Ready for fitting\n")
   } else {
-    missing_count <- sum(!has_params, !has_temp, !has_diet, is.null(initial_weight))
+    missing_count <- sum(!ready$has_params, !ready$has_temp, !ready$has_diet, !ready$has_initial)
     cat("Incomplete (", missing_count, " components missing)\n", sep = "")
   }
   
   invisible(x)
 }
 
-#' Summary Method for Bioenergetic Objects (Improved)
+#' Summary Method for Bioenergetic Objects
+#'
+#' @description
+#' Prints a detailed multi-section summary of a \code{Bioenergetic} object,
+#' covering species identity, parameter categories, environmental data
+#' statistics, diet composition, simulation settings, and overall readiness
+#' status.  Complements \code{print.Bioenergetic}, which shows the compact
+#' single-page view.
+#'
 #' @param object Bioenergetic object
 #' @param ... Additional arguments (not used)
 #' @return Invisibly returns the input object
+#'
+#' @examples
+#' \dontrun{
+#' bio <- Bioenergetic("Oncorhynchus mykiss")
+#' summary(bio)
+#' }
+#'
 #' @export
 summary.Bioenergetic <- function(object, ...) {
   cat("FB4 Bioenergetic Model - Detailed Summary\n")
@@ -212,22 +263,18 @@ summary.Bioenergetic <- function(object, ...) {
     cat("✓ Model fitted and results available\n")
   } else {
     # Check readiness
-    has_params <- !is.null(object$species_params) && length(object$species_params) > 0
-    has_temp <- !is.null(object$environmental_data$temperature)
-    has_diet <- !is.null(object$diet_data$proportions)
-    has_initial <- !is.null(object$simulation_settings$initial_weight)
-    
-    ready_count <- sum(has_params, has_temp, has_diet, has_initial)
+    ready <- check_bioenergetic_readiness(object)
+    ready_count <- sum(ready$has_params, ready$has_temp, ready$has_diet, ready$has_initial)
     cat("Ready: ", ready_count, "/4 components")
-    
+
     if (ready_count == 4) {
       cat(" - Ready for fitting!")
     } else {
       missing <- c(
-        if (!has_params) "parameters",
-        if (!has_temp) "temperature",
-        if (!has_diet) "diet",
-        if (!has_initial) "initial_weight"
+        if (!ready$has_params)  "parameters",
+        if (!ready$has_temp)    "temperature",
+        if (!ready$has_diet)    "diet",
+        if (!ready$has_initial) "initial_weight"
       )
       cat(" (missing: ", paste(missing, collapse = ", "), ")", sep = "")
     }
@@ -241,10 +288,27 @@ summary.Bioenergetic <- function(object, ...) {
 # FB4_RESULT CLASS METHODS (Unified and Improved)
 # ============================================================================
 
-#' Print Method for fb4_result Objects (Unified)
+#' Print Method for fb4_result Objects
+#'
+#' @description
+#' Displays a concise summary of an \code{fb4_result} object.  The output
+#' adapts to the fitting method used: traditional methods (binary search,
+#' optim, direct) show weight, growth, consumption, and convergence;
+#' \code{"mle"} shows parameter estimates with confidence intervals and
+#' AIC; \code{"bootstrap"} shows mean/SD estimates and CI; and
+#' \code{"hierarchical"} shows population-level parameters with model fit
+#' statistics.
+#'
 #' @param x fb4_result object
 #' @param ... Additional arguments (not used)
 #' @return Invisibly returns the input object
+#'
+#' @examples
+#' \dontrun{
+#' result <- run_fb4(bio, fit_to = "Weight", fit_value = 150)
+#' print(result)
+#' }
+#'
 #' @export
 print.fb4_result <- function(x, ...) {
   method <- x$summary$method
@@ -377,10 +441,27 @@ print.fb4_result <- function(x, ...) {
   invisible(x)
 }
 
-#' Summary Method for fb4_result Objects (Unified)
+#' Summary Method for fb4_result Objects
+#'
+#' @description
+#' Prints the compact \code{print.fb4_result} output followed by a detailed
+#' section with execution metadata (backend, version, timing) and
+#' method-specific diagnostics: optimisation tolerances for traditional
+#' methods, statistical details and profile-likelihood availability for MLE,
+#' success rate and percentiles for bootstrap, and individual/population
+#' parameter distributions for hierarchical fits.  Daily output column
+#' availability is reported at the end.
+#'
 #' @param object fb4_result object
 #' @param ... Additional arguments (not used)
 #' @return Invisibly returns the input object
+#'
+#' @examples
+#' \dontrun{
+#' result <- run_fb4(bio, fit_to = "Weight", fit_value = 150)
+#' summary(result)
+#' }
+#'
 #' @export
 summary.fb4_result <- function(object, ...) {
   # Print basic information first
