@@ -220,152 +220,112 @@ plot_growth_vs_temperature <- function(sensitivity_data, fb4_result,
 # METHOD-SPECIFIC UNCERTAINTY FUNCTIONS
 # ============================================================================
 
-#' Plot MLE uncertainty
+#' Draw a single parameter estimate panel with confidence interval
 #'
 #' @description
-#' Internal function for MLE uncertainty plotting.
+#' Internal helper shared by \code{plot_mle_uncertainty},
+#' \code{plot_bootstrap_uncertainty}, and
+#' \code{plot_hierarchical_uncertainty}.  Draws a dot-and-arrow panel for one
+#' parameter — estimate point, CI arrow, and optional CI text — so the
+#' identical plotting code is not triplicated.
 #'
+#' @param estimate  Point estimate for the parameter.
+#' @param ci_lower  Lower confidence bound.
+#' @param ci_upper  Upper confidence bound.
+#' @param param_name  Character: parameter name, used as axis label and title.
+#' @param method_label  Character prefix for the panel title (e.g. \code{"MLE"}).
+#' @param colors  Color scheme list from \code{get_color_scheme()}.
+#' @param add_ci_text  Logical; add CI text above the arrow.
+#'
+#' @return \code{NULL} (modifies current graphics device).
+#' @keywords internal
+plot_estimate_panel <- function(estimate, ci_lower, ci_upper,
+                                param_name, method_label, colors, add_ci_text) {
+  graphics::plot(1, estimate,
+                 ylim = c(ci_lower * 0.9, ci_upper * 1.1),
+                 xlab = "", ylab = param_name,
+                 main = paste0(method_label, ": ", param_name),
+                 pch  = 19, col = colors$primary)
+  graphics::arrows(1, ci_lower, 1, ci_upper,
+                   angle = 90, code = 3, col = colors$accent, lwd = 2)
+  if (add_ci_text) {
+    graphics::text(1, ci_upper,
+                   paste("95% CI:", round(ci_lower, 3), "-", round(ci_upper, 3)),
+                   pos = 3, cex = 0.8)
+  }
+}
+
+#' Plot MLE uncertainty
+#'
+#' @description Internal function for MLE uncertainty plotting.
 #' @param fb4_result MLE result object
 #' @param parameters Parameters to plot
 #' @param colors Color scheme
 #' @param add_ci_text Add confidence interval text
-#'
 #' @return NULL
 #' @keywords internal
 plot_mle_uncertainty <- function(fb4_result, parameters, colors, add_ci_text) {
-  
-  # Setup plot
   old_par <- setup_plot_layout(c(2, 2), "compact")
   on.exit(graphics::par(old_par))
-  
-  # Extract MLE results
-  mle_results <- fb4_result$mle_results
-  
-  # Plot each parameter
-  param_names <- if (parameters == "all") names(mle_results$estimates) else parameters
-  
-  for (i in seq_along(param_names)) {
-    param <- param_names[i]
-    
-    if (param %in% names(mle_results$estimates)) {
-      estimate <- mle_results$estimates[param]
-      se <- mle_results$std_errors[param]
-      
-      # Create confidence interval
-      ci_lower <- estimate - z_score(0.95) * se
-      ci_upper <- estimate + z_score(0.95) * se
-      
-      # Plot
-      graphics::plot(1, estimate, ylim = c(ci_lower * 0.9, ci_upper * 1.1),
-                     xlab = "", ylab = param, main = paste("MLE:", param),
-                     pch = 19, col = colors$primary)
-      
-      # Add confidence interval
-      graphics::arrows(1, ci_lower, 1, ci_upper, angle = 90, code = 3, 
-                       col = colors$accent, lwd = 2)
-      
-      if (add_ci_text) {
-        graphics::text(1, ci_upper, paste("95% CI:", round(ci_lower, 3), "-", round(ci_upper, 3)),
-                       pos = 3, cex = 0.8)
-      }
+
+  mle    <- fb4_result$mle_results
+  params <- if (parameters == "all") names(mle$estimates) else parameters
+  z      <- z_score(0.95)
+
+  for (param in params) {
+    if (param %in% names(mle$estimates)) {
+      est <- mle$estimates[param]
+      se  <- mle$std_errors[param]
+      plot_estimate_panel(est, est - z * se, est + z * se,
+                          param, "MLE", colors, add_ci_text)
     }
   }
 }
 
 #' Plot bootstrap uncertainty
 #'
-#' @description
-#' Internal function for bootstrap uncertainty plotting.
-#'
+#' @description Internal function for bootstrap uncertainty plotting.
 #' @param fb4_result Bootstrap result object
 #' @param parameters Parameters to plot
 #' @param colors Color scheme
 #' @param add_ci_text Add confidence interval text
-#'
 #' @return NULL
 #' @keywords internal
 plot_bootstrap_uncertainty <- function(fb4_result, parameters, colors, add_ci_text) {
-  
-  # Setup plot
   old_par <- setup_plot_layout(c(2, 2), "compact")
   on.exit(graphics::par(old_par))
-  
-  # Extract bootstrap results
-  bootstrap_results <- fb4_result$bootstrap_results
-  
-  # Plot each parameter
-  param_names <- if (parameters == "all") names(bootstrap_results$estimates) else parameters
-  
-  for (i in seq_along(param_names)) {
-    param <- param_names[i]
-    
-    if (param %in% names(bootstrap_results$estimates)) {
-      estimate <- bootstrap_results$estimates[param]
-      ci_lower <- bootstrap_results$ci_lower[param]
-      ci_upper <- bootstrap_results$ci_upper[param]
-      
-      # Plot
-      graphics::plot(1, estimate, ylim = c(ci_lower * 0.9, ci_upper * 1.1),
-                     xlab = "", ylab = param, main = paste("Bootstrap:", param),
-                     pch = 19, col = colors$primary)
-      
-      # Add confidence interval
-      graphics::arrows(1, ci_lower, 1, ci_upper, angle = 90, code = 3, 
-                       col = colors$accent, lwd = 2)
-      
-      if (add_ci_text) {
-        graphics::text(1, ci_upper, paste("95% CI:", round(ci_lower, 3), "-", round(ci_upper, 3)),
-                       pos = 3, cex = 0.8)
-      }
+
+  bs     <- fb4_result$bootstrap_results
+  params <- if (parameters == "all") names(bs$estimates) else parameters
+
+  for (param in params) {
+    if (param %in% names(bs$estimates)) {
+      plot_estimate_panel(bs$estimates[param], bs$ci_lower[param], bs$ci_upper[param],
+                          param, "Bootstrap", colors, add_ci_text)
     }
   }
 }
 
 #' Plot hierarchical uncertainty
 #'
-#' @description
-#' Internal function for hierarchical uncertainty plotting.
-#'
+#' @description Internal function for hierarchical uncertainty plotting.
 #' @param fb4_result Hierarchical result object
 #' @param parameters Parameters to plot
 #' @param colors Color scheme
 #' @param add_ci_text Add confidence interval text
-#'
 #' @return NULL
 #' @keywords internal
 plot_hierarchical_uncertainty <- function(fb4_result, parameters, colors, add_ci_text) {
-  
-  # Setup plot
   old_par <- setup_plot_layout(c(2, 2), "compact")
   on.exit(graphics::par(old_par))
-  
-  # Extract hierarchical results
-  hierarchical_results <- fb4_result$hierarchical_results
-  
-  # Plot each parameter
-  param_names <- if (parameters == "all") names(hierarchical_results$estimates) else parameters
-  
-  for (i in seq_along(param_names)) {
-    param <- param_names[i]
-    
-    if (param %in% names(hierarchical_results$estimates)) {
-      estimate <- hierarchical_results$estimates[param]
-      ci_lower <- hierarchical_results$ci_lower[param]
-      ci_upper <- hierarchical_results$ci_upper[param]
-      
-      # Plot
-      graphics::plot(1, estimate, ylim = c(ci_lower * 0.9, ci_upper * 1.1),
-                     xlab = "", ylab = param, main = paste("Hierarchical:", param),
-                     pch = 19, col = colors$primary)
-      
-      # Add confidence interval
-      graphics::arrows(1, ci_lower, 1, ci_upper, angle = 90, code = 3, 
-                       col = colors$accent, lwd = 2)
-      
-      if (add_ci_text) {
-        graphics::text(1, ci_upper, paste("95% CI:", round(ci_lower, 3), "-", round(ci_upper, 3)),
-                       pos = 3, cex = 0.8)
-      }
+
+  hr     <- fb4_result$hierarchical_results
+  params <- if (parameters == "all") names(hr$estimates) else parameters
+
+  for (param in params) {
+    if (param %in% names(hr$estimates)) {
+      plot_estimate_panel(hr$estimates[param], hr$ci_lower[param], hr$ci_upper[param],
+                          param, "Hierarchical", colors, add_ci_text)
     }
   }
 }
