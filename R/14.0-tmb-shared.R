@@ -8,6 +8,81 @@
 NULL
 
 # ============================================================================
+# SDR EXTRACTION HELPERS
+# ============================================================================
+# Low-level helpers used by extract_basic_parameters and
+# extract_hierarchical_parameters.  Accepting sdr_summary as an explicit
+# parameter (rather than capturing it from an enclosing scope) keeps these
+# functions pure and eliminates the need to re-define closures inside two
+# separate functions.
+
+#' Pull a scalar estimate from an sdreport summary
+#' @param sdr_summary Matrix returned by \code{summary(TMB::sdreport(obj))}
+#' @param name        Row name to look up
+#' @return Numeric scalar estimate, or \code{NA_real_} if not found
+#' @keywords internal
+sdr_pull_est <- function(sdr_summary, name) {
+  idx <- which(rownames(sdr_summary) == name)
+  if (length(idx) > 0L) sdr_summary[idx[[1L]], "Estimate"] else NA_real_
+}
+
+#' Pull a scalar standard error from an sdreport summary
+#' @param sdr_summary Matrix returned by \code{summary(TMB::sdreport(obj))}
+#' @param name        Row name to look up
+#' @return Numeric scalar SE, or \code{NA_real_} if not found
+#' @keywords internal
+sdr_pull_se <- function(sdr_summary, name) {
+  idx <- which(rownames(sdr_summary) == name)
+  if (length(idx) > 0L) sdr_summary[idx[[1L]], "Std. Error"] else NA_real_
+}
+
+#' Pull a vector of estimates and SEs from an sdreport summary
+#'
+#' @description
+#' Extracts the first \code{n} rows whose name matches \code{name} from
+#' \code{sdr_summary}, returning both estimates and standard errors.
+#' Used for per-individual variables in the hierarchical model.
+#'
+#' @param sdr_summary Matrix returned by \code{summary(TMB::sdreport(obj))}
+#' @param name        Row name to look up (may appear multiple times)
+#' @param n           Number of elements expected
+#' @return Named list with \code{estimates} and \code{ses} (length-\code{n}
+#'   numeric vectors; filled with \code{NA_real_} when rows are missing)
+#' @keywords internal
+sdr_pull_vec <- function(sdr_summary, name, n) {
+  idx <- which(rownames(sdr_summary) == name)
+  if (length(idx) >= n) {
+    list(
+      estimates = sdr_summary[idx[seq_len(n)], "Estimate"],
+      ses       = sdr_summary[idx[seq_len(n)], "Std. Error"]
+    )
+  } else {
+    list(estimates = rep(NA_real_, n), ses = rep(NA_real_, n))
+  }
+}
+
+#' Batch-assign scalar estimate/SE pairs to a results list
+#'
+#' @description
+#' For each name in \code{fields}, sets \code{results[[name_est]]} and
+#' \code{results[[name_se]]} by calling \code{\link{sdr_pull_est}} /
+#' \code{\link{sdr_pull_se}}.  Replaces the repetitive
+#' \code{results$field_est <- sdr_pull_est(sdr_summary, "field")} pattern.
+#'
+#' @param results     Named list to update
+#' @param sdr_summary SDR summary matrix (from \code{summary(sdreport(obj))})
+#' @param fields      Character vector of ADREPORT variable names
+#' @return Updated \code{results} list
+#' @keywords internal
+sdr_assign_scalars <- function(results, sdr_summary, fields) {
+  for (nm in fields) {
+    results[[paste0(nm, "_est")]] <- sdr_pull_est(sdr_summary, nm)
+    results[[paste0(nm, "_se")]]  <- sdr_pull_se(sdr_summary, nm)
+  }
+  results
+}
+
+# ============================================================================
 # TMB COMPILATION AND VALIDATION
 # ============================================================================
 
@@ -471,93 +546,30 @@ extract_basic_parameters <- function(results, params, obj, confidence_level, ver
       # Get summary with estimates and standard errors
       sdr_summary <- summary(sdr)
       
-      # Helper functions to extract values and standard errors
-      extract_sdr_value <- function(name) {
-        idx <- which(rownames(sdr_summary) == name)
-        if(length(idx) > 0) sdr_summary[idx, "Estimate"] else NA
-      }
-      
-      extract_sdr_se <- function(name) {
-        idx <- which(rownames(sdr_summary) == name)
-        if(length(idx) > 0) sdr_summary[idx, "Std. Error"] else NA
-      }
-      
-      # Extract all ADREPORT variables with uncertainty
-      
-      # Core variables
-      results$final_weight_est <- extract_sdr_value("final_weight")
-      results$final_weight_se <- extract_sdr_se("final_weight")
-      
-      results$total_consumption_g_est <- extract_sdr_value("total_consumption_g")
-      results$total_consumption_g_se <- extract_sdr_se("total_consumption_g")
-      
-      results$gross_growth_efficiency_est <- extract_sdr_value("gross_growth_efficiency")
-      results$gross_growth_efficiency_se <- extract_sdr_se("gross_growth_efficiency")
-      
-      results$total_growth_est <- extract_sdr_value("total_growth")
-      results$total_growth_se <- extract_sdr_se("total_growth")
-      
-      results$relative_growth_est <- extract_sdr_value("relative_growth")
-      results$relative_growth_se <- extract_sdr_se("relative_growth")
-      
-      # Energy budget variables
-      results$total_consumption_energy_est <- extract_sdr_value("total_consumption_energy")
-      results$total_consumption_energy_se <- extract_sdr_se("total_consumption_energy")
-      
-      results$total_respiration_energy_est <- extract_sdr_value("total_respiration_energy")
-      results$total_respiration_energy_se <- extract_sdr_se("total_respiration_energy")
-      
-      results$total_egestion_energy_est <- extract_sdr_value("total_egestion_energy")
-      results$total_egestion_energy_se <- extract_sdr_se("total_egestion_energy")
-      
-      results$total_excretion_energy_est <- extract_sdr_value("total_excretion_energy")
-      results$total_excretion_energy_se <- extract_sdr_se("total_excretion_energy")
-      
-      results$total_sda_energy_est <- extract_sdr_value("total_sda_energy")
-      results$total_sda_energy_se <- extract_sdr_se("total_sda_energy")
-      
-      results$total_net_energy_est <- extract_sdr_value("total_net_energy")
-      results$total_net_energy_se <- extract_sdr_se("total_net_energy")
-      
-      results$total_spawn_energy_est <- extract_sdr_value("total_spawn_energy")
-      results$total_spawn_energy_se <- extract_sdr_se("total_spawn_energy")
-      
-      # Efficiency and consumption metrics
-      results$mean_daily_consumption_est <- extract_sdr_value("mean_daily_consumption")
-      results$mean_daily_consumption_se <- extract_sdr_se("mean_daily_consumption")
-      
-      results$mean_specific_consumption_est <- extract_sdr_value("mean_specific_consumption")
-      results$mean_specific_consumption_se <- extract_sdr_se("mean_specific_consumption")
-      
-      results$specific_growth_rate_est <- extract_sdr_value("specific_growth_rate")
-      results$specific_growth_rate_se <- extract_sdr_se("specific_growth_rate")
-      
-      results$metabolic_scope_est <- extract_sdr_value("metabolic_scope")
-      results$metabolic_scope_se <- extract_sdr_se("metabolic_scope")
-      
-      # Energy budget proportions
-      results$prop_respiration_est <- extract_sdr_value("prop_respiration")
-      results$prop_respiration_se <- extract_sdr_se("prop_respiration")
-      
-      results$prop_egestion_est <- extract_sdr_value("prop_egestion")
-      results$prop_egestion_se <- extract_sdr_se("prop_egestion")
-      
-      results$prop_excretion_est <- extract_sdr_value("prop_excretion")
-      results$prop_excretion_se <- extract_sdr_se("prop_excretion")
-      
-      results$prop_sda_est <- extract_sdr_value("prop_sda")
-      results$prop_sda_se <- extract_sdr_se("prop_sda")
-      
-      results$prop_growth_est <- extract_sdr_value("prop_growth")
-      results$prop_growth_se <- extract_sdr_se("prop_growth")
-      
-      # Final energy density
-      results$final_energy_density_est <- extract_sdr_value("final_energy_density")
-      results$final_energy_density_se <- extract_sdr_se("final_energy_density")
-      
+      # Bulk-assign all ADREPORT scalar variables using the package-level helpers
+      # (sdr_pull_est / sdr_pull_se / sdr_assign_scalars defined at top of this file)
+      results <- sdr_assign_scalars(results, sdr_summary, c(
+        # Core growth and consumption
+        "final_weight", "total_consumption_g", "gross_growth_efficiency",
+        "total_growth", "relative_growth",
+        # Energy budget components
+        "total_consumption_energy", "total_respiration_energy",
+        "total_egestion_energy", "total_excretion_energy",
+        "total_sda_energy", "total_net_energy", "total_spawn_energy",
+        # Efficiency and consumption metrics
+        "mean_daily_consumption", "mean_specific_consumption",
+        "specific_growth_rate", "metabolic_scope",
+        # Energy budget proportions
+        "prop_respiration", "prop_egestion", "prop_excretion",
+        "prop_sda", "prop_growth",
+        # Final energy density
+        "final_energy_density"
+      ))
+
       if (verbose) {
-        n_extracted <- sum(!is.na(c(results$final_weight_est, results$total_consumption_g_est, 
-                                   results$gross_growth_efficiency_est)))
+        n_extracted <- sum(!is.na(c(results$final_weight_est,
+                                    results$total_consumption_g_est,
+                                    results$gross_growth_efficiency_est)))
         message("Successfully extracted ", n_extracted, " ADREPORT variables with uncertainty")
       }
       
@@ -669,140 +681,51 @@ extract_hierarchical_parameters <- function(results, params, obj, confidence_lev
       # Get summary with estimates and standard errors
       sdr_summary <- summary(sdr)
       
-      # Helper functions to extract values and standard errors
-      extract_sdr_value <- function(name) {
-        idx <- which(rownames(sdr_summary) == name)
-        if(length(idx) > 0) sdr_summary[idx, "Estimate"] else NA
+      # ---- Individual-level variables (vector, length = n_individuals) --------
+      # p_values: only SE needed (estimates come from obj$report())
+      results$individual_p_values_se <-
+        sdr_pull_vec(sdr_summary, "individual_p_values", n_individuals)$ses
+
+      # Remaining individual variables: extract both est and se
+      # Each entry: c(sdr_name, results_prefix)
+      individual_vector_fields <- list(
+        c("final_weights",                   "individual_final_weights"),
+        c("individual_total_consumption",    "individual_total_consumption"),
+        c("individual_total_growth",         "individual_total_growth"),
+        c("individual_relative_growth",      "individual_relative_growth"),
+        c("individual_gross_efficiency",     "individual_gross_efficiency"),
+        c("individual_metabolic_scope",      "individual_metabolic_scope"),
+        c("individual_final_energy_density", "individual_final_energy_density"),
+        c("individual_respiration_energy",   "individual_respiration_energy"),
+        c("individual_egestion_energy",      "individual_egestion_energy"),
+        c("individual_excretion_energy",     "individual_excretion_energy"),
+        c("individual_sda_energy",           "individual_sda_energy"),
+        c("individual_net_energy",           "individual_net_energy"),
+        c("individual_spawn_energy",         "individual_spawn_energy")
+      )
+      for (pair in individual_vector_fields) {
+        vec <- sdr_pull_vec(sdr_summary, pair[[1L]], n_individuals)
+        results[[paste0(pair[[2L]], "_est")]] <- vec$estimates
+        results[[paste0(pair[[2L]], "_se")]]  <- vec$ses
       }
-      
-      extract_sdr_se <- function(name) {
-        idx <- which(rownames(sdr_summary) == name)
-        if(length(idx) > 0) sdr_summary[idx, "Std. Error"] else NA
-      }
-      
-      # Helper function to extract vector variables (for individuals)
-      extract_sdr_vector <- function(name, n_elements) {
-        # Buscar las entradas que coincidan exactamente con el nombre
-        idx <- which(rownames(sdr_summary) == name)
-        
-        if(length(idx) >= n_elements) {
-          estimates <- sdr_summary[idx[1:n_elements], "Estimate"]
-          ses <- sdr_summary[idx[1:n_elements], "Std. Error"]
-          return(list(estimates = estimates, ses = ses))
-        } else {
-          return(list(estimates = rep(NA, n_elements), ses = rep(NA, n_elements)))
-        }
-      } 
-      # Extract individual-level variables with uncertainty
-      
-      # Individual p_values (already have estimates from report)
-      indiv_p_uncertainty <- extract_sdr_vector("individual_p_values", n_individuals)
-      results$individual_p_values_se <- indiv_p_uncertainty$ses
-      
-      # Individual final weights
-      indiv_weights <- extract_sdr_vector("final_weights", n_individuals)
-      results$individual_final_weights_est <- indiv_weights$estimates
-      results$individual_final_weights_se <- indiv_weights$ses
-      
-      # Individual consumption
-      indiv_consumption <- extract_sdr_vector("individual_total_consumption", n_individuals)
-      results$individual_total_consumption_est <- indiv_consumption$estimates
-      results$individual_total_consumption_se <- indiv_consumption$ses
-      
-      # Individual growth metrics
-      indiv_growth <- extract_sdr_vector("individual_total_growth", n_individuals)
-      results$individual_total_growth_est <- indiv_growth$estimates
-      results$individual_total_growth_se <- indiv_growth$ses
-      
-      indiv_rel_growth <- extract_sdr_vector("individual_relative_growth", n_individuals)
-      results$individual_relative_growth_est <- indiv_rel_growth$estimates
-      results$individual_relative_growth_se <- indiv_rel_growth$ses
-      
-      # Individual efficiency metrics
-      indiv_efficiency <- extract_sdr_vector("individual_gross_efficiency", n_individuals)
-      results$individual_gross_efficiency_est <- indiv_efficiency$estimates
-      results$individual_gross_efficiency_se <- indiv_efficiency$ses
-      
-      indiv_scope <- extract_sdr_vector("individual_metabolic_scope", n_individuals)
-      results$individual_metabolic_scope_est <- indiv_scope$estimates
-      results$individual_metabolic_scope_se <- indiv_scope$ses
-      
-      # Individual energy density
-      indiv_ed <- extract_sdr_vector("individual_final_energy_density", n_individuals)
-      results$individual_final_energy_density_est <- indiv_ed$estimates
-      results$individual_final_energy_density_se <- indiv_ed$ses
-      
-      # Individual energy budget components
-      indiv_resp <- extract_sdr_vector("individual_respiration_energy", n_individuals)
-      results$individual_respiration_energy_est <- indiv_resp$estimates
-      results$individual_respiration_energy_se <- indiv_resp$ses
-      
-      indiv_egest <- extract_sdr_vector("individual_egestion_energy", n_individuals)
-      results$individual_egestion_energy_est <- indiv_egest$estimates
-      results$individual_egestion_energy_se <- indiv_egest$ses
-      
-      indiv_excret <- extract_sdr_vector("individual_excretion_energy", n_individuals)
-      results$individual_excretion_energy_est <- indiv_excret$estimates
-      results$individual_excretion_energy_se <- indiv_excret$ses
-      
-      indiv_sda <- extract_sdr_vector("individual_sda_energy", n_individuals)
-      results$individual_sda_energy_est <- indiv_sda$estimates
-      results$individual_sda_energy_se <- indiv_sda$ses
-      
-      indiv_net <- extract_sdr_vector("individual_net_energy", n_individuals)
-      results$individual_net_energy_est <- indiv_net$estimates
-      results$individual_net_energy_se <- indiv_net$ses
-      
-      indiv_spawn <- extract_sdr_vector("individual_spawn_energy", n_individuals)
-      results$individual_spawn_energy_est <- indiv_spawn$estimates
-      results$individual_spawn_energy_se <- indiv_spawn$ses
-      
-      # Population-level means with uncertainty
-      results$mean_final_weight_est <- extract_sdr_value("mean_final_weight")
-      results$mean_final_weight_se <- extract_sdr_se("mean_final_weight")
-      
-      results$mean_total_consumption_est <- extract_sdr_value("mean_total_consumption")
-      results$mean_total_consumption_se <- extract_sdr_se("mean_total_consumption")
-      
-      results$mean_total_growth_est <- extract_sdr_value("mean_total_growth")
-      results$mean_total_growth_se <- extract_sdr_se("mean_total_growth")
-      
-      results$mean_relative_growth_est <- extract_sdr_value("mean_relative_growth")
-      results$mean_relative_growth_se <- extract_sdr_se("mean_relative_growth")
-      
-      results$mean_gross_efficiency_est <- extract_sdr_value("mean_gross_efficiency")
-      results$mean_gross_efficiency_se <- extract_sdr_se("mean_gross_efficiency")
-      
-      results$mean_metabolic_scope_est <- extract_sdr_value("mean_metabolic_scope")
-      results$mean_metabolic_scope_se <- extract_sdr_se("mean_metabolic_scope")
-      
-      results$mean_final_energy_density_est <- extract_sdr_value("mean_final_energy_density")
-      results$mean_final_energy_density_se <- extract_sdr_se("mean_final_energy_density")
-      
-      # Population-level mean energy budgets
-      results$mean_respiration_energy_est <- extract_sdr_value("mean_respiration_energy")
-      results$mean_respiration_energy_se <- extract_sdr_se("mean_respiration_energy")
-      
-      results$mean_egestion_energy_est <- extract_sdr_value("mean_egestion_energy")
-      results$mean_egestion_energy_se <- extract_sdr_se("mean_egestion_energy")
-      
-      results$mean_excretion_energy_est <- extract_sdr_value("mean_excretion_energy")
-      results$mean_excretion_energy_se <- extract_sdr_se("mean_excretion_energy")
-      
-      results$mean_sda_energy_est <- extract_sdr_value("mean_sda_energy")
-      results$mean_sda_energy_se <- extract_sdr_se("mean_sda_energy")
-      
-      results$mean_net_energy_est <- extract_sdr_value("mean_net_energy")
-      results$mean_net_energy_se <- extract_sdr_se("mean_net_energy")
-      
-      results$mean_spawn_energy_est <- extract_sdr_value("mean_spawn_energy")
-      results$mean_spawn_energy_se <- extract_sdr_se("mean_spawn_energy")
-      
+
+      # ---- Population-level scalar variables ----------------------------------
+      results <- sdr_assign_scalars(results, sdr_summary, c(
+        "mean_final_weight", "mean_total_consumption",
+        "mean_total_growth", "mean_relative_growth",
+        "mean_gross_efficiency", "mean_metabolic_scope",
+        "mean_final_energy_density",
+        "mean_respiration_energy", "mean_egestion_energy",
+        "mean_excretion_energy", "mean_sda_energy",
+        "mean_net_energy", "mean_spawn_energy"
+      ))
+
       if (verbose) {
         n_individual_vars <- sum(!is.na(results$individual_final_weights_est))
-        n_population_vars <- sum(!is.na(c(results$mean_final_weight_est, results$mean_total_consumption_est)))
-        message("Successfully extracted uncertainty for ", n_individual_vars, " individual and ", 
-                n_population_vars, " population variables")
+        n_population_vars <- sum(!is.na(c(results$mean_final_weight_est,
+                                          results$mean_total_consumption_est)))
+        message("Successfully extracted uncertainty for ", n_individual_vars,
+                " individual and ", n_population_vars, " population variables")
       }
       
     }

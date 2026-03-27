@@ -26,11 +26,13 @@ Imports:
    utils,
    Rcpp,
    TMB (>= 1.7.0)
-Suggests: 
+Suggests:
    testthat (>= 3.0.0),
    knitr,
    rmarkdown,
-   microbenchmark
+   microbenchmark,
+   future,
+   furrr
 LinkingTo: TMB, RcppEigen
 Config/testthat/edition: 3
 RoxygenNote: 7.3.2
