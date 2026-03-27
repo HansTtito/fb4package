@@ -31,16 +31,13 @@ plot_bio_dashboard <- function(bio_obj, colors = "blue", title = NULL, ...) {
   plot.window(xlim = c(0, 1), ylim = c(0, 1))
   title("Component Status")
   
-  has_params <- !is.null(bio_obj$species_params) && length(bio_obj$species_params) > 0
-  has_temp <- !is.null(bio_obj$environmental_data$temperature)
-  has_diet <- !is.null(bio_obj$diet_data$proportions)
-  has_initial <- !is.null(bio_obj$simulation_settings$initial_weight)
-  
+  ready <- check_bioenergetic_readiness(bio_obj)
+
   components <- list(
-    "Parameters" = has_params,
-    "Temperature" = has_temp,
-    "Diet data" = has_diet,
-    "Initial weight" = has_initial
+    "Parameters"    = ready$has_params,
+    "Temperature"   = ready$has_temp,
+    "Diet data"     = ready$has_diet,
+    "Initial weight"= ready$has_initial
   )
   
   y_pos <- seq(0.8, 0.2, length.out = length(components))
@@ -95,7 +92,7 @@ plot_bio_dashboard <- function(bio_obj, colors = "blue", title = NULL, ...) {
   plot.window(xlim = c(0, 1), ylim = c(0, 1))
   title("Simulation Ready")
   
-  ready_count <- sum(has_params, has_temp, has_diet, has_initial)
+  ready_count <- sum(ready$has_params, ready$has_temp, ready$has_diet, ready$has_initial)
   total_required <- 4
   
   if (ready_count == total_required) {
@@ -180,7 +177,7 @@ plot_bio_diet <- function(bio_obj, colors = "green", max_prey = 5, ...) {
        main = "Diet Composition Over Time", las = 1)
   
   cumulative <- rep(0, nrow(diet_props))
-  for (i in 1:length(prey_names)) {
+  for (i in seq_along(prey_names)) {
     cumulative_new <- cumulative + diet_matrix[, i]
     x_coords <- c(diet_props$Day, rev(diet_props$Day))
     y_coords <- c(cumulative, rev(cumulative_new))
