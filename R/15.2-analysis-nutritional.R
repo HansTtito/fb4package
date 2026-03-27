@@ -115,6 +115,29 @@ compare_with_redfield <- function(np_ratios) {
 # NUTRIENT EFFICIENCY FUNCTIONS
 # ============================================================================
 
+#' Compute efficiency metrics for a single nutrient
+#'
+#' @description
+#' Internal helper that calculates retention, excretion, and growth efficiencies
+#' from raw flux values.  Used by \code{calculate_nutrient_efficiencies()} to
+#' avoid duplicating the identical calculation for nitrogen and phosphorus.
+#'
+#' @param consumed  Total nutrient consumed (same units as other flux args).
+#' @param growth    Nutrient retained in growth.
+#' @param excretion Nutrient lost via excretion.
+#' @param assimilated Nutrient assimilated (consumed minus egested).
+#'
+#' @return Named list: \code{retention_efficiency}, \code{excretion_rate},
+#'   \code{growth_efficiency}.
+#' @keywords internal
+nutrient_efficiency_block <- function(consumed, growth, excretion, assimilated) {
+  list(
+    retention_efficiency = if (consumed    > 0) growth    / consumed    else 0,
+    excretion_rate       = if (consumed    > 0) excretion / consumed    else 0,
+    growth_efficiency    = if (assimilated > 0) growth    / assimilated else 0
+  )
+}
+
 #' Calculate nutrient retention efficiencies
 #'
 #' @description
@@ -126,44 +149,28 @@ compare_with_redfield <- function(np_ratios) {
 #' @return List with calculated efficiencies for both nutrients
 #' @export
 calculate_nutrient_efficiencies <- function(nitrogen_fluxes, phosphorus_fluxes) {
-  
-  # Nitrogen efficiencies
-  n_consumed <- nitrogen_fluxes$consumed
-  n_growth <- nitrogen_fluxes$growth
-  n_excretion <- nitrogen_fluxes$excretion
-  n_assimilated <- nitrogen_fluxes$assimilated
-  
-  n_retention_efficiency <- if (n_consumed > 0) n_growth / n_consumed else 0
-  n_excretion_rate <- if (n_consumed > 0) n_excretion / n_consumed else 0
-  n_growth_efficiency <- if (n_assimilated > 0) n_growth / n_assimilated else 0
-  
-  # Phosphorus efficiencies
-  p_consumed <- phosphorus_fluxes$consumed
-  p_growth <- phosphorus_fluxes$growth
-  p_excretion <- phosphorus_fluxes$excretion
-  p_assimilated <- phosphorus_fluxes$assimilated
-  
-  p_retention_efficiency <- if (p_consumed > 0) p_growth / p_consumed else 0
-  p_excretion_rate <- if (p_consumed > 0) p_excretion / p_consumed else 0
-  p_growth_efficiency <- if (p_assimilated > 0) p_growth / p_assimilated else 0
-  
-  return(list(
-    nitrogen = list(
-      assimilation_efficiency = nitrogen_fluxes$assimilation_efficiency,
-      retention_efficiency = n_retention_efficiency,
-      excretion_rate = n_excretion_rate,
-      growth_efficiency = n_growth_efficiency
+
+  n_eff <- nutrient_efficiency_block(
+    nitrogen_fluxes$consumed, nitrogen_fluxes$growth,
+    nitrogen_fluxes$excretion, nitrogen_fluxes$assimilated
+  )
+  p_eff <- nutrient_efficiency_block(
+    phosphorus_fluxes$consumed, phosphorus_fluxes$growth,
+    phosphorus_fluxes$excretion, phosphorus_fluxes$assimilated
+  )
+
+  list(
+    nitrogen = c(
+      list(assimilation_efficiency = nitrogen_fluxes$assimilation_efficiency),
+      n_eff
     ),
-    phosphorus = list(
-      assimilation_efficiency = phosphorus_fluxes$assimilation_efficiency,
-      retention_efficiency = p_retention_efficiency,
-      excretion_rate = p_excretion_rate,
-      growth_efficiency = p_growth_efficiency
+    phosphorus = c(
+      list(assimilation_efficiency = phosphorus_fluxes$assimilation_efficiency),
+      p_eff
     ),
-    # Relative efficiencies
-    relative_n_retention = if (p_retention_efficiency > 0) n_retention_efficiency / p_retention_efficiency else NA,
-    relative_n_excretion = if (p_excretion_rate > 0) n_excretion_rate / p_excretion_rate else NA
-  ))
+    relative_n_retention = if (p_eff$retention_efficiency > 0) n_eff$retention_efficiency / p_eff$retention_efficiency else NA,
+    relative_n_excretion = if (p_eff$excretion_rate       > 0) n_eff$excretion_rate       / p_eff$excretion_rate       else NA
+  )
 }
 
 # ============================================================================
@@ -253,6 +260,39 @@ calculate_stoichiometric_balance <- function(nutrient_balance) {
 # BODY COMPOSITION ANALYSIS FUNCTIONS
 # ============================================================================
 
+#' Build a body-composition data frame from a list of composition results
+#'
+#' @description
+#' Internal helper shared by \code{analyze_composition_by_size()} and
+#' \code{analyze_composition_changes()}.  Converts a list of
+#' \code{calculate_body_composition()} outputs into a tidy data frame,
+#' avoiding duplication of the identical \code{sapply} + \code{data.frame}
+#' block.
+#'
+#' @param compositions List of results from \code{calculate_body_composition()},
+#'   one element per weight point or time step.
+#' @param weights Numeric vector of fish weights corresponding to each element.
+#'
+#' @return Data frame with columns \code{Weight}, \code{Water_g},
+#'   \code{Protein_g}, \code{Ash_g}, \code{Fat_g}, and the corresponding
+#'   \code{*_fraction} and \code{Energy_density} columns.
+#' @keywords internal
+build_composition_df <- function(compositions, weights) {
+  data.frame(
+    Weight           = weights,
+    Water_g          = sapply(compositions, `[[`, "water_g"),
+    Protein_g        = sapply(compositions, `[[`, "protein_g"),
+    Ash_g            = sapply(compositions, `[[`, "ash_g"),
+    Fat_g            = sapply(compositions, `[[`, "fat_g"),
+    Water_fraction   = sapply(compositions, `[[`, "water_fraction"),
+    Protein_fraction = sapply(compositions, `[[`, "protein_fraction"),
+    Ash_fraction     = sapply(compositions, `[[`, "ash_fraction"),
+    Fat_fraction     = sapply(compositions, `[[`, "fat_fraction"),
+    Energy_density   = sapply(compositions, `[[`, "energy_density"),
+    stringsAsFactors = FALSE
+  )
+}
+
 #' Analyze body composition by size range
 #'
 #' @description
@@ -278,27 +318,11 @@ analyze_composition_by_size <- function(weight_range = c(1, 500),
   # Create weight sequence
   weights <- seq(weight_range[1], weight_range[2], length.out = n_points)
   
-  # Calculate compositions for each weight
   compositions <- lapply(weights, function(w) {
     calculate_body_composition(w, processed_composition_params)
   })
-  
-  # Convert to data frame
-  result_df <- data.frame(
-    Weight = weights,
-    Water_g = sapply(compositions, `[[`, "water_g"),
-    Protein_g = sapply(compositions, `[[`, "protein_g"),
-    Ash_g = sapply(compositions, `[[`, "ash_g"),
-    Fat_g = sapply(compositions, `[[`, "fat_g"),
-    Water_fraction = sapply(compositions, `[[`, "water_fraction"),
-    Protein_fraction = sapply(compositions, `[[`, "protein_fraction"),
-    Ash_fraction = sapply(compositions, `[[`, "ash_fraction"),
-    Fat_fraction = sapply(compositions, `[[`, "fat_fraction"),
-    Energy_density = sapply(compositions, `[[`, "energy_density"),
-    stringsAsFactors = FALSE
-  )
-  
-  return(result_df)
+
+  return(build_composition_df(compositions, weights))
 }
 
 #' Analyze composition changes with growth
@@ -326,26 +350,12 @@ analyze_composition_changes <- function(result, processed_composition_params) {
   weights <- daily_data$Weight
   n_days <- length(weights)
   
-  # Calculate composition for each day
   compositions <- lapply(weights, function(w) {
     calculate_body_composition(w, processed_composition_params)
   })
-  
-  # Convert to data frame
-  composition_df <- data.frame(
-    Day = 1:n_days,
-    Weight = weights,
-    Water_g = sapply(compositions, `[[`, "water_g"),
-    Protein_g = sapply(compositions, `[[`, "protein_g"),
-    Ash_g = sapply(compositions, `[[`, "ash_g"),
-    Fat_g = sapply(compositions, `[[`, "fat_g"),
-    Water_fraction = sapply(compositions, `[[`, "water_fraction"),
-    Protein_fraction = sapply(compositions, `[[`, "protein_fraction"),
-    Ash_fraction = sapply(compositions, `[[`, "ash_fraction"),
-    Fat_fraction = sapply(compositions, `[[`, "fat_fraction"),
-    Energy_density = sapply(compositions, `[[`, "energy_density"),
-    stringsAsFactors = FALSE
-  )
+
+  composition_df <- build_composition_df(compositions, weights)
+  composition_df$Day <- seq_len(n_days)
   
   # Calculate changes over time
   composition_df$Energy_density_change <- c(NA, diff(composition_df$Energy_density))
