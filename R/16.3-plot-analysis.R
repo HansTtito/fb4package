@@ -453,3 +453,128 @@ plot_hierarchical_distributions <- function(fb4_result, colors, show_individuals
     }
   }
 }
+
+# ============================================================================
+# SENSITIVITY PLOT
+# ============================================================================
+
+#' Plot sensitivity analysis
+#'
+#' @description
+#' Creates sensitivity analysis plots for temperature and feeding effects.
+#'
+#' @param bio_obj Bioenergetic object
+#' @param temperatures Temperature values to test
+#' @param feeding_levels Feeding levels to test
+#' @param colors Color scheme
+#' @param verbose Show progress messages
+#' @param ... Additional arguments
+#'
+#' @return NULL (creates plot)
+#' @export
+plot_growth_temperature_sensitivity <- function(sensitivity_data, 
+                                                temperatures = seq(5, 20, by = 2),
+                                                feeding_levels = c(0.5, 0.75, 1.0),
+                                                species = NULL,
+                                                ylim = NULL,
+                                                xlim = NULL,
+                                                colors = "grayscale",
+                                                verbose = FALSE, ...) {
+  
+  if (verbose) message("Running sensitivity analysis...")
+  
+  # Remove failed runs
+  valid_results <- sensitivity_data[!is.na(sensitivity_data$daily_growth_rate), ]
+  
+  if (nrow(valid_results) == 0) {
+    stop("No valid sensitivity results to plot")
+  }
+  
+  # Get unique feeding levels
+  feeding_levels <- sort(unique(valid_results$feeding_pct), decreasing = TRUE)
+  n_levels <- length(feeding_levels)
+  
+  # Setup colors
+  if (colors == "grayscale") {
+    plot_colors <- gray.colors(n = n_levels, start = 0.1, end = 0.9)
+  } else if (colors == "color") {
+    plot_colors <- rainbow(n_levels)
+  } else {
+    cols <- get_color_scheme(colors)
+    plot_colors <- rep(c(cols$primary, cols$secondary, cols$accent), 
+                      length.out = n_levels)
+  }
+  
+  # Line and point types
+  line_types <- rep(1:5, length.out = n_levels)
+  point_types <- rep(c(19, 1, 2, 0, 17), length.out = n_levels)
+  
+  # Setup plot
+  old_par <- par(no.readonly = TRUE)
+  on.exit(par(old_par))
+  par(mfrow = c(1, 1), mar = c(4, 4, 3, 2))
+  
+  # Create title
+  main_title <- if (!is.null(species)) {
+    paste("Temperature & Feeding Effects -", species)
+  } else {
+    "Temperature & Feeding Effects on Growth"
+  }
+  
+  # Create plot
+  plot(valid_results$temperature, valid_results$daily_growth_rate,
+       type = "n",
+       xlab = "Temperature (°C)",
+       ylab = "Daily Growth Rate (g/g/day)",
+       main = main_title,
+       ylim = ylim %||% range(valid_results$daily_growth_rate, na.rm = TRUE),
+       xlim = xlim %||% range(valid_results$temperature, na.rm = TRUE))
+  
+  abline(h = 0, col = "black", lty = 2, lwd = 1)
+  grid(col = "lightgray", lty = "dotted")
+  
+  # Add lines for each feeding level
+  for (i in seq_along(feeding_levels)) {
+    feeding_pct <- feeding_levels[i]
+    feeding_data <- valid_results[valid_results$feeding_pct == feeding_pct, ]
+    feeding_data <- feeding_data[order(feeding_data$temperature), ]
+    
+    lines(feeding_data$temperature, feeding_data$daily_growth_rate,
+          col = plot_colors[i], lwd = 2, lty = line_types[i])
+    
+    points(feeding_data$temperature, feeding_data$daily_growth_rate,
+           col = plot_colors[i], pch = point_types[i], cex = 1.2)
+  }
+  
+  # Legend
+  legend_labels <- paste("P =", round(feeding_levels, 3))
+  
+  legend("topright",
+         legend = legend_labels,
+         col = plot_colors,
+         lwd = 2,
+         pch = point_types,
+         lty = line_types,
+         cex = 0.9,
+         bg = "white")
+  
+  # Add optimal temperature annotation
+  if (length(feeding_levels) > 0) {
+    top_feeding <- feeding_levels[1]
+    top_data <- valid_results[valid_results$feeding_pct == top_feeding, ]
+    
+    if (nrow(top_data) > 0) {
+      max_growth_idx <- which.max(top_data$daily_growth_rate)
+      optimal_temp <- top_data$temperature[max_growth_idx]
+      max_growth <- top_data$daily_growth_rate[max_growth_idx]
+      
+      abline(v = optimal_temp, col = "red", lty = 2, lwd = 1)
+      text(optimal_temp + 1, max_growth * 0.8,
+           paste("Optimal\n", optimal_temp, "°C"),
+           col = "red", cex = 0.8, adj = 0)
+    }
+  }
+  
+  if (verbose) message("Sensitivity plot completed")
+}
+
