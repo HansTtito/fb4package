@@ -307,31 +307,29 @@ predict_consumption_bootstrap <- function(p_mean, p_sd, bio_obj, n_sims = 1000,
     
   } else {
     # Sequential processing with progress
-    consumption_samples <- numeric(n_sims)
-    
-    for (i in 1:n_sims) {
+    consumption_samples <- vapply(seq_len(n_sims), function(i) {
       if (verbose && i %% 100 == 0) {
         message("Progress: ", i, "/", n_sims, " (", round(100 * i / n_sims, 1), "%)")
       }
-      
       tryCatch({
         result <- run_fb4(
-          x = bio_obj,
-          fit_to = "p_value",
+          x         = bio_obj,
+          fit_to    = "p_value",
           fit_value = p_samples[i],
           first_day = first_day,
-          last_day = last_day,
-          strategy = "direct_p_value",
-          verbose = FALSE
+          last_day  = last_day,
+          strategy  = "direct_p_value",
+          verbose   = FALSE
         )
-        consumption_samples[i] <- result$summary$total_consumption_g
+        result$summary$total_consumption_g
       }, error = function(e) {
-        consumption_samples[i] <- NA
         if (verbose) {
-          warning("Simulation ", i, " failed for p = ", round(p_samples[i], 4), ": ", e$message)
+          warning("Simulation ", i, " failed for p = ", round(p_samples[i], 4),
+                  ": ", e$message)
         }
+        NA_real_
       })
-    }
+    }, FUN.VALUE = NA_real_)
   }
   
   # Remove failed simulations
