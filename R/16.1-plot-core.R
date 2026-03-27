@@ -194,11 +194,10 @@ add_confidence_bands <- function(x, lower, upper, color = "red", alpha = 0.2) {
   y_poly <- c(lower_valid, rev(upper_valid))
   
   # Add shaded area
-  graphics::polygon(x_poly, y_poly, 
-                    col = grDevices::rgb(grDevices::col2rgb(color)[1,1]/255, 
-                                         grDevices::col2rgb(color)[2,1]/255, 
-                                         grDevices::col2rgb(color)[3,1]/255, 
-                                         alpha), 
+  rgb_vals <- grDevices::col2rgb(color) / 255
+  graphics::polygon(x_poly, y_poly,
+                    col    = grDevices::rgb(rgb_vals[1, 1], rgb_vals[2, 1],
+                                            rgb_vals[3, 1], alpha),
                     border = NA)
 }
 
@@ -319,21 +318,10 @@ validate_plot_data <- function(daily_data, required_columns, plot_type = "plot")
 #' @param fb4_result FB4 result object
 #' @return Character string with species name or NULL if not available
 #' @keywords internal
-extract_species_name <- function(fb4_result) {
-  
-  if (is.null(fb4_result$bioenergetic_object)) {
-    return(NULL)
-  }
-  
-  species_info <- fb4_result$bioenergetic_object$species_info
-  
-  if (!is.null(species_info$scientific_name)) {
-    return(species_info$scientific_name)
-  } else if (!is.null(species_info$common_name)) {
-    return(species_info$common_name)
-  } else {
-    return(NULL)
-  }
+extract_species_name <- function(x) {
+  species_info <- x$bioenergetic_object$species_info %||% x$species_info
+  if (is.null(species_info)) return(NULL)
+  species_info$scientific_name %||% species_info$common_name %||% NULL
 }
 
 #' Calculate Basic Growth Metrics
