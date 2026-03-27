@@ -91,7 +91,20 @@ detect_method <- function(raw_results, execution_plan) {
   return(method)
 }
 
-#' Create unified summary section
+#' Build the \code{$summary} slot of an fb4_result object
+#'
+#' @description
+#' **Internal constructor helper** — called once by \code{build_fb4_result_unified()}
+#' when the result object is first assembled. Translates raw strategy outputs into
+#' the standardised \code{$summary} slot that all downstream code reads from.
+#'
+#' This is NOT a post-hoc analysis function. For user-facing comprehensive
+#' analysis of a finished result, see \code{\link{create_result_summary}}.
+#'
+#' @param raw_results Raw output list returned by the strategy
+#' @param execution_plan Execution plan from \code{create_execution_plan()}
+#' @param method Normalised method string (e.g. "mle", "bootstrap")
+#' @return Named list that becomes \code{result$summary}
 #' @keywords internal
 create_unified_summary <- function(raw_results, execution_plan, method) {
   
@@ -156,221 +169,271 @@ create_unified_summary <- function(raw_results, execution_plan, method) {
 }
 
 #' Create method-specific data section
+#'
+#' @description
+#' Builds the \code{$method_data} slot of an \code{fb4_result} object.
+#' Dispatches on \code{method} and delegates large uncertainty list
+#' construction to dedicated helpers:
+#' \code{\link{build_tmb_uncertainty}},
+#' \code{\link{build_individual_uncertainty}},
+#' \code{\link{build_population_uncertainty}}.
+#'
+#' @param raw_results    Raw output list returned by the strategy
+#' @param execution_plan Execution plan from \code{create_execution_plan()}
+#' @param method         Normalised method string (e.g. "mle", "bootstrap")
+#' @return Named list that becomes \code{result$method_data}
 #' @keywords internal
 create_method_specific_data <- function(raw_results, execution_plan, method) {
-  
+
   method_data <- list(method = method)
-  
+
   if (method %in% c("mle", "bootstrap")) {
-    # Statistical methods with observed weights
+    # Common observed-weight stats for statistical methods
     method_data$observed_weights <- execution_plan$observed_weights
-    method_data$n_observations <- length(execution_plan$observed_weights %||% c())
-    
+    method_data$n_observations   <- length(execution_plan$observed_weights %||% c())
+
     if (!is.null(execution_plan$observed_weights)) {
+      w <- execution_plan$observed_weights
       method_data$weight_stats <- list(
-        mean = mean(execution_plan$observed_weights),
-        sd = sd(execution_plan$observed_weights),
-        min = min(execution_plan$observed_weights),
-        max = max(execution_plan$observed_weights),
-        range = range(execution_plan$observed_weights)
+        mean  = mean(w),
+        sd    = sd(w),
+        min   = min(w),
+        max   = max(w),
+        range = range(w)
       )
     }
-    
-if (method == "mle") {
-  # MLE-specific data
-  method_data$confidence_intervals <- list(
-    p_ci_lower = raw_results$p_ci_lower,
-    p_ci_upper = raw_results$p_ci_upper
-  )
-  method_data$sigma_estimate <- raw_results$sigma_estimate
-  method_data$sigma_se <- raw_results$sigma_se
-  method_data$log_likelihood <- raw_results$log_likelihood
-  method_data$aic <- raw_results$aic
-  method_data$profile_likelihood <- raw_results$profile_likelihood
-  method_data$confidence_level <- raw_results$confidence_level %||% 0.95
-  
-  # ADD: TMB uncertainty data for basic model
-  if (execution_plan$backend == "tmb") {
-    method_data$tmb_uncertainty <- list(
-      # Core variables with uncertainty
-      final_weight_est = raw_results$final_weight_est,
-      final_weight_se = raw_results$final_weight_se,
-      total_consumption_g_est = raw_results$total_consumption_g_est,
-      total_consumption_g_se = raw_results$total_consumption_g_se,
-      gross_growth_efficiency_est = raw_results$gross_growth_efficiency_est,
-      gross_growth_efficiency_se = raw_results$gross_growth_efficiency_se,
-      total_growth_est = raw_results$total_growth_est,
-      total_growth_se = raw_results$total_growth_se,
-      relative_growth_est = raw_results$relative_growth_est,
-      relative_growth_se = raw_results$relative_growth_se,
-      
-      # Energy budget variables with uncertainty
-      total_consumption_energy_est = raw_results$total_consumption_energy_est,
-      total_consumption_energy_se = raw_results$total_consumption_energy_se,
-      total_respiration_energy_est = raw_results$total_respiration_energy_est,
-      total_respiration_energy_se = raw_results$total_respiration_energy_se,
-      total_egestion_energy_est = raw_results$total_egestion_energy_est,
-      total_egestion_energy_se = raw_results$total_egestion_energy_se,
-      total_excretion_energy_est = raw_results$total_excretion_energy_est,
-      total_excretion_energy_se = raw_results$total_excretion_energy_se,
-      total_sda_energy_est = raw_results$total_sda_energy_est,
-      total_sda_energy_se = raw_results$total_sda_energy_se,
-      total_net_energy_est = raw_results$total_net_energy_est,
-      total_net_energy_se = raw_results$total_net_energy_se,
-      total_spawn_energy_est = raw_results$total_spawn_energy_est,
-      total_spawn_energy_se = raw_results$total_spawn_energy_se,
-      
-      # Efficiency and consumption metrics with uncertainty
-      mean_daily_consumption_est = raw_results$mean_daily_consumption_est,
-      mean_daily_consumption_se = raw_results$mean_daily_consumption_se,
-      mean_specific_consumption_est = raw_results$mean_specific_consumption_est,
-      mean_specific_consumption_se = raw_results$mean_specific_consumption_se,
-      specific_growth_rate_est = raw_results$specific_growth_rate_est,
-      specific_growth_rate_se = raw_results$specific_growth_rate_se,
-      metabolic_scope_est = raw_results$metabolic_scope_est,
-      metabolic_scope_se = raw_results$metabolic_scope_se,
-      
-      # Energy budget proportions with uncertainty
-      prop_respiration_est = raw_results$prop_respiration_est,
-      prop_respiration_se = raw_results$prop_respiration_se,
-      prop_egestion_est = raw_results$prop_egestion_est,
-      prop_egestion_se = raw_results$prop_egestion_se,
-      prop_excretion_est = raw_results$prop_excretion_est,
-      prop_excretion_se = raw_results$prop_excretion_se,
-      prop_sda_est = raw_results$prop_sda_est,
-      prop_sda_se = raw_results$prop_sda_se,
-      prop_growth_est = raw_results$prop_growth_est,
-      prop_growth_se = raw_results$prop_growth_se,
-      
-      # Final energy density with uncertainty
-      final_energy_density_est = raw_results$final_energy_density_est,
-      final_energy_density_se = raw_results$final_energy_density_se
-    )
-  }   
-} else if (method == "bootstrap") {
-      # Bootstrap-specific data
+
+    if (method == "mle") {
+      method_data$confidence_intervals <- list(
+        p_ci_lower = raw_results$p_ci_lower,
+        p_ci_upper = raw_results$p_ci_upper
+      )
+      method_data$sigma_estimate    <- raw_results$sigma_estimate
+      method_data$sigma_se          <- raw_results$sigma_se
+      method_data$log_likelihood    <- raw_results$log_likelihood
+      method_data$aic               <- raw_results$aic
+      method_data$profile_likelihood <- raw_results$profile_likelihood
+      method_data$confidence_level  <- raw_results$confidence_level %||% 0.95
+
+      if (identical(execution_plan$backend, "tmb")) {
+        method_data$tmb_uncertainty <- build_tmb_uncertainty(raw_results)
+      }
+
+    } else {  # bootstrap
       method_data$bootstrap_results <- list(
-        p_values = raw_results$bootstrap_p_values,
+        p_values          = raw_results$bootstrap_p_values,
         consumption_values = raw_results$bootstrap_consumption_values,
         predicted_weights = raw_results$bootstrap_predicted_weights
       )
       method_data$confidence_intervals <- list(
-        p_ci_lower = raw_results$p_ci_lower,
-        p_ci_upper = raw_results$p_ci_upper,
+        p_ci_lower           = raw_results$p_ci_lower,
+        p_ci_upper           = raw_results$p_ci_upper,
         consumption_ci_lower = raw_results$consumption_ci_lower,
         consumption_ci_upper = raw_results$consumption_ci_upper
       )
       method_data$bootstrap_info <- list(
-        n_bootstrap = raw_results$n_bootstrap,
+        n_bootstrap           = raw_results$n_bootstrap,
         successful_iterations = raw_results$successful_iterations,
-        success_rate = raw_results$success_rate,
-        parallel_used = raw_results$parallel_used %||% FALSE,
-        n_cores_used = raw_results$n_cores_used
+        success_rate          = raw_results$success_rate,
+        parallel_used         = raw_results$parallel_used %||% FALSE,
+        n_cores_used          = raw_results$n_cores_used
       )
       method_data$model_diagnostics <- raw_results$model_diagnostics
-      method_data$percentiles <- raw_results$p_percentiles
+      method_data$percentiles       <- raw_results$p_percentiles
     }
-    
+
   } else if (method == "hierarchical") {
-  # Hierarchical method data
-  method_data$n_individuals <- raw_results$n_individuals
-  method_data$individual_results <- list(
-    p_estimates = raw_results$individual_p_estimates,
-    p_se = raw_results$individual_p_se
-  )
-  method_data$population_results <- list(
-    mu_p_estimate = raw_results$mu_p_estimate,
-    mu_p_se = raw_results$mu_p_se,
-    sigma_p_estimate = raw_results$sigma_p_estimate,
-    sigma_p_se = raw_results$sigma_p_se,
-    sigma_obs_estimate = raw_results$sigma_obs_estimate,
-    sigma_obs_se = raw_results$sigma_obs_se
-  )
-  method_data$model_fit <- list(
-    log_likelihood = raw_results$log_likelihood,
-    aic = raw_results$aic,
-    bic = raw_results$bic
-  )
-  method_data$confidence_level <- raw_results$confidence_level %||% 0.95
-  
-  # ADD: Individual-level uncertainty data
-  method_data$individual_uncertainty <- list(
-    final_weights_est = raw_results$individual_final_weights_est,
-    final_weights_se = raw_results$individual_final_weights_se,
-    total_consumption_est = raw_results$individual_total_consumption_est,
-    total_consumption_se = raw_results$individual_total_consumption_se,
-    total_growth_est = raw_results$individual_total_growth_est,
-    total_growth_se = raw_results$individual_total_growth_se,
-    relative_growth_est = raw_results$individual_relative_growth_est,
-    relative_growth_se = raw_results$individual_relative_growth_se,
-    gross_efficiency_est = raw_results$individual_gross_efficiency_est,
-    gross_efficiency_se = raw_results$individual_gross_efficiency_se,
-    metabolic_scope_est = raw_results$individual_metabolic_scope_est,
-    metabolic_scope_se = raw_results$individual_metabolic_scope_se,
-    final_energy_density_est = raw_results$individual_final_energy_density_est,
-    final_energy_density_se = raw_results$individual_final_energy_density_se,
-    respiration_energy_est = raw_results$individual_respiration_energy_est,
-    respiration_energy_se = raw_results$individual_respiration_energy_se,
-    egestion_energy_est = raw_results$individual_egestion_energy_est,
-    egestion_energy_se = raw_results$individual_egestion_energy_se,
-    excretion_energy_est = raw_results$individual_excretion_energy_est,
-    excretion_energy_se = raw_results$individual_excretion_energy_se,
-    sda_energy_est = raw_results$individual_sda_energy_est,
-    sda_energy_se = raw_results$individual_sda_energy_se,
-    net_energy_est = raw_results$individual_net_energy_est,
-    net_energy_se = raw_results$individual_net_energy_se,
-    spawn_energy_est = raw_results$individual_spawn_energy_est,
-    spawn_energy_se = raw_results$individual_spawn_energy_se
-  )
-  
-  # ADD: Population-level uncertainty data
-  method_data$population_uncertainty <- list(
-    mean_final_weight_est = raw_results$mean_final_weight_est,
-    mean_final_weight_se = raw_results$mean_final_weight_se,
-    mean_total_consumption_est = raw_results$mean_total_consumption_est,
-    mean_total_consumption_se = raw_results$mean_total_consumption_se,
-    mean_total_growth_est = raw_results$mean_total_growth_est,
-    mean_total_growth_se = raw_results$mean_total_growth_se,
-    mean_relative_growth_est = raw_results$mean_relative_growth_est,
-    mean_relative_growth_se = raw_results$mean_relative_growth_se,
-    mean_gross_efficiency_est = raw_results$mean_gross_efficiency_est,
-    mean_gross_efficiency_se = raw_results$mean_gross_efficiency_se,
-    mean_metabolic_scope_est = raw_results$mean_metabolic_scope_est,
-    mean_metabolic_scope_se = raw_results$mean_metabolic_scope_se,
-    mean_final_energy_density_est = raw_results$mean_final_energy_density_est,
-    mean_final_energy_density_se = raw_results$mean_final_energy_density_se,
-    mean_respiration_energy_est = raw_results$mean_respiration_energy_est,
-    mean_respiration_energy_se = raw_results$mean_respiration_energy_se,
-    mean_egestion_energy_est = raw_results$mean_egestion_energy_est,
-    mean_egestion_energy_se = raw_results$mean_egestion_energy_se,
-    mean_excretion_energy_est = raw_results$mean_excretion_energy_est,
-    mean_excretion_energy_se = raw_results$mean_excretion_energy_se,
-    mean_sda_energy_est = raw_results$mean_sda_energy_est,
-    mean_sda_energy_se = raw_results$mean_sda_energy_se,
-    mean_net_energy_est = raw_results$mean_net_energy_est,
-    mean_net_energy_se = raw_results$mean_net_energy_se,
-    mean_spawn_energy_est = raw_results$mean_spawn_energy_est,
-    mean_spawn_energy_se = raw_results$mean_spawn_energy_se
-  )
-  }  else {
-    # Traditional methods (binary_search, optim, direct)
+    method_data$n_individuals <- raw_results$n_individuals
+    method_data$individual_results <- list(
+      p_estimates = raw_results$individual_p_estimates,
+      p_se        = raw_results$individual_p_se
+    )
+    method_data$population_results <- list(
+      mu_p_estimate      = raw_results$mu_p_estimate,
+      mu_p_se            = raw_results$mu_p_se,
+      sigma_p_estimate   = raw_results$sigma_p_estimate,
+      sigma_p_se         = raw_results$sigma_p_se,
+      sigma_obs_estimate = raw_results$sigma_obs_estimate,
+      sigma_obs_se       = raw_results$sigma_obs_se
+    )
+    method_data$model_fit <- list(
+      log_likelihood = raw_results$log_likelihood,
+      aic            = raw_results$aic,
+      bic            = raw_results$bic
+    )
+    method_data$confidence_level      <- raw_results$confidence_level %||% 0.95
+    method_data$individual_uncertainty <- build_individual_uncertainty(raw_results)
+    method_data$population_uncertainty <- build_population_uncertainty(raw_results)
+
+  } else {
+    # Traditional methods: binary_search, optim, direct
     method_data$target_info <- list(
-      fit_to = execution_plan$fit_to,
-      fit_value = execution_plan$fit_value,
+      fit_to          = execution_plan$fit_to,
+      fit_value       = execution_plan$fit_value,
       target_achieved = check_target_achievement(raw_results, execution_plan)
     )
-    
     if (method %in% c("binary_search", "optim")) {
       method_data$optimization_info <- list(
-        iterations = raw_results$iterations,
+        iterations  = raw_results$iterations,
         final_error = raw_results$final_error,
-        tolerance = execution_plan$tolerance
+        tolerance   = execution_plan$tolerance
       )
     }
   }
-  
+
   return(method_data)
-  }
+}
+
+# ============================================================================
+# UNCERTAINTY DATA HELPERS
+# ============================================================================
+
+#' Build TMB uncertainty list for MLE results
+#'
+#' @description
+#' Extracts all \code{_est} / \code{_se} pairs reported by the TMB backend
+#' into a single named list.  Called by \code{\link{create_method_specific_data}}
+#' when \code{method == "mle"} and \code{backend == "tmb"}.
+#'
+#' @param raw_results Raw output list from the MLE/TMB strategy
+#' @return Named list of estimate/SE pairs for core, energy, efficiency,
+#'   proportion, and energy-density variables
+#' @keywords internal
+build_tmb_uncertainty <- function(raw_results) {
+  list(
+    # Core growth and consumption
+    final_weight_est              = raw_results$final_weight_est,
+    final_weight_se               = raw_results$final_weight_se,
+    total_consumption_g_est       = raw_results$total_consumption_g_est,
+    total_consumption_g_se        = raw_results$total_consumption_g_se,
+    gross_growth_efficiency_est   = raw_results$gross_growth_efficiency_est,
+    gross_growth_efficiency_se    = raw_results$gross_growth_efficiency_se,
+    total_growth_est              = raw_results$total_growth_est,
+    total_growth_se               = raw_results$total_growth_se,
+    relative_growth_est           = raw_results$relative_growth_est,
+    relative_growth_se            = raw_results$relative_growth_se,
+    # Energy budget components
+    total_consumption_energy_est  = raw_results$total_consumption_energy_est,
+    total_consumption_energy_se   = raw_results$total_consumption_energy_se,
+    total_respiration_energy_est  = raw_results$total_respiration_energy_est,
+    total_respiration_energy_se   = raw_results$total_respiration_energy_se,
+    total_egestion_energy_est     = raw_results$total_egestion_energy_est,
+    total_egestion_energy_se      = raw_results$total_egestion_energy_se,
+    total_excretion_energy_est    = raw_results$total_excretion_energy_est,
+    total_excretion_energy_se     = raw_results$total_excretion_energy_se,
+    total_sda_energy_est          = raw_results$total_sda_energy_est,
+    total_sda_energy_se           = raw_results$total_sda_energy_se,
+    total_net_energy_est          = raw_results$total_net_energy_est,
+    total_net_energy_se           = raw_results$total_net_energy_se,
+    total_spawn_energy_est        = raw_results$total_spawn_energy_est,
+    total_spawn_energy_se         = raw_results$total_spawn_energy_se,
+    # Efficiency and consumption metrics
+    mean_daily_consumption_est    = raw_results$mean_daily_consumption_est,
+    mean_daily_consumption_se     = raw_results$mean_daily_consumption_se,
+    mean_specific_consumption_est = raw_results$mean_specific_consumption_est,
+    mean_specific_consumption_se  = raw_results$mean_specific_consumption_se,
+    specific_growth_rate_est      = raw_results$specific_growth_rate_est,
+    specific_growth_rate_se       = raw_results$specific_growth_rate_se,
+    metabolic_scope_est           = raw_results$metabolic_scope_est,
+    metabolic_scope_se            = raw_results$metabolic_scope_se,
+    # Energy budget proportions
+    prop_respiration_est          = raw_results$prop_respiration_est,
+    prop_respiration_se           = raw_results$prop_respiration_se,
+    prop_egestion_est             = raw_results$prop_egestion_est,
+    prop_egestion_se              = raw_results$prop_egestion_se,
+    prop_excretion_est            = raw_results$prop_excretion_est,
+    prop_excretion_se             = raw_results$prop_excretion_se,
+    prop_sda_est                  = raw_results$prop_sda_est,
+    prop_sda_se                   = raw_results$prop_sda_se,
+    prop_growth_est               = raw_results$prop_growth_est,
+    prop_growth_se                = raw_results$prop_growth_se,
+    # Final energy density
+    final_energy_density_est      = raw_results$final_energy_density_est,
+    final_energy_density_se       = raw_results$final_energy_density_se
+  )
+}
+
+#' Build individual-level uncertainty list for hierarchical results
+#'
+#' @description
+#' Extracts per-individual \code{_est} / \code{_se} vectors reported by the
+#' hierarchical TMB backend.  Called by
+#' \code{\link{create_method_specific_data}} when \code{method == "hierarchical"}.
+#'
+#' @param raw_results Raw output list from the hierarchical strategy
+#' @return Named list of per-individual estimate/SE vectors
+#' @keywords internal
+build_individual_uncertainty <- function(raw_results) {
+  list(
+    final_weights_est        = raw_results$individual_final_weights_est,
+    final_weights_se         = raw_results$individual_final_weights_se,
+    total_consumption_est    = raw_results$individual_total_consumption_est,
+    total_consumption_se     = raw_results$individual_total_consumption_se,
+    total_growth_est         = raw_results$individual_total_growth_est,
+    total_growth_se          = raw_results$individual_total_growth_se,
+    relative_growth_est      = raw_results$individual_relative_growth_est,
+    relative_growth_se       = raw_results$individual_relative_growth_se,
+    gross_efficiency_est     = raw_results$individual_gross_efficiency_est,
+    gross_efficiency_se      = raw_results$individual_gross_efficiency_se,
+    metabolic_scope_est      = raw_results$individual_metabolic_scope_est,
+    metabolic_scope_se       = raw_results$individual_metabolic_scope_se,
+    final_energy_density_est = raw_results$individual_final_energy_density_est,
+    final_energy_density_se  = raw_results$individual_final_energy_density_se,
+    respiration_energy_est   = raw_results$individual_respiration_energy_est,
+    respiration_energy_se    = raw_results$individual_respiration_energy_se,
+    egestion_energy_est      = raw_results$individual_egestion_energy_est,
+    egestion_energy_se       = raw_results$individual_egestion_energy_se,
+    excretion_energy_est     = raw_results$individual_excretion_energy_est,
+    excretion_energy_se      = raw_results$individual_excretion_energy_se,
+    sda_energy_est           = raw_results$individual_sda_energy_est,
+    sda_energy_se            = raw_results$individual_sda_energy_se,
+    net_energy_est           = raw_results$individual_net_energy_est,
+    net_energy_se            = raw_results$individual_net_energy_se,
+    spawn_energy_est         = raw_results$individual_spawn_energy_est,
+    spawn_energy_se          = raw_results$individual_spawn_energy_se
+  )
+}
+
+#' Build population-level uncertainty list for hierarchical results
+#'
+#' @description
+#' Extracts population-mean \code{_est} / \code{_se} scalars reported by the
+#' hierarchical TMB backend.  Called by
+#' \code{\link{create_method_specific_data}} when \code{method == "hierarchical"}.
+#'
+#' @param raw_results Raw output list from the hierarchical strategy
+#' @return Named list of population-mean estimate/SE scalars
+#' @keywords internal
+build_population_uncertainty <- function(raw_results) {
+  list(
+    mean_final_weight_est        = raw_results$mean_final_weight_est,
+    mean_final_weight_se         = raw_results$mean_final_weight_se,
+    mean_total_consumption_est   = raw_results$mean_total_consumption_est,
+    mean_total_consumption_se    = raw_results$mean_total_consumption_se,
+    mean_total_growth_est        = raw_results$mean_total_growth_est,
+    mean_total_growth_se         = raw_results$mean_total_growth_se,
+    mean_relative_growth_est     = raw_results$mean_relative_growth_est,
+    mean_relative_growth_se      = raw_results$mean_relative_growth_se,
+    mean_gross_efficiency_est    = raw_results$mean_gross_efficiency_est,
+    mean_gross_efficiency_se     = raw_results$mean_gross_efficiency_se,
+    mean_metabolic_scope_est     = raw_results$mean_metabolic_scope_est,
+    mean_metabolic_scope_se      = raw_results$mean_metabolic_scope_se,
+    mean_final_energy_density_est = raw_results$mean_final_energy_density_est,
+    mean_final_energy_density_se  = raw_results$mean_final_energy_density_se,
+    mean_respiration_energy_est  = raw_results$mean_respiration_energy_est,
+    mean_respiration_energy_se   = raw_results$mean_respiration_energy_se,
+    mean_egestion_energy_est     = raw_results$mean_egestion_energy_est,
+    mean_egestion_energy_se      = raw_results$mean_egestion_energy_se,
+    mean_excretion_energy_est    = raw_results$mean_excretion_energy_est,
+    mean_excretion_energy_se     = raw_results$mean_excretion_energy_se,
+    mean_sda_energy_est          = raw_results$mean_sda_energy_est,
+    mean_sda_energy_se           = raw_results$mean_sda_energy_se,
+    mean_net_energy_est          = raw_results$mean_net_energy_est,
+    mean_net_energy_se           = raw_results$mean_net_energy_se,
+    mean_spawn_energy_est        = raw_results$mean_spawn_energy_est,
+    mean_spawn_energy_se         = raw_results$mean_spawn_energy_se
+  )
+}
 
 #' Create unified fit info section
 #' @keywords internal

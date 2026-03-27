@@ -110,376 +110,270 @@ create_bootstrap_strategy <- function(execution_plan) {
 # BOOTSTRAP ALGORITHMS
 # ============================================================================
 
-#' Bootstrap estimation for p_values with parallel option (Low-level - OPTIMIZED)
+#' Execute a single bootstrap iteration
 #'
 #' @description
-#' Estimates population p_value and consumption using bootstrap resampling of final weights.
-#' Now uses shared simulation execution functions for consistency and reduced duplication.
+#' Internal helper: resamples weights, finds the p_value that achieves the
+#' resampled mean weight via \code{optim_search_p_value}, then extracts
+#' consumption and (optionally) the predicted final weight.
 #'
-#' @param processed_simulation_data Complete processed simulation data (contains initial_weight)
-#' @param n_bootstrap Number of bootstrap iterations, default 1000
-#' @param oxycal Oxycalorific coefficient (J/g O2), default 13560
-#' @param sample_size Sample size for each bootstrap iteration (NULL = same as original)
-#' @param parallel Whether to use parallel processing, default FALSE
-#' @param n_cores Number of cores for parallel processing (NULL = auto-detect)
-#' @param verbose Whether to show progress messages, default FALSE
-#' @param store_predicted_weights Whether to store predicted final weights, default TRUE
+#' Extracted to eliminate code duplication between the sequential and parallel
+#' execution paths of \code{\link{bootstrap_p_values}}.
 #'
-#' @return List with bootstrap results including p_values, consumption, and predicted weights
+#' @param final_weights           Observed final weights vector
+#' @param n_sample                Sample size for bootstrap resampling
+#' @param simulation_function     Closure accepting a p_value and returning the
+#'   predicted final weight; used by \code{optim_search_p_value}
+#' @param processed_simulation_data Processed simulation data list
+#' @param oxycal                  Oxycalorific coefficient (J/g O2)
+#' @param store_predicted_weights Logical; retrieve the predicted final weight?
+#' @param upper_p                 Upper bound for p_value search, default 5.0
+#'
+#' @return Named list with fields \code{p_estimate}, \code{consumption_estimate},
+#'   \code{predicted_weight}, \code{mean_fin}, and \code{success} (logical).
+#' @keywords internal
+bootstrap_single_iteration <- function(final_weights, n_sample, simulation_function,
+                                       processed_simulation_data, oxycal,
+                                       store_predicted_weights, upper_p = 5.0) {
+
+  sample_final_w <- sample(final_weights, size = n_sample, replace = TRUE)
+  mean_fin_w     <- mean(sample_final_w)
+
+  optim_result <- optim_search_p_value(
+    target_value        = mean_fin_w,
+    fit_type            = "weight",
+    simulation_function = simulation_function,
+    method              = "Brent",
+    lower               = 0.01,
+    upper               = upper_p
+  )
+
+  # Return early if optim did not converge to a valid p_value
+  if (!optim_result$converged || is.na(optim_result$p_value) ||
+      optim_result$p_value <= 0 || optim_result$p_value > upper_p) {
+    return(list(
+      p_estimate           = NA_real_,
+      consumption_estimate = NA_real_,
+      predicted_weight     = NA_real_,
+      mean_fin             = mean_fin_w,
+      success              = FALSE
+    ))
+  }
+
+  p_val <- optim_result$p_value
+
+  consumption_estimate <- execute_simulation_with_method(
+    method_type               = "p_value",
+    method_value              = p_val,
+    processed_simulation_data = processed_simulation_data,
+    oxycal                    = oxycal,
+    extract_metric            = "consumption",
+    output_daily              = FALSE,
+    verbose                   = FALSE
+  )
+
+  predicted_weight <- if (store_predicted_weights) {
+    execute_simulation_with_method(
+      method_type               = "p_value",
+      method_value              = p_val,
+      processed_simulation_data = processed_simulation_data,
+      oxycal                    = oxycal,
+      extract_metric            = "weight",
+      output_daily              = FALSE,
+      verbose                   = FALSE
+    )
+  } else {
+    NA_real_
+  }
+
+  list(
+    p_estimate           = p_val,
+    consumption_estimate = consumption_estimate,
+    predicted_weight     = predicted_weight,
+    mean_fin             = mean_fin_w,
+    success              = TRUE
+  )
+}
+
+
+#' Bootstrap estimation of p_values with optional parallel processing
+#'
+#' @description
+#' Estimates population p_value and consumption using bootstrap resampling of
+#' final weights. Parallel execution is supported via the \pkg{future} /
+#' \pkg{furrr} ecosystem when \code{parallel = TRUE}.
+#'
+#' Each iteration delegates to \code{\link{bootstrap_single_iteration}} so that
+#' the sequential and parallel code paths share a single implementation.
+#'
+#' @param processed_simulation_data Complete processed simulation data (must
+#'   contain \code{simulation_settings$initial_weight} and
+#'   \code{simulation_settings$observed_weights})
+#' @param n_bootstrap   Number of bootstrap iterations, default 1000
+#' @param oxycal        Oxycalorific coefficient (J/g O2), default 13560
+#' @param sample_size   Sample size per iteration; \code{NULL} = same as data
+#' @param parallel      Logical; use parallel processing? default \code{FALSE}
+#' @param n_cores       Number of cores for parallel processing (\code{NULL} =
+#'   auto-detect via \code{future::availableCores()})
+#' @param verbose       Logical; show progress messages? default \code{FALSE}
+#' @param store_predicted_weights Logical; store predicted final weights?
+#'   default \code{TRUE}
+#'
+#' @return Named list with:
+#'   \describe{
+#'     \item{p_values}{Valid p_value estimates (NAs removed)}
+#'     \item{consumption_estimates}{Valid consumption estimates}
+#'     \item{predicted_weights}{Valid predicted weights, or \code{NULL}}
+#'     \item{success_rate, n_bootstrap, successful_iterations}{Diagnostics}
+#'     \item{parallel_used, n_cores_used}{Execution metadata}
+#'   }
+#' @seealso \code{\link{bootstrap_single_iteration}}, \code{\link{fit_fb4_bootstrap}}
 #' @keywords internal
 bootstrap_p_values <- function(processed_simulation_data,
-                               n_bootstrap = 1000, oxycal = 13560, 
-                               sample_size = NULL, parallel = FALSE, 
+                               n_bootstrap = 1000, oxycal = 13560,
+                               sample_size = NULL, parallel = FALSE,
                                n_cores = NULL, verbose = FALSE,
                                store_predicted_weights = TRUE) {
-  
-  # Extract initial weight from processed data
-  initial_weight <- processed_simulation_data$simulation_settings$initial_weight
-  final_weights <- processed_simulation_data$simulation_settings$observed_weights
 
-  # Validate inputs
+  # ---- Extract data --------------------------------------------------------
+  initial_weight <- processed_simulation_data$simulation_settings$initial_weight
+  final_weights  <- processed_simulation_data$simulation_settings$observed_weights
+
+  # ---- Validate inputs -----------------------------------------------------
   if (length(final_weights) < 5) {
     stop("At least 5 observations required for final weights")
   }
-  
   if (any(final_weights <= 0) || initial_weight <= 0) {
     stop("All weights must be positive")
   }
-  
   if (initial_weight >= min(final_weights)) {
-    warning("Initial weight (", round(initial_weight, 1), "g) is not smaller than minimum final weight (", 
-            round(min(final_weights), 1), "g). Check your data.")
-  }
-  
-  # Set sample size
-  n_sample <- ifelse(is.null(sample_size), length(final_weights), sample_size)
-  
-  if (verbose) {
-    message("Starting bootstrap estimation for p_values and consumption")
-    message("Initial weight (from model): ", round(initial_weight, 1), "g")
-    message("Final weights (n=", length(final_weights), "): ", 
-            round(min(final_weights), 1), " - ", round(max(final_weights), 1), "g")
-    message("Bootstrap iterations: ", n_bootstrap)
-    message("Storing predicted weights: ", store_predicted_weights)
-    
-    if (parallel) {
-      if (is.null(n_cores)) {
-        n_cores <- future::availableCores() - 1
-      }
-      message("Using parallel processing with ", n_cores, " cores")
-    }
-  }
-  
-  # Create shared simulation function that will be used in bootstrap
-  simulation_function <- function(p_val) {
-    execute_simulation_with_method(
-      method_type = "p_value",
-      method_value = p_val,
-      processed_simulation_data = processed_simulation_data,
-      oxycal = oxycal,
-      extract_metric = "weight",
-      output_daily = FALSE,
-      verbose = FALSE
+    warning(
+      "Initial weight (", round(initial_weight, 1), "g) is not smaller than ",
+      "minimum final weight (", round(min(final_weights), 1), "g). Check your data."
     )
   }
-  
-  # Execute bootstrap: parallel or sequential
+
+  n_sample <- ifelse(is.null(sample_size), length(final_weights), sample_size)
+
+  # ---- Shared simulation closure (used inside optim) -----------------------
+  # Captures processed_simulation_data and oxycal from this scope; serialized
+  # correctly by future when parallel = TRUE.
+  simulation_function <- function(p_val) {
+    execute_simulation_with_method(
+      method_type               = "p_value",
+      method_value              = p_val,
+      processed_simulation_data = processed_simulation_data,
+      oxycal                    = oxycal,
+      extract_metric            = "weight",
+      output_daily              = FALSE,
+      verbose                   = FALSE
+    )
+  }
+
+  # ---- Parallel fallback check ---------------------------------------------
+  if (parallel &&
+      (!requireNamespace("future", quietly = TRUE) ||
+       !requireNamespace("furrr",  quietly = TRUE))) {
+    warning("future/furrr packages not available, falling back to sequential processing")
+    parallel <- FALSE
+  }
+
+  # ---- Shared safe-wrapper (used in both paths) ----------------------------
+  safe_iter <- function(b) {
+    if (!parallel && verbose && b %% 100 == 0) {
+      message("Bootstrap iteration ", b, "/", n_bootstrap,
+              " (", round(100 * b / n_bootstrap, 1), "% complete)")
+    }
+    tryCatch(
+      bootstrap_single_iteration(
+        final_weights, n_sample, simulation_function,
+        processed_simulation_data, oxycal, store_predicted_weights
+      ),
+      error = function(e) list(
+        p_estimate           = NA_real_,
+        consumption_estimate = NA_real_,
+        predicted_weight     = NA_real_,
+        mean_fin             = NA_real_,
+        success              = FALSE
+      )
+    )
+  }
+
+  # ---- Execute bootstrap ---------------------------------------------------
   if (parallel) {
-    
-    # Check if future package is available
-    if (!requireNamespace("future", quietly = TRUE) || !requireNamespace("furrr", quietly = TRUE)) {
-      warning("future/furrr packages not available, falling back to sequential processing")
-      parallel <- FALSE
-    } else {
-      
-      library(future)
-      library(furrr)
-      
-      if (verbose) {
-        message("Initiating parallel bootstrap processing...")
-      }
-      
-      # Set up parallel processing
-      if (is.null(n_cores)) {
-        n_cores <- availableCores() - 1
-      }
-      
-      # Ensure reasonable number of cores
-      n_cores <- min(n_cores, n_bootstrap, availableCores() - 1)
-      
-      # Setup future plan
-      plan(multisession, workers = n_cores)
-      on.exit(plan(sequential), add = TRUE)
-      
-      # Define bootstrap worker function
-      bootstrap_worker <- function(n_iter) {
-        
-        # Storage for this worker's results
-        worker_p_estimates <- numeric(n_iter)
-        worker_consumption_estimates <- numeric(n_iter)
-        worker_predicted_weights <- if(store_predicted_weights) numeric(n_iter) else NULL
-        worker_mean_fin <- numeric(n_iter)
-        worker_success <- 0
-        
-        for (i in 1:n_iter) {
-          tryCatch({
-            # Resample final weights only
-            sample_final_w <- sample(final_weights, size = n_sample, replace = TRUE)
-            mean_fin_w <- mean(sample_final_w)
-            
-            worker_mean_fin[i] <- mean_fin_w
-            
-            # Solve for p_value that achieves growth from initial_weight to mean_fin_w
-            optim_result <- optim_search_p_value(
-              target_value = mean_fin_w,
-              fit_type = "weight",
-              simulation_function = simulation_function,
-              method = "Brent",
-              lower = 0.01,
-              upper = 2
-            )
-            
-            if (optim_result$converged && !is.na(optim_result$p_value) && 
-                optim_result$p_value > 0 && optim_result$p_value <= 2) {
-              
-              worker_p_estimates[i] <- optim_result$p_value
-              
-              # Calculate consumption for this p_value using shared function
-              consumption_result <- execute_simulation_with_method(
-                method_type = "p_value",
-                method_value = optim_result$p_value,
-                processed_simulation_data = processed_simulation_data,
-                oxycal = oxycal,
-                extract_metric = "consumption",
-                output_daily = FALSE,
-                verbose = FALSE
-              )
-              
-              worker_consumption_estimates[i] <- consumption_result
-              
-              # Store predicted final weight if requested
-              if (store_predicted_weights) {
-                predicted_weight <- execute_simulation_with_method(
-                  method_type = "p_value",
-                  method_value = optim_result$p_value,
-                  processed_simulation_data = processed_simulation_data,
-                  oxycal = oxycal,
-                  extract_metric = "weight",
-                  output_daily = FALSE,
-                  verbose = FALSE
-                )
-                worker_predicted_weights[i] <- predicted_weight
-              }
-              
-              worker_success <- worker_success + 1
-              
-            } else {
-              worker_p_estimates[i] <- NA
-              worker_consumption_estimates[i] <- NA
-              if (store_predicted_weights) {
-                worker_predicted_weights[i] <- NA
-              }
-            }
-            
-          }, error = function(e) {
-            worker_p_estimates[i] <- NA
-            worker_consumption_estimates[i] <- NA
-            if (store_predicted_weights) {
-              worker_predicted_weights[i] <- NA
-            }
-            worker_mean_fin[i] <- NA
-          })
-        }
-        
-        return(list(
-          p_estimates = worker_p_estimates,
-          consumption_estimates = worker_consumption_estimates,
-          predicted_weights = worker_predicted_weights,
-          mean_fin = worker_mean_fin,
-          success_count = worker_success
-        ))
-      }
-      
-      # Distribute work across cores
-      iterations_per_core <- rep(floor(n_bootstrap / n_cores), n_cores)
-      remainder <- n_bootstrap %% n_cores
-      if (remainder > 0) {
-        iterations_per_core[1:remainder] <- iterations_per_core[1:remainder] + 1
-      }
-      
-      # Execute parallel bootstrap using future
-      tryCatch({
-        worker_results <- future_map(iterations_per_core, bootstrap_worker)
-        
-        # Combine results from all workers
-        p_estimates <- unlist(lapply(worker_results, function(x) x$p_estimates))
-        consumption_estimates <- unlist(lapply(worker_results, function(x) x$consumption_estimates))
-        predicted_weights <- if(store_predicted_weights) {
-          unlist(lapply(worker_results, function(x) x$predicted_weights))
-        } else {
-          NULL
-        }
-        mean_fin_w_boot <- unlist(lapply(worker_results, function(x) x$mean_fin))
-        successful_iterations <- sum(sapply(worker_results, function(x) x$success_count))
-        
-      }, error = function(e) {
-        stop("Parallel bootstrap failed: ", e$message)
-      })
-      
-      if (verbose) {
-        message("Parallel bootstrap completed")
-      }
+    if (is.null(n_cores)) {
+      n_cores <- future::availableCores() - 1L
     }
-  }
-  
-  # Sequential processing (default or fallback)
-  if (!parallel) {
-    
+    n_cores <- max(1L, min(as.integer(n_cores), future::availableCores() - 1L))
+
     if (verbose) {
-      message("Using sequential processing")
+      message("Starting parallel bootstrap (", n_cores, " cores, ",
+              n_bootstrap, " iterations)")
     }
-    
-    # Storage for results
-    p_estimates <- numeric(n_bootstrap)
-    consumption_estimates <- numeric(n_bootstrap)
-    predicted_weights <- if(store_predicted_weights) numeric(n_bootstrap) else NULL
-    mean_fin_w_boot <- numeric(n_bootstrap)
-    
-    # Progress tracking
-    successful_iterations <- 0
-    
-    # Bootstrap loop
-    for (b in 1:n_bootstrap) {
-      
-      # Progress reporting
-      if (verbose && b %% 100 == 0) {
-        message("Bootstrap iteration ", b, "/", n_bootstrap, 
-                " (", round(100*b/n_bootstrap, 1), "% complete)")
-      }
-      
-      # Resample final weights only
-      sample_final_w <- sample(final_weights, size = n_sample, replace = TRUE)
-      mean_fin_w <- mean(sample_final_w)
-      
-      # Store mean for diagnostics
-      mean_fin_w_boot[b] <- mean_fin_w
-      
-      # Solve for p_value explaining growth from initial_weight to mean_fin_w
-      tryCatch({
-        
-        # Solve for p_value using optim function from MLE strategy
-        optim_result <- optim_search_p_value(
-          target_value = mean_fin_w,
-          fit_type = "weight",
-          simulation_function = simulation_function,
-          method = "Brent",
-          lower = 0.01,
-          upper = 5.0
-        )
-        
-        if (optim_result$converged && !is.na(optim_result$p_value) && 
-            optim_result$p_value > 0 && optim_result$p_value <= 5.0) {
-          
-          p_estimates[b] <- optim_result$p_value
-          
-          # Calculate consumption for this p_value using shared function
-          consumption_result <- execute_simulation_with_method(
-            method_type = "p_value",
-            method_value = optim_result$p_value,
-            processed_simulation_data = processed_simulation_data,
-            oxycal = oxycal,
-            extract_metric = "consumption",
-            output_daily = FALSE,
-            verbose = FALSE
-          )
-          
-          consumption_estimates[b] <- consumption_result
-          
-          # Store predicted final weight if requested
-          if (store_predicted_weights) {
-            predicted_weight <- execute_simulation_with_method(
-              method_type = "p_value",
-              method_value = optim_result$p_value,
-              processed_simulation_data = processed_simulation_data,
-              oxycal = oxycal,
-              extract_metric = "weight",
-              output_daily = FALSE,
-              verbose = FALSE
-            )
-            predicted_weights[b] <- predicted_weight
-          }
-          
-          successful_iterations <- successful_iterations + 1
-          
-        } else {
-          p_estimates[b] <- NA
-          consumption_estimates[b] <- NA
-          if (store_predicted_weights) {
-            predicted_weights[b] <- NA
-          }
-        }
-        
-      }, error = function(e) {
-        p_estimates[b] <- NA
-        consumption_estimates[b] <- NA
-        if (store_predicted_weights) {
-          predicted_weights[b] <- NA
-        }
-      })
+
+    future::plan(future::multisession, workers = n_cores)
+    on.exit(future::plan(future::sequential), add = TRUE)
+
+    raw_list <- tryCatch(
+      furrr::future_map(
+        seq_len(n_bootstrap), safe_iter,
+        .options = furrr::furrr_options(seed = TRUE)
+      ),
+      error = function(e) stop("Parallel bootstrap failed: ", e$message)
+    )
+
+  } else {
+    if (verbose) {
+      message("Starting sequential bootstrap (", n_bootstrap, " iterations)")
     }
+    raw_list <- lapply(seq_len(n_bootstrap), safe_iter)
   }
-  
-  # Calculate success rate
-  success_rate <- successful_iterations / n_bootstrap
-  
-  if (verbose) {
-    message("Bootstrap completed")
-    message("Successful iterations: ", successful_iterations, "/", n_bootstrap, 
-            " (", round(success_rate * 100, 1), "%)")
-    
-    if (success_rate < 0.5) {
-      warning("Low success rate (", round(success_rate * 100, 1), 
-              "%). Consider checking FB4 parameters or weight ranges.")
-    }
-    
-    if (store_predicted_weights) {
-      valid_predicted <- predicted_weights[!is.na(predicted_weights)]
-      if (length(valid_predicted) > 0) {
-        message("Predicted weights range: ", round(min(valid_predicted), 1), 
-                " - ", round(max(valid_predicted), 1), "g")
-        message("Mean predicted weight: ", round(mean(valid_predicted), 1), "g")
-        message("Observed mean weight: ", round(mean(final_weights), 1), "g")
-      }
-    }
-  }
-  
-  # Return results as structured list
-  valid_p <- p_estimates[!is.na(p_estimates)]
+
+  # ---- Aggregate results ---------------------------------------------------
+  p_estimates           <- vapply(raw_list, `[[`, numeric(1), "p_estimate")
+  consumption_estimates <- vapply(raw_list, `[[`, numeric(1), "consumption_estimate")
+  mean_fin_w_boot       <- vapply(raw_list, `[[`, numeric(1), "mean_fin")
+  predicted_weights_raw <- vapply(raw_list, `[[`, numeric(1), "predicted_weight")
+  successful_iterations <- sum(vapply(raw_list, function(x) isTRUE(x$success), logical(1)))
+  success_rate          <- successful_iterations / n_bootstrap
+
+  valid_p           <- p_estimates[!is.na(p_estimates)]
   valid_consumption <- consumption_estimates[!is.na(consumption_estimates)]
-  valid_predicted_weights <- if(store_predicted_weights) {
-    predicted_weights[!is.na(predicted_weights)]
+  valid_predicted   <- if (store_predicted_weights) {
+    predicted_weights_raw[!is.na(predicted_weights_raw)]
   } else {
     NULL
   }
-  
-  return(list(
-    # Primary results
-    p_values = valid_p,
-    consumption_estimates = valid_consumption,
-    predicted_weights = valid_predicted_weights,
-    
-    # Bootstrap diagnostics
-    success_rate = success_rate,
-    n_bootstrap = n_bootstrap,
-    successful_iterations = successful_iterations,
-    initial_weight = initial_weight,
-    mean_fin_w_range = range(mean_fin_w_boot, na.rm = TRUE),
-    
-    # Processing information
-    parallel_used = parallel,
-    n_cores_used = if(parallel) n_cores else NULL,
+
+  # ---- Verbose summary -----------------------------------------------------
+  if (verbose) {
+    message("Bootstrap completed — successful: ", successful_iterations, "/",
+            n_bootstrap, " (", round(success_rate * 100, 1), "%)")
+    if (success_rate < 0.5) {
+      warning("Low success rate (", round(success_rate * 100, 1),
+              "%). Consider checking FB4 parameters or weight ranges.")
+    }
+    if (store_predicted_weights && length(valid_predicted) > 0) {
+      message("Predicted weights: ", round(min(valid_predicted), 1),
+              " - ", round(max(valid_predicted), 1), "g",
+              "  (mean: ", round(mean(valid_predicted), 1), "g |",
+              " observed mean: ", round(mean(final_weights), 1), "g)")
+    }
+  }
+
+  list(
+    p_values                = valid_p,
+    consumption_estimates   = valid_consumption,
+    predicted_weights       = valid_predicted,
+    success_rate            = success_rate,
+    n_bootstrap             = n_bootstrap,
+    successful_iterations   = successful_iterations,
+    initial_weight          = initial_weight,
+    mean_fin_w_range        = range(mean_fin_w_boot, na.rm = TRUE),
+    parallel_used           = parallel,
+    n_cores_used            = if (parallel) n_cores else NULL,
     store_predicted_weights = store_predicted_weights
-  ))
+  )
 }
 
 
