@@ -377,33 +377,34 @@ analyze_feeding_performance <- function(result, individual_id = NULL, confidence
   
   # Basic consumption metrics
   feeding_analysis$total_consumption <- consumption
-  
+
   # Calculate consumption rates
-  initial_weight <- result$summary$initial_weight %||% NA
+  z               <- z_score(confidence_level)
+  initial_weight  <- result$summary$initial_weight  %||% NA
   simulation_days <- result$summary$simulation_days %||% NA
-  
+
   if (!is.na(consumption$estimate) && !is.na(initial_weight) && !is.na(simulation_days)) {
-    
+
     # Daily consumption rate (g/day)
-    daily_consumption <- consumption$estimate / simulation_days
+    daily_consumption    <- consumption$estimate / simulation_days
     daily_consumption_se <- if (!is.na(consumption$se)) consumption$se / simulation_days else NA
-    
+
     feeding_analysis$daily_consumption <- list(
       estimate = daily_consumption,
-      se = daily_consumption_se,
-      ci_lower = if (!is.na(daily_consumption_se)) daily_consumption - z_score(confidence_level) * daily_consumption_se else NA,
-      ci_upper = if (!is.na(daily_consumption_se)) daily_consumption + z_score(confidence_level) * daily_consumption_se else NA
+      se       = daily_consumption_se,
+      ci_lower = if (!is.na(daily_consumption_se)) daily_consumption - z * daily_consumption_se else NA,
+      ci_upper = if (!is.na(daily_consumption_se)) daily_consumption + z * daily_consumption_se else NA
     )
-    
+
     # Specific consumption rate (g consumption / g fish / day)
-    specific_consumption <- daily_consumption / initial_weight
+    specific_consumption    <- daily_consumption / initial_weight
     specific_consumption_se <- if (!is.na(daily_consumption_se)) daily_consumption_se / initial_weight else NA
-    
+
     feeding_analysis$specific_consumption <- list(
       estimate = specific_consumption,
-      se = specific_consumption_se,
-      ci_lower = if (!is.na(specific_consumption_se)) specific_consumption - z_score(confidence_level) * specific_consumption_se else NA,
-      ci_upper = if (!is.na(specific_consumption_se)) specific_consumption + z_score(confidence_level) * specific_consumption_se else NA
+      se       = specific_consumption_se,
+      ci_lower = if (!is.na(specific_consumption_se)) specific_consumption - z * specific_consumption_se else NA,
+      ci_upper = if (!is.na(specific_consumption_se)) specific_consumption + z * specific_consumption_se else NA
     )
   }
   
@@ -454,9 +455,9 @@ analyze_feeding_performance <- function(result, individual_id = NULL, confidence
     
     feeding_analysis$feeding_efficiency <- list(
       estimate = feeding_efficiency,
-      se = feeding_efficiency_se,
-      ci_lower = if (!is.na(feeding_efficiency_se)) feeding_efficiency - z_score(confidence_level) * feeding_efficiency_se else NA,
-      ci_upper = if (!is.na(feeding_efficiency_se)) feeding_efficiency + z_score(confidence_level) * feeding_efficiency_se else NA
+      se       = feeding_efficiency_se,
+      ci_lower = if (!is.na(feeding_efficiency_se)) feeding_efficiency - z * feeding_efficiency_se else NA,
+      ci_upper = if (!is.na(feeding_efficiency_se)) feeding_efficiency + z * feeding_efficiency_se else NA
     )
   }
   
@@ -467,16 +468,26 @@ analyze_feeding_performance <- function(result, individual_id = NULL, confidence
 # SUMMARY STATISTICS FUNCTIONS
 # ============================================================================
 
-#' Create comprehensive result summary
+#' Comprehensive post-simulation analysis summary
 #'
 #' @description
-#' Creates a comprehensive summary of FB4 results including all key
-#' metrics with uncertainty estimates when available.
+#' **Post-hoc analysis function** — takes a finished \code{fb4_result} object
+#' and bundles growth, feeding, and energy-budget analyses into a single list.
+#' Useful when you need all major metrics in one call.
 #'
-#' @param result FB4 result object
-#' @param individual_id Individual ID for hierarchical models (NULL for population summary)
-#' @param confidence_level Confidence level for intervals (default 0.95)
-#' @return List with comprehensive summary
+#' This is different from the internal \code{$summary} slot (built automatically
+#' during result construction by \code{create_unified_summary()}). This function
+#' re-derives richer metrics from \code{daily_output} and supports uncertainty
+#' propagation for MLE / bootstrap / hierarchical results.
+#'
+#' @param result An \code{fb4_result} object returned by \code{run_fb4()}
+#' @param individual_id For hierarchical models: individual ID to extract
+#'   (\code{NULL} returns population-level summary)
+#' @param confidence_level Confidence level for uncertainty intervals, default 0.95
+#' @return Named list with \code{model_info}, \code{growth}, \code{feeding},
+#'   \code{energy_budget}, and \code{model_fit} sections
+#' @seealso \code{\link{analyze_growth_patterns}}, \code{\link{analyze_feeding_performance}},
+#'   \code{\link{analyze_energy_budget}}
 #' @export
 create_result_summary <- function(result, individual_id = NULL, confidence_level = 0.95) {
   
