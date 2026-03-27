@@ -447,9 +447,9 @@ extract_basic_parameters <- function(results, params, obj, confidence_level, ver
         sigma_se <- sigma_estimate * log_se[2]
         
         # Confidence intervals
-        z_score <- qnorm(1 - (1 - confidence_level) / 2)
-        p_ci_lower <- exp(params[1] - z_score * log_se[1])
-        p_ci_upper <- exp(params[1] + z_score * log_se[1])
+        z <- z_score(confidence_level)
+        p_ci_lower <- exp(params[1] - z * log_se[1])
+        p_ci_upper <- exp(params[1] + z * log_se[1])
       }
     }
     

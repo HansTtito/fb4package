@@ -463,11 +463,11 @@ fit_fb4_mle <- function(observed_weights, processed_simulation_data,
   
   # Calculate confidence intervals
   alpha <- 1 - confidence_level
-  z_score <- qnorm(1 - alpha/2)
+  z <- z_score(1 - alpha)
   
   if (!is.na(mle_result$p_se)) {
-    p_ci_lower <- mle_result$p_estimate - z_score * mle_result$p_se
-    p_ci_upper <- mle_result$p_estimate + z_score * mle_result$p_se
+    p_ci_lower <- mle_result$p_estimate - z * mle_result$p_se
+    p_ci_upper <- mle_result$p_estimate + z * mle_result$p_se
   } else {
     p_ci_lower <- p_ci_upper <- NA
   }

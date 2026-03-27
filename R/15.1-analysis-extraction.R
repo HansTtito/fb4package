@@ -150,13 +150,13 @@ analyze_growth_patterns <- function(result, individual_id = NULL, confidence_lev
       )
       
       # Calculate CIs if we have estimates and SEs
-      z_score <- qnorm(1 - (1 - confidence_level) / 2)
+      z <- z_score(confidence_level)
       for (metric in c("final_weight", "total_growth", "relative_growth")) {
         est <- growth_info[[metric]]$estimate
         se <- growth_info[[metric]]$se
         if (!is.na(est) && !is.na(se)) {
-          growth_info[[metric]]$ci_lower <- est - z_score * se
-          growth_info[[metric]]$ci_upper <- est + z_score * se
+          growth_info[[metric]]$ci_lower <- est - z * se
+          growth_info[[metric]]$ci_upper <- est + z * se
         }
       }
       
@@ -294,8 +294,8 @@ analyze_energy_budget <- function(result, individual_id = NULL, confidence_level
         budget_analysis$proportions[[paste0("prop_", prop_name)]] <- list(
           estimate = prop_est,
           se = prop_se,
-          ci_lower = if (!is.na(prop_se)) prop_est - qnorm(1 - (1 - confidence_level) / 2) * prop_se else NA,
-          ci_upper = if (!is.na(prop_se)) prop_est + qnorm(1 - (1 - confidence_level) / 2) * prop_se else NA
+          ci_lower = if (!is.na(prop_se)) prop_est - z_score(confidence_level) * prop_se else NA,
+          ci_upper = if (!is.na(prop_se)) prop_est + z_score(confidence_level) * prop_se else NA
         )
       }
     }
@@ -391,8 +391,8 @@ analyze_feeding_performance <- function(result, individual_id = NULL, confidence
     feeding_analysis$daily_consumption <- list(
       estimate = daily_consumption,
       se = daily_consumption_se,
-      ci_lower = if (!is.na(daily_consumption_se)) daily_consumption - qnorm(1 - (1 - confidence_level) / 2) * daily_consumption_se else NA,
-      ci_upper = if (!is.na(daily_consumption_se)) daily_consumption + qnorm(1 - (1 - confidence_level) / 2) * daily_consumption_se else NA
+      ci_lower = if (!is.na(daily_consumption_se)) daily_consumption - z_score(confidence_level) * daily_consumption_se else NA,
+      ci_upper = if (!is.na(daily_consumption_se)) daily_consumption + z_score(confidence_level) * daily_consumption_se else NA
     )
     
     # Specific consumption rate (g consumption / g fish / day)
@@ -402,8 +402,8 @@ analyze_feeding_performance <- function(result, individual_id = NULL, confidence
     feeding_analysis$specific_consumption <- list(
       estimate = specific_consumption,
       se = specific_consumption_se,
-      ci_lower = if (!is.na(specific_consumption_se)) specific_consumption - qnorm(1 - (1 - confidence_level) / 2) * specific_consumption_se else NA,
-      ci_upper = if (!is.na(specific_consumption_se)) specific_consumption + qnorm(1 - (1 - confidence_level) / 2) * specific_consumption_se else NA
+      ci_lower = if (!is.na(specific_consumption_se)) specific_consumption - z_score(confidence_level) * specific_consumption_se else NA,
+      ci_upper = if (!is.na(specific_consumption_se)) specific_consumption + z_score(confidence_level) * specific_consumption_se else NA
     )
   }
   
@@ -455,70 +455,12 @@ analyze_feeding_performance <- function(result, individual_id = NULL, confidence
     feeding_analysis$feeding_efficiency <- list(
       estimate = feeding_efficiency,
       se = feeding_efficiency_se,
-      ci_lower = if (!is.na(feeding_efficiency_se)) feeding_efficiency - qnorm(1 - (1 - confidence_level) / 2) * feeding_efficiency_se else NA,
-      ci_upper = if (!is.na(feeding_efficiency_se)) feeding_efficiency + qnorm(1 - (1 - confidence_level) / 2) * feeding_efficiency_se else NA
+      ci_lower = if (!is.na(feeding_efficiency_se)) feeding_efficiency - z_score(confidence_level) * feeding_efficiency_se else NA,
+      ci_upper = if (!is.na(feeding_efficiency_se)) feeding_efficiency + z_score(confidence_level) * feeding_efficiency_se else NA
     )
   }
   
   return(feeding_analysis)
-}
-
-# ============================================================================
-# CONFIDENCE INTERVAL FUNCTIONS
-# ============================================================================
-
-#' Calculate confidence intervals for derived metrics
-#'
-#' @description
-#' Calculates confidence intervals for derived metrics using available
-#' uncertainty estimates. Uses normal approximation by default.
-#'
-#' @param estimate Point estimate
-#' @param se Standard error
-#' @param confidence_level Confidence level (default 0.95)
-#' @param method Method for CI calculation ("normal", "log-normal")
-#' @return List with confidence interval bounds
-#' @export
-calculate_confidence_intervals <- function(estimate, se, confidence_level = 0.95, method = "normal") {
-  
-  if (is.na(estimate) || is.na(se)) {
-    return(list(
-      ci_lower = NA,
-      ci_upper = NA,
-      method = method,
-      confidence_level = confidence_level
-    ))
-  }
-  
-  z_score <- qnorm(1 - (1 - confidence_level) / 2)
-  
-  if (method == "normal") {
-    ci_lower <- estimate - z_score * se
-    ci_upper <- estimate + z_score * se
-    
-  } else if (method == "log-normal") {
-    # For positive-valued parameters
-    if (estimate <= 0) {
-      warning("Log-normal method requires positive estimates")
-      return(list(ci_lower = NA, ci_upper = NA, method = method, confidence_level = confidence_level))
-    }
-    
-    log_est <- log(estimate)
-    log_se <- se / estimate  # Delta method approximation
-    
-    ci_lower <- exp(log_est - z_score * log_se)
-    ci_upper <- exp(log_est + z_score * log_se)
-    
-  } else {
-    stop("Method must be 'normal' or 'log-normal'")
-  }
-  
-  return(list(
-    ci_lower = ci_lower,
-    ci_upper = ci_upper,
-    method = method,
-    confidence_level = confidence_level
-  ))
 }
 
 # ============================================================================

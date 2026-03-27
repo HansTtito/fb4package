@@ -811,9 +811,9 @@ test_metric_differences <- function(estimates, se_values, scenario_names) {
   n_valid <- length(valid_est)
   
   # Calculate 95% confidence intervals
-  z_score <- qnorm(0.975)
-  ci_lower <- valid_est - z_score * valid_se
-  ci_upper <- valid_est + z_score * valid_se
+  z <- z_score(0.95)
+  ci_lower <- valid_est - z * valid_se
+  ci_upper <- valid_est + z * valid_se
   
   # Pairwise comparisons
   comparisons <- expand.grid(i = 1:n_valid, j = 1:n_valid)

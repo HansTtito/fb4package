@@ -119,7 +119,7 @@ predict_consumption_delta <- function(p_est, p_se, bio_obj, delta_size = 0.001,
   consumption_se <- sqrt(consumption_var)
   
   # Assuming normality for confidence intervals
-  z_score <- qnorm(0.975)  # 95% CI
+  z <- z_score(0.95)
   
   # Linearity check: derivative * delta should be small relative to consumption
   linearity_check <- abs(derivative * delta_size) < 0.01 * consumption_est
@@ -127,8 +127,8 @@ predict_consumption_delta <- function(p_est, p_se, bio_obj, delta_size = 0.001,
   if (verbose) {
     message("Delta method completed")
     message("Consumption estimate: ", round(consumption_est, 2), " ± ", round(consumption_se, 2), " g")
-    message("95% CI: [", round(consumption_est - z_score * consumption_se, 2), ", ",
-            round(consumption_est + z_score * consumption_se, 2), "] g")
+    message("95% CI: [", round(consumption_est - z * consumption_se, 2), ", ",
+            round(consumption_est + z * consumption_se, 2), "] g")
     message("Derivative: ", round(derivative, 4))
     message("Linearity assumption valid: ", linearity_check)
   }
@@ -142,8 +142,8 @@ predict_consumption_delta <- function(p_est, p_se, bio_obj, delta_size = 0.001,
     consumption_est = consumption_est,
     consumption_se = consumption_se,
     consumption_ci = c(
-      consumption_est - z_score * consumption_se,
-      consumption_est + z_score * consumption_se
+      consumption_est - z * consumption_se,
+      consumption_est + z * consumption_se
     ),
     derivative = derivative,
     linearity_check = linearity_check,

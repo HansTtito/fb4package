@@ -252,8 +252,8 @@ plot_mle_uncertainty <- function(fb4_result, parameters, colors, add_ci_text) {
       se <- mle_results$std_errors[param]
       
       # Create confidence interval
-      ci_lower <- estimate - 1.96 * se
-      ci_upper <- estimate + 1.96 * se
+      ci_lower <- estimate - z_score(0.95) * se
+      ci_upper <- estimate + z_score(0.95) * se
       
       # Plot
       graphics::plot(1, estimate, ylim = c(ci_lower * 0.9, ci_upper * 1.1),

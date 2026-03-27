@@ -104,7 +104,7 @@ get_consumption_uncertainty <- function(result, individual_id = NULL, confidence
   )
   
   # Calculate z-score for confidence intervals
-  z_score <- qnorm(1 - (1 - confidence_level) / 2)
+  z <- z_score(confidence_level)
   
   if (method == "hierarchical") {
     
@@ -142,8 +142,8 @@ get_consumption_uncertainty <- function(result, individual_id = NULL, confidence
   
   # Calculate confidence intervals if uncertainty is available
   if (!is.na(consumption_result$estimate) && !is.na(consumption_result$se)) {
-    consumption_result$ci_lower <- consumption_result$estimate - z_score * consumption_result$se
-    consumption_result$ci_upper <- consumption_result$estimate + z_score * consumption_result$se
+    consumption_result$ci_lower <- consumption_result$estimate - z * consumption_result$se
+    consumption_result$ci_upper <- consumption_result$estimate + z * consumption_result$se
   }
   
   return(consumption_result)
@@ -182,7 +182,7 @@ get_efficiency_uncertainty <- function(result, individual_id = NULL, confidence_
   )
   
   # Calculate z-score for confidence intervals
-  z_score <- qnorm(1 - (1 - confidence_level) / 2)
+  z <- z_score(confidence_level)
   
   if (method == "hierarchical") {
     
@@ -228,8 +228,8 @@ get_efficiency_uncertainty <- function(result, individual_id = NULL, confidence_
     se <- efficiency_result[[metric]]$se
     
     if (!is.na(estimate) && !is.na(se)) {
-      efficiency_result[[metric]]$ci_lower <- estimate - z_score * se
-      efficiency_result[[metric]]$ci_upper <- estimate + z_score * se
+      efficiency_result[[metric]]$ci_lower <- estimate - z * se
+      efficiency_result[[metric]]$ci_upper <- estimate + z * se
     }
   }
   
@@ -259,7 +259,7 @@ get_individual_results <- function(result, confidence_level = 0.95) {
   }
   
   n_individuals <- result$method_data$n_individuals
-  z_score <- qnorm(1 - (1 - confidence_level) / 2)
+  z <- z_score(confidence_level)
   
   # Extract individual p_values
   p_estimates <- result$method_data$individual_results$p_estimates %||% rep(NA, n_individuals)
@@ -308,8 +308,8 @@ get_individual_results <- function(result, confidence_level = 0.95) {
       se_col <- paste0(metric, "_se")
       
       if (est_col %in% names(individual_df) && se_col %in% names(individual_df)) {
-        individual_df[[paste0(metric, "_ci_lower")]] <- individual_df[[est_col]] - z_score * individual_df[[se_col]]
-        individual_df[[paste0(metric, "_ci_upper")]] <- individual_df[[est_col]] + z_score * individual_df[[se_col]]
+        individual_df[[paste0(metric, "_ci_lower")]] <- individual_df[[est_col]] - z * individual_df[[se_col]]
+        individual_df[[paste0(metric, "_ci_upper")]] <- individual_df[[est_col]] + z * individual_df[[se_col]]
       }
     }
   }
@@ -339,7 +339,7 @@ get_population_results <- function(result, confidence_level = 0.95) {
     stop("Population results are only available for hierarchical models")
   }
   
-  z_score <- qnorm(1 - (1 - confidence_level) / 2)
+  z <- z_score(confidence_level)
   
   # Population parameters
   pop_params <- result$method_data$population_results
@@ -397,8 +397,8 @@ get_population_results <- function(result, confidence_level = 0.95) {
       se_name <- paste0(metric, "_se")
       
       if (!is.na(population_results[[est_name]]) && !is.na(population_results[[se_name]])) {
-        population_results[[paste0(metric, "_ci_lower")]] <- population_results[[est_name]] - z_score * population_results[[se_name]]
-        population_results[[paste0(metric, "_ci_upper")]] <- population_results[[est_name]] + z_score * population_results[[se_name]]
+        population_results[[paste0(metric, "_ci_lower")]] <- population_results[[est_name]] - z * population_results[[se_name]]
+        population_results[[paste0(metric, "_ci_upper")]] <- population_results[[est_name]] + z * population_results[[se_name]]
       }
     }
   }
@@ -410,8 +410,8 @@ get_population_results <- function(result, confidence_level = 0.95) {
     se_name <- paste0(param, "_se")
     
     if (!is.na(population_results[[est_name]]) && !is.na(population_results[[se_name]])) {
-      population_results[[paste0(param, "_ci_lower")]] <- population_results[[est_name]] - z_score * population_results[[se_name]]
-      population_results[[paste0(param, "_ci_upper")]] <- population_results[[est_name]] + z_score * population_results[[se_name]]
+      population_results[[paste0(param, "_ci_lower")]] <- population_results[[est_name]] - z * population_results[[se_name]]
+      population_results[[paste0(param, "_ci_upper")]] <- population_results[[est_name]] + z * population_results[[se_name]]
     }
   }
   
@@ -455,7 +455,7 @@ get_energy_budget_uncertainty <- function(result, individual_id = NULL, confiden
   )
   
   # Calculate z-score for confidence intervals
-  z_score <- qnorm(1 - (1 - confidence_level) / 2)
+  z <- z_score(confidence_level)
   
   if (method == "hierarchical") {
     
@@ -548,8 +548,8 @@ get_energy_budget_uncertainty <- function(result, individual_id = NULL, confiden
     se <- budget_result[[component]]$se
     
     if (!is.na(estimate) && !is.na(se)) {
-      budget_result[[component]]$ci_lower <- estimate - z_score * se
-      budget_result[[component]]$ci_upper <- estimate + z_score * se
+      budget_result[[component]]$ci_lower <- estimate - z * se
+      budget_result[[component]]$ci_upper <- estimate + z * se
     }
   }
   
