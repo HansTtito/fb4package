@@ -68,10 +68,10 @@ plot_dashboard <- function(fb4_result, colors = "blue", title = NULL, ...) {
   # Panel 3: Temperature
   if ("Temperature" %in% names(daily)) {
     plot(daily$Day, daily$Temperature, type = "l", lwd = 2, col = cols$accent,
-         xlab = "Day", ylab = "Temperature (°C)", main = "Temperature", las = 1)
+         xlab = "Day", ylab = "Temperature (\u00b0C)", main = "Temperature", las = 1)
     grid(col = "lightgray", lty = "dotted")
     mean_temp <- mean(daily$Temperature, na.rm = TRUE)
-    legend("topright", legend = paste("Mean:", round(mean_temp, 1), "°C"),
+    legend("topright", legend = paste("Mean:", round(mean_temp, 1), "\u00b0C"),
            bty = "n", text.col = cols$accent, cex = 0.9)
   } else {
     plot.new()
@@ -312,7 +312,7 @@ plot_temperature <- function(fb4_result, show_correlation = TRUE, colors = "red"
   
   # Temperature over time
   plot(daily$Day, daily$Temperature, type = "l", lwd = 2, col = cols$primary,
-       xlab = "Day", ylab = "Temperature (°C)", main = "Temperature Profile", las = 1)
+       xlab = "Day", ylab = "Temperature (\u00b0C)", main = "Temperature Profile", las = 1)
   grid(col = "lightgray", lty = "dotted")
   
   # Smooth trend
@@ -323,17 +323,17 @@ plot_temperature <- function(fb4_result, show_correlation = TRUE, colors = "red"
   
   # Statistics
   temp_stats <- c(
-    paste("Mean:", round(mean(daily$Temperature, na.rm = TRUE), 1), "°C"),
-    paste("Range:", round(diff(range(daily$Temperature, na.rm = TRUE)), 1), "°C"),
-    paste("Min:", round(min(daily$Temperature, na.rm = TRUE), 1), "°C"),
-    paste("Max:", round(max(daily$Temperature, na.rm = TRUE), 1), "°C")
+    paste("Mean:", round(mean(daily$Temperature, na.rm = TRUE), 1), "\u00b0C"),
+    paste("Range:", round(diff(range(daily$Temperature, na.rm = TRUE)), 1), "\u00b0C"),
+    paste("Min:", round(min(daily$Temperature, na.rm = TRUE), 1), "\u00b0C"),
+    paste("Max:", round(max(daily$Temperature, na.rm = TRUE), 1), "\u00b0C")
   )
   legend("topleft", legend = temp_stats, bty = "o", bg = "white", cex = 0.8)
   
   # Temperature-consumption correlation
   if (show_corr) {
     plot(daily$Temperature, daily$Consumption_gg,
-         xlab = "Temperature (°C)", ylab = "Consumption Rate (g/g/day)",
+         xlab = "Temperature (\u00b0C)", ylab = "Consumption Rate (g/g/day)",
          main = "Temperature vs Consumption", pch = 16, col = cols$primary, cex = 0.8)
     grid(col = "lightgray", lty = "dotted")
     

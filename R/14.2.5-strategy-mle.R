@@ -332,7 +332,7 @@ mle_estimate_p_value_lognormal <- function(observed_weights, simulation_function
     p_se = p_se,
     sigma_estimate = sigma_estimate,
     sigma_se = sigma_se,
-    log_likelihood = final_log_likelihood,  # ← POSITIVE
+    log_likelihood = final_log_likelihood,  # \u2190 POSITIVE
     aic = 2 * length(mle_result$par) - 2 * final_log_likelihood,
     converged = (mle_result$convergence == 0),
     hessian = mle_result$hessian,
@@ -502,7 +502,7 @@ fit_fb4_mle <- function(observed_weights, processed_simulation_data,
   if (verbose) {
     message("MLE converged: ", mle_result$converged)
     message("Estimated p_value: ", round(mle_result$p_estimate, 4), 
-            " ± ", round(mle_result$p_se, 4))
+            " \u00b1 ", round(mle_result$p_se, 4))
     message("95% CI: [", round(p_ci_lower, 4), ", ", round(p_ci_upper, 4), "]")
   }
   

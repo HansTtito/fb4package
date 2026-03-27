@@ -435,6 +435,7 @@ run_fb4_simulation <- function(consumption_method, processed_simulation_data,
     weight_change = current_weight - initial_weight,
     relative_growth = (current_weight / initial_weight - 1) * 100,
     total_consumption_g = total_consumption_g,
+    total_consumption = total_consumption_g,  # alias for backward compat
     simulation_days = day,  # Actual days simulated (may be less if mortality)
     
     # Method information
@@ -473,7 +474,7 @@ report_simulation_progress <- function(day, n_days, current_weight, initial_weig
   growth_rate <- ((current_weight / initial_weight - 1) * 100)
   message("Day ", day, "/", n_days, ": Weight = ", round(current_weight, 2), 
           "g (", round(growth_rate, 1), "% growth), P = ", 
-          round(effective_p, 3), ", Temp = ", round(temperature, 1), "°C")
+          round(effective_p, 3), ", Temp = ", round(temperature, 1), "\u00b0C")
 }
 
 #' Report final simulation summary

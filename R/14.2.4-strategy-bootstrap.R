@@ -31,29 +31,32 @@ create_bootstrap_strategy <- function(execution_plan) {
         execution_plan = plan,
         required_params = c("n_bootstrap", "confidence_level"),
         default_values = list(
-          n_bootstrap = 1000,
-          confidence_level = 0.95,
-          parallel = FALSE,
-          n_cores = NULL,
-          sample_size = NULL,
-          compute_percentiles = TRUE,
-          store_predicted_weights_boot = TRUE
+          n_bootstrap                  = 1000,
+          confidence_level             = 0.95,
+          parallel                     = FALSE,
+          n_cores                      = NULL,
+          sample_size                  = NULL,
+          compute_percentiles          = TRUE,
+          store_predicted_weights_boot = TRUE,
+          lower                        = 0.01,
+          upper                        = 1.0   # biologically: p > 1 is already super-maximal
         )
       )
-      
+
       # Execute bootstrap fitting
       result <- fit_fb4_bootstrap(
-        final_weights = plan$observed_weights,
+        final_weights             = plan$observed_weights,
         processed_simulation_data = processed_data,
-        n_bootstrap = params$n_bootstrap,
-        confidence_level = params$confidence_level,
-        oxycal = params$oxycal,
-        sample_size = params$sample_size,
-        compute_percentiles = params$compute_percentiles,
-        parallel = params$parallel,
-        n_cores = params$n_cores,
-        verbose = params$verbose,
-        store_predicted_weights = params$store_predicted_weights_boot
+        n_bootstrap               = params$n_bootstrap,
+        confidence_level          = params$confidence_level,
+        oxycal                    = params$oxycal,
+        sample_size               = params$sample_size,
+        compute_percentiles       = params$compute_percentiles,
+        parallel                  = params$parallel,
+        n_cores                   = params$n_cores,
+        upper_p                   = params$upper,
+        verbose                   = params$verbose,
+        store_predicted_weights   = params$store_predicted_weights_boot
       )
       
       # Add strategy metadata using shared function
@@ -134,7 +137,7 @@ create_bootstrap_strategy <- function(execution_plan) {
 #' @keywords internal
 bootstrap_single_iteration <- function(final_weights, n_sample, simulation_function,
                                        processed_simulation_data, oxycal,
-                                       store_predicted_weights, upper_p = 5.0) {
+                                       store_predicted_weights, upper_p = 1.0) {
 
   sample_final_w <- sample(final_weights, size = n_sample, replace = TRUE)
   mean_fin_w     <- mean(sample_final_w)
@@ -232,7 +235,7 @@ bootstrap_single_iteration <- function(final_weights, n_sample, simulation_funct
 bootstrap_p_values <- function(processed_simulation_data,
                                n_bootstrap = 1000, oxycal = 13560,
                                sample_size = NULL, parallel = FALSE,
-                               n_cores = NULL, verbose = FALSE,
+                               n_cores = NULL, upper_p = 1.0, verbose = FALSE,
                                store_predicted_weights = TRUE) {
 
   # ---- Extract data --------------------------------------------------------
@@ -287,7 +290,8 @@ bootstrap_p_values <- function(processed_simulation_data,
     tryCatch(
       bootstrap_single_iteration(
         final_weights, n_sample, simulation_function,
-        processed_simulation_data, oxycal, store_predicted_weights
+        processed_simulation_data, oxycal, store_predicted_weights,
+        upper_p = upper_p
       ),
       error = function(e) list(
         p_estimate           = NA_real_,
@@ -314,10 +318,38 @@ bootstrap_p_values <- function(processed_simulation_data,
     future::plan(future::multisession, workers = n_cores)
     on.exit(future::plan(future::sequential), add = TRUE)
 
+    # Export internal package functions explicitly so multisession workers can
+    # resolve them. On Windows (and other non-forking backends), workers start
+    # as fresh R processes: they load the package but only see exported symbols.
+    # Non-exported helpers (bootstrap_single_iteration, execute_simulation_with_method,
+    # optim_search_p_value, run_fb4_simulation) live in the package namespace and
+    # are accessible via `:::`, but closures captured in this session resolve them
+    # through the *current* environment chain, which the worker cannot reconstruct.
+    # Passing them as explicit globals guarantees availability on every backend.
+    parallel_globals <- list(
+      bootstrap_single_iteration     = bootstrap_single_iteration,
+      execute_simulation_with_method = execute_simulation_with_method,
+      optim_search_p_value           = optim_search_p_value,
+      run_fb4_simulation             = run_fb4_simulation,
+      simulation_function            = simulation_function,
+      final_weights                  = final_weights,
+      n_sample                       = n_sample,
+      processed_simulation_data      = processed_simulation_data,
+      oxycal                         = oxycal,
+      store_predicted_weights        = store_predicted_weights,
+      upper_p                        = upper_p,
+      n_bootstrap                    = n_bootstrap,
+      parallel                       = parallel,
+      verbose                        = verbose
+    )
+
     raw_list <- tryCatch(
       furrr::future_map(
         seq_len(n_bootstrap), safe_iter,
-        .options = furrr::furrr_options(seed = TRUE)
+        .options = furrr::furrr_options(
+          seed    = TRUE,
+          globals = parallel_globals
+        )
       ),
       error = function(e) stop("Parallel bootstrap failed: ", e$message)
     )
@@ -347,7 +379,7 @@ bootstrap_p_values <- function(processed_simulation_data,
 
   # ---- Verbose summary -----------------------------------------------------
   if (verbose) {
-    message("Bootstrap completed — successful: ", successful_iterations, "/",
+    message("Bootstrap completed \u2014 successful: ", successful_iterations, "/",
             n_bootstrap, " (", round(success_rate * 100, 1), "%)")
     if (success_rate < 0.5) {
       warning("Low success rate (", round(success_rate * 100, 1),
@@ -398,10 +430,10 @@ bootstrap_p_values <- function(processed_simulation_data,
 #' @return List with bootstrap fitting results including consumption and predicted weights
 #' @keywords internal
 fit_fb4_bootstrap <- function(final_weights, processed_simulation_data,
-                              n_bootstrap = 1000, oxycal = 13560, 
+                              n_bootstrap = 1000, oxycal = 13560,
                               confidence_level = 0.95, sample_size = NULL,
                               compute_percentiles = TRUE, parallel = FALSE,
-                              n_cores = NULL, verbose = FALSE,
+                              n_cores = NULL, upper_p = 1.0, verbose = FALSE,
                               store_predicted_weights = TRUE) {
   
   # Extract initial weight from processed data
@@ -425,12 +457,13 @@ fit_fb4_bootstrap <- function(final_weights, processed_simulation_data,
   # Run bootstrap estimation
   bootstrap_p <- bootstrap_p_values(
     processed_simulation_data = processed_simulation_data,
-    n_bootstrap = n_bootstrap,
-    oxycal = oxycal,
-    sample_size = sample_size,
-    parallel = parallel,
-    n_cores = n_cores,
-    verbose = verbose,
+    n_bootstrap             = n_bootstrap,
+    oxycal                  = oxycal,
+    sample_size             = sample_size,
+    parallel                = parallel,
+    n_cores                 = n_cores,
+    upper_p                 = upper_p,
+    verbose                 = verbose,
     store_predicted_weights = store_predicted_weights
   )
   
@@ -536,13 +569,13 @@ fit_fb4_bootstrap <- function(final_weights, processed_simulation_data,
   
   if (verbose) {
     message("Bootstrap estimation completed in ", round(elapsed_time[3], 2), " seconds")
-    message("Mean p_value: ", round(p_mean, 4), " ± ", round(p_sd, 4))
+    message("Mean p_value: ", round(p_mean, 4), " \u00b1 ", round(p_sd, 4))
     message(confidence_level*100, "% CI: [", round(p_ci[1], 4), ", ", round(p_ci[2], 4), "]")
-    message("Mean consumption: ", round(consumption_mean, 2), " ± ", round(consumption_sd, 2), "g")
+    message("Mean consumption: ", round(consumption_mean, 2), " \u00b1 ", round(consumption_sd, 2), "g")
     message("Consumption ", confidence_level*100, "% CI: [", round(consumption_ci[1], 2), ", ", round(consumption_ci[2], 2), "]g")
     
     if (store_predicted_weights && !is.na(predicted_weights_mean)) {
-      message("Mean predicted weight: ", round(predicted_weights_mean, 1), " ± ", round(predicted_weights_sd, 1), "g")
+      message("Mean predicted weight: ", round(predicted_weights_mean, 1), " \u00b1 ", round(predicted_weights_sd, 1), "g")
       message("Predicted weights ", confidence_level*100, "% CI: [", round(predicted_weights_ci[1], 1), ", ", round(predicted_weights_ci[2], 1), "]g")
       message("Model bias: ", round(prediction_bias, 2), "g (", round(prediction_bias_pct, 1), "%)")
     }

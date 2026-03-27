@@ -44,7 +44,7 @@ plot_bio_dashboard <- function(bio_obj, colors = "blue", title = NULL, ...) {
   for (i in seq_along(components)) {
     comp_name <- names(components)[i]
     status <- components[[i]]
-    symbol <- if (status) "✓" else "✗"
+    symbol <- if (status) "\u2713" else "\u2717"
     color <- if (status) "darkgreen" else "red"
     text(0.1, y_pos[i], paste(symbol, comp_name), adj = 0, col = color, font = 2)
   }
@@ -79,7 +79,7 @@ plot_bio_dashboard <- function(bio_obj, colors = "blue", title = NULL, ...) {
   if (!is.null(bio_obj$environmental_data$temperature)) {
     temp_data <- bio_obj$environmental_data$temperature
     plot(temp_data$Day, temp_data$Temperature, type = "l", lwd = 2, col = cols$accent,
-         xlab = "Day", ylab = "°C", main = "Temperature Preview", las = 1)
+         xlab = "Day", ylab = "\u00b0C", main = "Temperature Preview", las = 1)
     grid(col = "lightgray", lty = "dotted")
   } else {
     plot.new()
@@ -96,10 +96,10 @@ plot_bio_dashboard <- function(bio_obj, colors = "blue", title = NULL, ...) {
   total_required <- 4
   
   if (ready_count == total_required) {
-    text(0.5, 0.6, "✓ READY", cex = 2.0, adj = 0.5, col = "darkgreen", font = 2)
+    text(0.5, 0.6, "\u2713 READY", cex = 2.0, adj = 0.5, col = "darkgreen", font = 2)
     text(0.5, 0.3, "All components available", cex = 1.0, adj = 0.5)
   } else {
-    text(0.5, 0.6, "✗ NOT READY", cex = 1.5, adj = 0.5, col = "red", font = 2)
+    text(0.5, 0.6, "\u2717 NOT READY", cex = 1.5, adj = 0.5, col = "red", font = 2)
     text(0.5, 0.3, paste(ready_count, "/", total_required, "components"),
          cex = 1.0, adj = 0.5)
   }
@@ -130,7 +130,7 @@ plot_bio_temperature <- function(bio_obj, colors = "red", ...) {
   par(mfrow = c(1, 1), mar = c(4, 4, 3, 2))
   
   plot(temp_data$Day, temp_data$Temperature, type = "l", lwd = 2, col = cols$primary,
-       xlab = "Day", ylab = "Temperature (°C)", main = "Temperature Profile", las = 1)
+       xlab = "Day", ylab = "Temperature (\u00b0C)", main = "Temperature Profile", las = 1)
   grid(col = "lightgray", lty = "dotted")
   
   mean_temp <- mean(temp_data$Temperature, na.rm = TRUE)
@@ -140,8 +140,8 @@ plot_bio_temperature <- function(bio_obj, colors = "red", ...) {
   abline(h = temp_range, col = cols$secondary, lty = 3, lwd = 1)
   
   stats_text <- c(
-    paste("Mean:", round(mean_temp, 1), "°C"),
-    paste("Range:", round(diff(temp_range), 1), "°C"),
+    paste("Mean:", round(mean_temp, 1), "\u00b0C"),
+    paste("Range:", round(diff(temp_range), 1), "\u00b0C"),
     paste("Days:", nrow(temp_data))
   )
   legend("topleft", legend = stats_text, bty = "o", bg = "white", cex = 0.8)
@@ -211,7 +211,7 @@ plot_bio_energy <- function(bio_obj, colors = "purple", ...) {
     duration <- bio_obj$simulation_settings$duration %||% 365
     days <- 1:duration
     
-    if (!is.null(predator_params$ED_data)) {
+    if (!is.null(predator_params$ED_data) && !all(is.na(predator_params$ED_data))) {
       energy_values <- rep(predator_params$ED_data, length.out = duration)
     } else if (!is.null(predator_params$ED_ini) && !is.null(predator_params$ED_end)) {
       energy_values <- seq(from = predator_params$ED_ini, 
@@ -254,8 +254,18 @@ plot_bio_energy <- function(bio_obj, colors = "purple", ...) {
       text(Cutoff + 50, max(energy_values) * 0.9, 
            paste("Cutoff:", Cutoff, "g"), col = cols$accent)
     }
-    
-    grid(col = "lightgray", lty = "dotted")
-  }
-}
 
+    grid(col = "lightgray", lty = "dotted")
+
+    legend("topright",
+           legend = c(paste("Alpha1:", round(Alpha1, 2)),
+                     paste("Beta1:", round(Beta1, 4)),
+                     paste("Cutoff:", Cutoff, "g")),
+           bty = "o", bg = "white", cex = 0.8)
+
+  } else {
+    stop("PREDEDEQ must be 1 or 2")
+  }
+
+  invisible(NULL)
+}

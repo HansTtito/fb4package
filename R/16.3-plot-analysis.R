@@ -102,73 +102,72 @@ plot_distributions.fb4_result <- function(fb4_result, color_scheme = "green",
 # SENSITIVITY ANALYSIS PLOTS
 # ============================================================================
 
-#' Plot sensitivity analysis for FB4 results
+#' Plot temperature sensitivity analysis for a Bioenergetic object
 #'
 #' @description
-#' Runs sensitivity analysis internally and creates plots. Called by plot.fb4_result().
-#' Does analysis + plotting in one step.
+#' Runs \code{analyze_growth_temperature_sensitivity} and plots the result.
+#' Sensitivity analysis requires a \code{Bioenergetic} object (not an
+#' \code{fb4_result}), because it re-runs the model across a grid of
+#' temperatures and p_values. Use \code{plot(bio_obj, type = "sensitivity")}
+#' as the primary interface; this function is the underlying implementation.
 #'
-#' @param fb4_result FB4 result object
-#' @param temperatures Vector of temperatures to test, default seq(5, 20, 2)
-#' @param feeding_levels Vector of feeding levels, default c(0.5, 0.75, 1.0)
-#' @param feeding_type Type of feeding levels: "proportion_cmax" or "p_value", default "proportion_cmax"
-#' @param color_scheme Color scheme: "grayscale", "color", or color name, default "grayscale"
-#' @param add_annotations Add optimal temperature annotations, default TRUE
-#' @param verbose Show analysis progress, default FALSE
-#' @param ... Additional arguments passed to plot()
+#' @param bio_obj Bioenergetic object with species parameters, temperature
+#'   profile, diet, and simulation settings.
+#' @param temperatures Numeric vector of absolute temperatures (°C) to test.
+#'   Default \code{seq(4, 20, by = 2)}.
+#' @param p_values Numeric vector of p_values (proportion of Cmax) to
+#'   evaluate. Must be in (0, 1]. Default \code{seq(0.3, 1.0, by = 0.1)}.
+#' @param simulation_days Number of simulation days. Default 365.
+#' @param color_scheme Color scheme for the plot. Default \code{"grayscale"}.
+#' @param add_annotations Add optimal temperature annotations. Default TRUE.
+#' @param verbose Show analysis progress. Default FALSE.
+#' @param ... Additional arguments passed to \code{plot_growth_temperature_sensitivity()}.
 #'
 #' @return NULL (creates plot)
 #' @export
 #'
 #' @examples
 #' \dontrun{
-#' # Simple usage
-#' plot(fb4_result, type = "sensitivity")
-#' 
-#' # Custom parameters
-#' plot(fb4_result, type = "sensitivity", 
-#'      temperatures = seq(8, 18, 1),
-#'      feeding_type = "p_value", 
-#'      feeding_levels = c(-0.2, 0, 0.2))
+#' # Primary interface (recommended):
+#' plot(bio_obj, type = "sensitivity")
+#'
+#' # Custom temperature range and p_values:
+#' plot_sensitivity.fb4_result(
+#'   bio_obj      = bio_chinook,
+#'   temperatures = seq(4, 14, by = 2),
+#'   p_values     = seq(0.3, 0.9, by = 0.1)
+#' )
 #' }
-plot_sensitivity.fb4_result <- function(fb4_result, 
-                                        temperatures = seq(2, 20, by = 1),
-                                        feeding_levels = c(0.5, 0.75, 1.0),
-                                        feeding_type = "proportion_cmax",
-                                        color_scheme = "grayscale",
+plot_sensitivity.fb4_result <- function(bio_obj,
+                                        temperatures    = seq(4, 20, by = 2),
+                                        p_values        = seq(0.3, 1.0, by = 0.1),
+                                        simulation_days = 365,
+                                        color_scheme    = "grayscale",
                                         add_annotations = TRUE,
-                                        verbose = FALSE, ...) {
-  
-  # Validate input
-  if (!is.fb4_result(fb4_result)) {
-    stop("Input must be an fb4_result object")
+                                        verbose         = FALSE, ...) {
+
+  if (!is.Bioenergetic(bio_obj)) {
+    stop("bio_obj must be a Bioenergetic object. ",
+         "Use plot(bio_obj, type = 'sensitivity') as the primary interface.")
   }
-  
-  # Step 1: Run sensitivity analysis
-  if (verbose) {
-    message("Running sensitivity analysis...")
-  }
-  
+
+  if (verbose) message("Running temperature sensitivity analysis...")
+
   sensitivity_data <- analyze_growth_temperature_sensitivity(
-    fb4_result = fb4_result,
-    temperatures = temperatures,
-    feeding_levels = feeding_levels,
-    feeding_type = feeding_type,
-    verbose = verbose
+    bio_obj         = bio_obj,
+    temperatures    = temperatures,
+    p_values        = p_values,
+    simulation_days = simulation_days,
+    verbose         = verbose
   )
-  
-  # Step 2: Create plot
-  plot_growth_vs_temperature(
+
+  plot_growth_temperature_sensitivity(
     sensitivity_data = sensitivity_data,
-    fb4_result = fb4_result,
-    color_scheme = color_scheme,
-    add_annotations = add_annotations,
     ...
   )
-  
-  if (verbose) {
-    message("Sensitivity plot completed")
-  }
+
+  if (verbose) message("Sensitivity plot completed.")
+  invisible(NULL)
 }
 
 #' Plot growth rate vs temperature
@@ -198,7 +197,7 @@ plot_growth_vs_temperature <- function(sensitivity_data, fb4_result,
   # Create plot
   plot(sensitivity_data$temperature, sensitivity_data$growth_rate,
        type = "l", col = colors$primary, lwd = 2,
-       xlab = "Temperature (°C)", ylab = "Growth Rate (g/day)",
+       xlab = "Temperature (\u00b0C)", ylab = "Growth Rate (g/day)",
        main = "Growth Rate vs Temperature",
        ...)
   
@@ -211,7 +210,7 @@ plot_growth_vs_temperature <- function(sensitivity_data, fb4_result,
     opt_temp <- sensitivity_data$temperature[which.max(sensitivity_data$growth_rate)]
     graphics::abline(v = opt_temp, col = colors$accent, lty = 2)
     graphics::text(opt_temp, max(sensitivity_data$growth_rate), 
-                   paste("Optimal:", round(opt_temp, 1), "°C"),
+                   paste("Optimal:", round(opt_temp, 1), "\u00b0C"),
                    pos = 4, col = colors$accent)
   }
 }
@@ -268,17 +267,63 @@ plot_mle_uncertainty <- function(fb4_result, parameters, colors, add_ci_text) {
   old_par <- setup_plot_layout(c(2, 2), "compact")
   on.exit(graphics::par(old_par))
 
-  mle    <- fb4_result$mle_results
-  params <- if (parameters == "all") names(mle$estimates) else parameters
-  z      <- z_score(0.95)
+  # MLE data lives in result$method_data (built by create_method_specific_data)
+  md  <- fb4_result$method_data
+  ci  <- md$confidence_intervals %||% list()
 
-  for (param in params) {
-    if (param %in% names(mle$estimates)) {
-      est <- mle$estimates[param]
-      se  <- mle$std_errors[param]
-      plot_estimate_panel(est, est - z * se, est + z * se,
-                          param, "MLE", colors, add_ci_text)
+  p_est      <- fb4_result$summary$p_estimate
+  p_ci_lower <- ci$p_ci_lower %||% NA_real_
+  p_ci_upper <- ci$p_ci_upper %||% NA_real_
+
+  # Panel 1: p_value estimate with confidence interval
+  plot_estimate_panel(p_est, p_ci_lower, p_ci_upper,
+                      "p_value", "MLE", colors, add_ci_text)
+
+  # Panel 2: sigma estimate (measurement-error parameter)
+  sigma_est <- md$sigma_estimate %||% NA_real_
+  sigma_se  <- md$sigma_se      %||% NA_real_
+  if (!is.na(sigma_est)) {
+    sigma_lo <- if (!is.na(sigma_se)) sigma_est - 1.96 * sigma_se else NA_real_
+    sigma_hi <- if (!is.na(sigma_se)) sigma_est + 1.96 * sigma_se else NA_real_
+    plot_estimate_panel(sigma_est, sigma_lo, sigma_hi,
+                        "sigma", "MLE", colors, add_ci_text)
+  }
+
+  # Panel 3: likelihood profile (optional — only when compute_profile = TRUE)
+  pl <- md$profile_likelihood
+  if (!is.null(pl) && is.data.frame(pl) && nrow(pl) > 0 &&
+      all(c("p_value", "log_likelihood") %in% names(pl))) {
+
+    graphics::plot(pl$p_value, pl$log_likelihood,
+                   type = "l", lwd = 2, col = colors$primary,
+                   xlab = "p_value", ylab = "Log-likelihood",
+                   main = "Likelihood Profile")
+    graphics::abline(v = p_est,
+                     col = colors$accent, lty = 2, lwd = 1.5)
+    if (!is.na(p_ci_lower) && !is.na(p_ci_upper)) {
+      graphics::abline(v = c(p_ci_lower, p_ci_upper),
+                       col = colors$secondary, lty = 3)
     }
+  }
+
+  # Panel 4: AIC / log-likelihood summary text
+  aic <- md$aic %||% NA_real_
+  ll  <- md$log_likelihood %||% NA_real_
+  if (!is.na(aic) || !is.na(ll)) {
+    graphics::plot.new()
+    lines_txt <- c(
+      "MLE Fit Statistics",
+      "",
+      if (!is.na(p_est))   sprintf("p_value : %.4f",  p_est)  else NULL,
+      if (!is.na(sigma_est)) sprintf("sigma   : %.4f", sigma_est) else NULL,
+      if (!is.na(ll))      sprintf("Log-lik : %.2f",  ll)     else NULL,
+      if (!is.na(aic))     sprintf("AIC     : %.2f",  aic)    else NULL,
+      if (!is.na(md$confidence_level)) {
+        sprintf("CI level: %.0f%%", md$confidence_level * 100)
+      } else NULL
+    )
+    graphics::text(0.5, 0.5, paste(lines_txt, collapse = "\n"),
+                   cex = 1.0, family = "mono", adj = c(0.5, 0.5))
   }
 }
 
@@ -295,14 +340,64 @@ plot_bootstrap_uncertainty <- function(fb4_result, parameters, colors, add_ci_te
   old_par <- setup_plot_layout(c(2, 2), "compact")
   on.exit(graphics::par(old_par))
 
-  bs     <- fb4_result$bootstrap_results
-  params <- if (parameters == "all") names(bs$estimates) else parameters
+  # Bootstrap data lives in result$method_data (built by create_method_specific_data)
+  md   <- fb4_result$method_data
+  bs   <- md$bootstrap_results   %||% list()   # p_values, consumption_values, predicted_weights
+  ci   <- md$confidence_intervals %||% list()  # p_ci_lower/upper, consumption_ci_lower/upper
+  info <- md$bootstrap_info       %||% list()  # n_bootstrap, successful_iterations, success_rate
 
-  for (param in params) {
-    if (param %in% names(bs$estimates)) {
-      plot_estimate_panel(bs$estimates[param], bs$ci_lower[param], bs$ci_upper[param],
-                          param, "Bootstrap", colors, add_ci_text)
+  p_mean <- fb4_result$summary$p_mean %||% NA_real_
+  n_ok   <- info$successful_iterations %||% length(bs$p_values %||% c())
+  n_tot  <- info$n_bootstrap           %||% n_ok
+  sr     <- info$success_rate          %||% if (n_tot > 0) n_ok / n_tot else NA_real_
+
+  # Panel 1: histogram of bootstrap p_values
+  p_vals <- bs$p_values
+  if (!is.null(p_vals) && length(p_vals) > 0) {
+    main_txt <- sprintf("Bootstrap p_value  (n=%d/%d | %.0f%% success)",
+                        n_ok, n_tot, (sr %||% 1) * 100)
+    graphics::hist(p_vals, breaks = 30,
+                   col = colors$fill %||% "lightblue",
+                   border = colors$secondary %||% "steelblue",
+                   xlab = "p_value", ylab = "Frequency", main = main_txt)
+    graphics::abline(v = p_mean, col = colors$primary, lwd = 2)
+    if (!is.null(ci$p_ci_lower) && !is.na(ci$p_ci_lower)) {
+      graphics::abline(v = c(ci$p_ci_lower, ci$p_ci_upper),
+                       col = colors$accent %||% "red", lty = 2, lwd = 1.5)
     }
+  }
+
+  # Panel 2: p_value point estimate with CI bar
+  plot_estimate_panel(p_mean, ci$p_ci_lower %||% NA_real_,
+                      ci$p_ci_upper %||% NA_real_,
+                      "p_value", "Bootstrap", colors, add_ci_text)
+
+  # Panel 3: histogram of bootstrap consumption values
+  cons_vals <- bs$consumption_values
+  if (!is.null(cons_vals) && length(cons_vals) > 0) {
+    graphics::hist(cons_vals, breaks = 30,
+                   col = colors$fill %||% "lightblue",
+                   border = colors$secondary %||% "steelblue",
+                   xlab = "Total Consumption (g)", ylab = "Frequency",
+                   main = "Bootstrap Consumption Distribution")
+    c_mean <- mean(cons_vals, na.rm = TRUE)
+    graphics::abline(v = c_mean, col = colors$primary, lwd = 2)
+    if (!is.null(ci$consumption_ci_lower) && !is.na(ci$consumption_ci_lower)) {
+      graphics::abline(v = c(ci$consumption_ci_lower, ci$consumption_ci_upper),
+                       col = colors$accent %||% "red", lty = 2, lwd = 1.5)
+    }
+  }
+
+  # Panel 4: histogram of predicted final weights (if stored)
+  pred_w <- bs$predicted_weights
+  if (!is.null(pred_w) && length(pred_w) > 0) {
+    graphics::hist(pred_w, breaks = 30,
+                   col = colors$fill %||% "lightblue",
+                   border = colors$secondary %||% "steelblue",
+                   xlab = "Predicted Final Weight (g)", ylab = "Frequency",
+                   main = "Bootstrap Predicted Weights")
+    graphics::abline(v = mean(pred_w, na.rm = TRUE),
+                     col = colors$primary, lwd = 2)
   }
 }
 
@@ -423,16 +518,19 @@ plot_hierarchical_distributions <- function(fb4_result, colors, show_individuals
 #' @description
 #' Creates sensitivity analysis plots for temperature and feeding effects.
 #'
-#' @param bio_obj Bioenergetic object
+#' @param sensitivity_data Data frame from \code{analyze_growth_temperature_sensitivity}
 #' @param temperatures Temperature values to test
 #' @param feeding_levels Feeding levels to test
+#' @param species Optional species name for plot title
+#' @param ylim Optional y-axis limits
+#' @param xlim Optional x-axis limits
 #' @param colors Color scheme
 #' @param verbose Show progress messages
 #' @param ... Additional arguments
 #'
 #' @return NULL (creates plot)
 #' @export
-plot_growth_temperature_sensitivity <- function(sensitivity_data, 
+plot_growth_temperature_sensitivity <- function(sensitivity_data,
                                                 temperatures = seq(5, 20, by = 2),
                                                 feeding_levels = c(0.5, 0.75, 1.0),
                                                 species = NULL,
@@ -484,7 +582,7 @@ plot_growth_temperature_sensitivity <- function(sensitivity_data,
   # Create plot
   plot(valid_results$temperature, valid_results$daily_growth_rate,
        type = "n",
-       xlab = "Temperature (°C)",
+       xlab = "Temperature (\u00b0C)",
        ylab = "Daily Growth Rate (g/g/day)",
        main = main_title,
        ylim = ylim %||% range(valid_results$daily_growth_rate, na.rm = TRUE),
@@ -530,7 +628,7 @@ plot_growth_temperature_sensitivity <- function(sensitivity_data,
       
       abline(v = optimal_temp, col = "red", lty = 2, lwd = 1)
       text(optimal_temp + 1, max_growth * 0.8,
-           paste("Optimal\n", optimal_temp, "°C"),
+           paste("Optimal\n", optimal_temp, "\u00b0C"),
            col = "red", cex = 0.8, adj = 0)
     }
   }

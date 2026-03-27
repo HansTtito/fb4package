@@ -80,7 +80,7 @@ print.Bioenergetic <- function(x, ...) {
   } else {
     cat("No initial weight")
   }
-  cat(" → ", duration, " days\n", sep = "")
+  cat(" \u2192 ", duration, " days\n", sep = "")
   
   # Component status with details
   cat("\nComponents:\n")
@@ -90,35 +90,35 @@ print.Bioenergetic <- function(x, ...) {
   if (ready$has_params) {
     param_count <- length(unlist(x$species_params))
     categories <- paste(names(x$species_params), collapse = ", ")
-    cat("  ✓ Parameters: ", param_count, " params (", categories, ")\n", sep = "")
+    cat("  \u2713 Parameters: ", param_count, " params (", categories, ")\n", sep = "")
   } else {
-    cat("  ✗ Parameters: Missing\n")
+    cat("  \u2717 Parameters: Missing\n")
   }
 
   # Temperature
   if (ready$has_temp) {
     temp_data <- x$environmental_data$temperature
     temp_range <- range(temp_data$Temperature, na.rm = TRUE)
-    cat("  ✓ Temperature: ", nrow(temp_data), " days (",
-        round(temp_range[1], 1), "-", round(temp_range[2], 1), "°C)\n", sep = "")
+    cat("  \u2713 Temperature: ", nrow(temp_data), " days (",
+        round(temp_range[1], 1), "-", round(temp_range[2], 1), "\u00b0C)\n", sep = "")
   } else {
-    cat("  ✗ Temperature: Missing\n")
+    cat("  \u2717 Temperature: Missing\n")
   }
 
   # Diet
   if (ready$has_diet) {
     prey_count <- length(x$diet_data$prey_names)
     diet_days <- nrow(x$diet_data$proportions)
-    cat("  ✓ Diet: ", prey_count, " prey species, ", diet_days, " days\n", sep = "")
+    cat("  \u2713 Diet: ", prey_count, " prey species, ", diet_days, " days\n", sep = "")
   } else {
-    cat("  ✗ Diet: Missing\n")
+    cat("  \u2717 Diet: Missing\n")
   }
 
   # Simulation readiness
   is_ready <- ready$has_params && ready$has_temp && ready$has_diet && ready$has_initial
   cat("\nStatus: ")
   if (x$fitted) {
-    cat("✓ Fitted and ready\n")
+    cat("\u2713 Fitted and ready\n")
   } else if (is_ready) {
     cat("Ready for fitting\n")
   } else {
@@ -200,8 +200,8 @@ summary.Bioenergetic <- function(object, ...) {
     temp_stats <- summary(temp_data$Temperature)
     day_range <- range(temp_data$Day)
     
-    cat("  Temperature: ", round(temp_stats[4], 1), "°C (mean)\n", sep = "")
-    cat("  Range: ", round(temp_stats[1], 1), " - ", round(temp_stats[6], 1), "°C\n", sep = "")
+    cat("  Temperature: ", round(temp_stats[4], 1), "\u00b0C (mean)\n", sep = "")
+    cat("  Range: ", round(temp_stats[1], 1), " - ", round(temp_stats[6], 1), "\u00b0C\n", sep = "")
     cat("  Duration: ", nrow(temp_data), " days (", day_range[1], " to ", day_range[2], ")\n", sep = "")
     cat("\n")
   }
@@ -260,7 +260,7 @@ summary.Bioenergetic <- function(object, ...) {
   # Final Status
   cat("STATUS: ")
   if (object$fitted) {
-    cat("✓ Model fitted and results available\n")
+    cat("\u2713 Model fitted and results available\n")
   } else {
     # Check readiness
     ready <- check_bioenergetic_readiness(object)
@@ -347,22 +347,22 @@ print.fb4_result <- function(x, ...) {
     cat("  Total consumption: ", round(x$summary$total_consumption_g, 2), " g\n", sep = "")
     cat("  P_value: ", round(x$summary$p_value, 4), "\n", sep = "")
     
-    # Target achievement
+    # Target achievement (only show if a target was actually set)
     target_info <- x$method_data$target_info
-    if (!is.null(target_info)) {
-      cat("  Target (", target_info$fit_to, " = ", target_info$fit_value, "): ", 
-          if (target_info$target_achieved) "✓ Achieved" else "✗ Not achieved", "\n", sep = "")
+    if (!is.null(target_info) && !is.null(target_info$fit_value)) {
+      cat("  Target (", target_info$fit_to, " = ", target_info$fit_value, "): ",
+          if (isTRUE(target_info$target_achieved)) "Achieved" else "Not achieved", "\n", sep = "")
     }
     
     # Convergence
     cat("\nFITTING: ")
     if (x$summary$converged) {
-      cat("✓ Successful")
+      cat("\u2713 Successful")
       if (!is.null(x$method_data$optimization_info$iterations)) {
         cat(" (", x$method_data$optimization_info$iterations, " iterations)", sep = "")
       }
     } else {
-      cat("✗ Failed - using best approximation")
+      cat("\u2717 Failed - using best approximation")
     }
     cat("\n")
     
@@ -376,7 +376,7 @@ print.fb4_result <- function(x, ...) {
     
     cat("PARAMETER ESTIMATES:\n")
     cat("  P_value: ", round(x$summary$p_estimate, 4), 
-        " ± ", round(x$summary$p_se, 4), "\n", sep = "")
+        " \u00b1 ", round(x$summary$p_se, 4), "\n", sep = "")
     
     ci <- x$method_data$confidence_intervals
     if (!is.null(ci$p_ci_lower)) {
@@ -384,12 +384,12 @@ print.fb4_result <- function(x, ...) {
           round(ci$p_ci_upper, 4), "]\n", sep = "")
     }
     
-    cat("  Measurement error (σ): ", round(x$method_data$sigma_estimate, 3), "\n", sep = "")
+    cat("  Measurement error (\u03c3): ", round(x$method_data$sigma_estimate, 3), "\n", sep = "")
     
     cat("\nMODEL FIT:\n")
     cat("  Log-likelihood: ", round(x$method_data$log_likelihood, 2), "\n", sep = "")
     cat("  AIC: ", round(x$method_data$aic, 2), "\n", sep = "")
-    cat("  Converged: ", if (x$summary$converged) "✓ Yes" else "✗ No", "\n", sep = "")
+    cat("  Converged: ", if (x$summary$converged) "\u2713 Yes" else "\u2717 No", "\n", sep = "")
     
   } else if (method == "bootstrap") {
     # Bootstrap method
@@ -401,13 +401,13 @@ print.fb4_result <- function(x, ...) {
     cat("  Predicted weight: ", round(x$summary$predicted_weight, 2), " g\n", sep = "")
     
     if (bootstrap_info$parallel_used) {
-      cat("  Parallel processing: ✓ (", bootstrap_info$n_cores_used, " cores)\n", sep = "")
+      cat("  Parallel processing: \u2713 (", bootstrap_info$n_cores_used, " cores)\n", sep = "")
     }
     cat("\n")
     
     cat("ESTIMATES:\n")
     cat("  P_value: ", round(x$summary$p_mean, 4), 
-        " ± ", round(x$summary$p_sd, 4), "\n", sep = "")
+        " \u00b1 ", round(x$summary$p_sd, 4), "\n", sep = "")
     
     ci <- x$method_data$confidence_intervals
     if (!is.null(ci$p_ci_lower)) {
@@ -416,7 +416,7 @@ print.fb4_result <- function(x, ...) {
     }
     
     cat("  Consumption: ", round(x$summary$consumption_mean, 2), 
-        " ± ", round(x$summary$consumption_sd, 2), " g\n", sep = "")
+        " \u00b1 ", round(x$summary$consumption_sd, 2), " g\n", sep = "")
     
   } else if (method == "hierarchical") {
     # Hierarchical method
@@ -427,15 +427,15 @@ print.fb4_result <- function(x, ...) {
     
     cat("POPULATION PARAMETERS:\n")
     cat("  Mean P_value: ", round(pop_results$mu_p_estimate, 4), 
-        " ± ", round(pop_results$mu_p_se, 4), "\n", sep = "")
+        " \u00b1 ", round(pop_results$mu_p_se, 4), "\n", sep = "")
     cat("  SD P_value: ", round(pop_results$sigma_p_estimate, 4), 
-        " ± ", round(pop_results$sigma_p_se, 4), "\n", sep = "")
+        " \u00b1 ", round(pop_results$sigma_p_se, 4), "\n", sep = "")
     
     cat("\nMODEL FIT:\n")
     model_fit <- x$method_data$model_fit
     cat("  Log-likelihood: ", round(model_fit$log_likelihood, 2), "\n", sep = "")
     cat("  AIC: ", round(model_fit$aic, 2), "\n", sep = "")
-    cat("  Converged: ", if (x$summary$converged) "✓ Yes" else "✗ No", "\n", sep = "")
+    cat("  Converged: ", if (x$summary$converged) "\u2713 Yes" else "\u2717 No", "\n", sep = "")
   }
   
   invisible(x)
@@ -526,7 +526,7 @@ summary.fb4_result <- function(object, ...) {
     cat("  Success rate: ", round(bootstrap_info$success_rate * 100, 1), "%\n", sep = "")
     
     if (bootstrap_info$parallel_used) {
-      cat("  Parallel execution: ✓ (", bootstrap_info$n_cores_used, 
+      cat("  Parallel execution: \u2713 (", bootstrap_info$n_cores_used, 
           " cores used)\n", sep = "")
     }
     

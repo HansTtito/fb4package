@@ -1,5 +1,43 @@
 #' Consumption Functions for FB4 Model
 #'
+#' @description
+#' Functions implementing the four consumption temperature-dependence equations
+#' (CEQ 1–4) and the allometric maximum-consumption function used in FB4.
+#' Consumption is modelled as:
+#'
+#' \deqn{C = C_{\max} \cdot p \cdot F(T), \quad C_{\max} = CA \cdot W^{CB}}
+#'
+#' where \eqn{p} is the proportion of maximum consumption (P-value), \eqn{F(T)}
+#' is a temperature-dependence function, \eqn{W} is body mass (g), and \eqn{CA},
+#' \eqn{CB} are species-specific intercept and slope coefficients.
+#'
+#' \strong{CEQ 1} — simple Q10 exponential: \eqn{F(T) = e^{CQ \cdot T}}
+#'
+#' \strong{CEQ 2} — Kitchell et al. (1977):
+#' \eqn{F(T) = V^{CX} \cdot e^{CX(1-V)}}, where \eqn{V = (CTM - T)/(CTM - CTO)}
+#'
+#' \strong{CEQ 3} — Thornton and Lessem (1978): two-part sigmoid using \eqn{CQ},
+#' \eqn{CTO}, \eqn{CTL}, \eqn{CTM}, \eqn{CK1}, \eqn{CK4}
+#'
+#' \strong{CEQ 4} — polynomial: \eqn{F(T) = e^{CQ \cdot T + CK1 \cdot T^2 + CK4 \cdot T^3}}
+#'
+#' @references
+#' Kitchell, J.F., Stewart, D.J. and Weininger, D. (1977). Applications of a
+#' bioenergetics model to yellow perch and walleye.
+#' \emph{Journal of the Fisheries Research Board of Canada}, 34(10), 1922–1935.
+#'
+#' Thornton, K.W. and Lessem, A.S. (1978). A temperature algorithm for modifying
+#' biological rates.
+#' \emph{Transactions of the American Fisheries Society}, 107(2), 284–287.
+#'
+#' Hartman, K.J. and Hayward, R.S. (2007). Bioenergetics. In C.S. Guy and
+#' M.L. Brown (eds.), \emph{Analysis and Interpretation of Freshwater Fisheries
+#' Data}. American Fisheries Society, Bethesda, MD.
+#'
+#' Deslauriers, D., Chipps, S.R., Breck, J.E., Rice, J.A. and Madenjian, C.P.
+#' (2017). Fish Bioenergetics 4.0: An R-based modeling application.
+#' \emph{Fisheries}, 42(11), 586–596. \doi{10.1080/03632415.2017.1377558}
+#'
 #' @name consumption-functions
 #' @aliases consumption-functions
 NULL
@@ -43,7 +81,7 @@ consumption_temp_eq1 <- function(temperature, CQ) {
 consumption_temp_eq2 <- function(temperature, CTM, CTO, CX, warn = TRUE) {
   if (temperature >= CTM) {
     if (warn) {
-      warning("consumption_temp_eq2: temperature (", temperature, "°C) ≥ CTM (", CTM, "°C), returning 0 (consumption ceases)", call. = FALSE)
+      warning("consumption_temp_eq2: temperature (", temperature, "\u00b0C) \u2265 CTM (", CTM, "\u00b0C), returning 0 (consumption ceases)", call. = FALSE)
     }
     return(0)
   }

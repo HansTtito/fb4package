@@ -120,13 +120,16 @@ create_unified_summary <- function(raw_results, execution_plan, method) {
   )
   
   # Method-specific summary fields
-  if (method %in% c("binary_search", "optim", "direct")) {
-    # Traditional methods
+  if (method %in% c("binary_search", "optim", "direct",
+                    "direct_p_value", "direct_ration_percent", "direct_ration_grams")) {
+    # Traditional / direct methods
     summary$fit_to <- execution_plan$fit_to
     summary$fit_value <- execution_plan$fit_value
     summary$final_weight <- raw_results$final_weight
     summary$total_consumption_g <- raw_results$total_consumption_g
-    summary$p_value <- raw_results$p_value %||% raw_results$effective_p_value
+    summary$p_estimate <- raw_results$p_value %||% raw_results$effective_p_value %||%
+                          raw_results$p_estimate
+    summary$p_value <- summary$p_estimate   # backward-compat alias
     summary$converged <- raw_results$converged %||% TRUE
     
   } else if (method == "mle") {
@@ -573,9 +576,9 @@ create_execution_summary <- function(result, execution_plan, elapsed_time) {
     summary_lines <- c(summary_lines,
                        "Hierarchical estimation completed",
                        paste("Population mean p_value:", round(pop_results$mu_p_estimate, 4),
-                             "±", round(pop_results$mu_p_se, 4)),
+                             "\u00b1", round(pop_results$mu_p_se, 4)),
                        paste("Population SD p_value:", round(pop_results$sigma_p_estimate, 4),
-                             "±", round(pop_results$sigma_p_se, 4)),
+                             "\u00b1", round(pop_results$sigma_p_se, 4)),
                        paste("Individuals:", result$summary$n_individuals),
                        paste("Model converged:", result$summary$converged)
     )
@@ -602,7 +605,7 @@ create_execution_summary <- function(result, execution_plan, elapsed_time) {
                              "(95% CI:", round(ci$p_ci_lower, 4), "-", 
                              round(ci$p_ci_upper, 4), ")"),
                        paste("Estimated consumption:", round(result$summary$consumption_mean, 2), 
-                             "±", round(result$summary$consumption_sd, 2), "g"),
+                             "\u00b1", round(result$summary$consumption_sd, 2), "g"),
                        paste("Bootstrap success rate:", round(bootstrap_info$success_rate * 100, 1), "%")
     )
     

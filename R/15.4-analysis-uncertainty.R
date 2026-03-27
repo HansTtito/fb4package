@@ -56,7 +56,7 @@ predict_consumption_delta <- function(p_est, p_se, bio_obj, delta_size = 0.001,
   
   if (verbose) {
     message("Computing consumption uncertainty using delta method")
-    message("p_value estimate: ", round(p_est, 4), " ± ", round(p_se, 4))
+    message("p_value estimate: ", round(p_est, 4), " \u00b1 ", round(p_se, 4))
   }
   
   # Validation
@@ -126,7 +126,7 @@ predict_consumption_delta <- function(p_est, p_se, bio_obj, delta_size = 0.001,
   
   if (verbose) {
     message("Delta method completed")
-    message("Consumption estimate: ", round(consumption_est, 2), " ± ", round(consumption_se, 2), " g")
+    message("Consumption estimate: ", round(consumption_est, 2), " \u00b1 ", round(consumption_se, 2), " g")
     message("95% CI: [", round(consumption_est - z * consumption_se, 2), ", ",
             round(consumption_est + z * consumption_se, 2), "] g")
     message("Derivative: ", round(derivative, 4))
@@ -208,7 +208,7 @@ predict_consumption_bootstrap <- function(p_mean, p_sd, bio_obj, n_sims = 1000,
   
   if (verbose) {
     message("Starting bootstrap uncertainty propagation")
-    message("p_value: ", round(p_mean, 4), " ± ", round(p_sd, 4))
+    message("p_value: ", round(p_mean, 4), " \u00b1 ", round(p_sd, 4))
     message("Bootstrap simulations: ", n_sims)
     if (parallel) {
       message("Parallel processing enabled")
@@ -363,7 +363,7 @@ predict_consumption_bootstrap <- function(p_mean, p_sd, bio_obj, n_sims = 1000,
   if (verbose) {
     message("Bootstrap completed in ", round(elapsed_time[3], 2), " seconds")
     message("Successful simulations: ", n_successful, "/", n_sims, " (", round(success_rate * 100, 1), "%)")
-    message("Consumption: ", round(consumption_mean, 2), " ± ", round(consumption_sd, 2), " g")
+    message("Consumption: ", round(consumption_mean, 2), " \u00b1 ", round(consumption_sd, 2), " g")
     message(confidence_level * 100, "% CI: [", round(consumption_ci[1], 2), ", ", 
             round(consumption_ci[2], 2), "] g")
     

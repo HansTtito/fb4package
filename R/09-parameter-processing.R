@@ -368,13 +368,13 @@ process_mortality_params <- function(mortality_params) {
   
   # Set default thermal tolerance parameters
   if (is.null(processed$optimal_temp)) {
-    processed$optimal_temp <- 15  # Default 15°C
-    warning("Using default optimal_temp = 15°C")
+    processed$optimal_temp <- 15  # Default 15\u00b0C
+    warning("Using default optimal_temp = 15\u00b0C")
   }
   
   if (is.null(processed$thermal_tolerance)) {
-    processed$thermal_tolerance <- 5  # Default ±5°C
-    warning("Using default thermal_tolerance = 5°C")
+    processed$thermal_tolerance <- 5  # Default \u00b15\u00b0C
+    warning("Using default thermal_tolerance = 5\u00b0C")
   }
   
   if (is.null(processed$stress_factor)) {

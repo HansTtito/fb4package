@@ -437,7 +437,7 @@ analyze_growth_temperature_sensitivity <- function(bio_obj,
     } else {
       cat("Mode: SEQUENTIAL\n")
     }
-    cat("Temperature range:", min(temperatures), "-", max(temperatures), "°C (", length(temperatures), "values)\n")
+    cat("Temperature range:", min(temperatures), "-", max(temperatures), "\u00b0C (", length(temperatures), "values)\n")
     cat("P-value range:", min(p_values), "-", max(p_values), "(", length(p_values), "values)\n")
     cat("Total combinations:", length(temperatures) * length(p_values), "\n\n")
   }
@@ -487,7 +487,7 @@ analyze_growth_temperature_sensitivity <- function(bio_obj,
         optimal <- valid_results[max_growth_idx, ]
         
         cat("Maximum growth rate:", sprintf("%.3f", optimal$specific_growth_rate), "%/d\n")
-        cat("Optimal conditions:", optimal$temperature, "°C,", 
+        cat("Optimal conditions:", optimal$temperature, "\u00b0C,", 
             optimal$feeding_pct, "% feeding (p =", sprintf("%.2f", optimal$p_value), ")\n")
       }
     }
@@ -509,7 +509,7 @@ analyze_growth_temperature_sensitivity <- function(bio_obj,
 process_temperature <- function(temp, p_values, processed_data, simulation_days, oxycal, verbose) {
   
   if (verbose) {
-    cat("Processing temperature:", temp, "°C\n")
+    cat("Processing temperature:", temp, "\u00b0C\n")
   }
   
   # Create constant temperature data
