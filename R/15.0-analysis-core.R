@@ -422,6 +422,42 @@ get_population_results <- function(result, confidence_level = 0.95) {
 # ENERGY BUDGET EXTRACTION
 # ============================================================================
 
+#' Fill energy budget components from a named source list
+#'
+#' @description
+#' Internal helper that populates the \code{estimate} and \code{se} slots of
+#' several energy components inside a budget result list.  Avoids repeating the
+#' same assignment pattern across population, individual, and TMB branches of
+#' \code{get_energy_budget_uncertainty()}.
+#'
+#' @param budget  Named list with one sub-list per energy component, each
+#'   containing at least \code{estimate} and \code{se} slots.
+#' @param src     Named list (or data frame column) that holds the raw
+#'   \code{<prefix>_est} / \code{<prefix>_se} values.
+#' @param mapping Named character vector mapping component names (keys) to
+#'   source field prefixes (values), e.g.
+#'   \code{c(consumption_energy = "mean_total_consumption", ...)}.
+#' @param idx     Integer index used for vector extraction (individual branch).
+#'   \code{NULL} for scalar extraction (population / TMB branches).
+#'
+#' @return The updated \code{budget} list.
+#' @keywords internal
+assign_energy_components <- function(budget, src, mapping, idx = NULL) {
+  for (comp in names(mapping)) {
+    prefix    <- mapping[[comp]]
+    est_field <- paste0(prefix, "_est")
+    se_field  <- paste0(prefix, "_se")
+    if (!is.null(idx)) {
+      budget[[comp]]$estimate <- src[[est_field]][idx] %||% NA
+      budget[[comp]]$se       <- src[[se_field]][idx]  %||% NA
+    } else {
+      budget[[comp]]$estimate <- src[[est_field]] %||% NA
+      budget[[comp]]$se       <- src[[se_field]]  %||% NA
+    }
+  }
+  budget
+}
+
 #' Get energy budget components with uncertainty
 #'
 #' @description
@@ -462,51 +498,37 @@ get_energy_budget_uncertainty <- function(result, individual_id = NULL, confiden
     if (is.null(individual_id)) {
       # Population mean
       if (!is.null(result$method_data$population_uncertainty)) {
-        pop_unc <- result$method_data$population_uncertainty
-        
-        budget_result$consumption_energy$estimate <- pop_unc$mean_total_consumption_est %||% NA
-        budget_result$consumption_energy$se <- pop_unc$mean_total_consumption_se %||% NA
-        
-        budget_result$respiration_energy$estimate <- pop_unc$mean_respiration_energy_est %||% NA
-        budget_result$respiration_energy$se <- pop_unc$mean_respiration_energy_se %||% NA
-        
-        budget_result$egestion_energy$estimate <- pop_unc$mean_egestion_energy_est %||% NA
-        budget_result$egestion_energy$se <- pop_unc$mean_egestion_energy_se %||% NA
-        
-        budget_result$excretion_energy$estimate <- pop_unc$mean_excretion_energy_est %||% NA
-        budget_result$excretion_energy$se <- pop_unc$mean_excretion_energy_se %||% NA
-        
-        budget_result$sda_energy$estimate <- pop_unc$mean_sda_energy_est %||% NA
-        budget_result$sda_energy$se <- pop_unc$mean_sda_energy_se %||% NA
-        
-        budget_result$net_energy$estimate <- pop_unc$mean_net_energy_est %||% NA
-        budget_result$net_energy$se <- pop_unc$mean_net_energy_se %||% NA
+        budget_result <- assign_energy_components(
+          budget_result,
+          src     = result$method_data$population_uncertainty,
+          mapping = c(
+            consumption_energy = "mean_total_consumption",
+            respiration_energy = "mean_respiration_energy",
+            egestion_energy    = "mean_egestion_energy",
+            excretion_energy   = "mean_excretion_energy",
+            sda_energy         = "mean_sda_energy",
+            net_energy         = "mean_net_energy"
+          )
+        )
       }
     } else {
       # Individual result
       if (individual_id > 0 && individual_id <= result$method_data$n_individuals) {
         if (!is.null(result$method_data$individual_uncertainty)) {
-          ind_unc <- result$method_data$individual_uncertainty
-          
-          # Note: Individual consumption energy might not be directly available
-          # Use consumption in grams as proxy
-          budget_result$consumption_energy$estimate <- ind_unc$total_consumption_est[individual_id] %||% NA
-          budget_result$consumption_energy$se <- ind_unc$total_consumption_se[individual_id] %||% NA
-          
-          budget_result$respiration_energy$estimate <- ind_unc$respiration_energy_est[individual_id] %||% NA
-          budget_result$respiration_energy$se <- ind_unc$respiration_energy_se[individual_id] %||% NA
-          
-          budget_result$egestion_energy$estimate <- ind_unc$egestion_energy_est[individual_id] %||% NA
-          budget_result$egestion_energy$se <- ind_unc$egestion_energy_se[individual_id] %||% NA
-          
-          budget_result$excretion_energy$estimate <- ind_unc$excretion_energy_est[individual_id] %||% NA
-          budget_result$excretion_energy$se <- ind_unc$excretion_energy_se[individual_id] %||% NA
-          
-          budget_result$sda_energy$estimate <- ind_unc$sda_energy_est[individual_id] %||% NA
-          budget_result$sda_energy$se <- ind_unc$sda_energy_se[individual_id] %||% NA
-          
-          budget_result$net_energy$estimate <- ind_unc$net_energy_est[individual_id] %||% NA
-          budget_result$net_energy$se <- ind_unc$net_energy_se[individual_id] %||% NA
+          # Note: individual consumption uses grams (total_consumption) as proxy
+          budget_result <- assign_energy_components(
+            budget_result,
+            src     = result$method_data$individual_uncertainty,
+            mapping = c(
+              consumption_energy = "total_consumption",
+              respiration_energy = "respiration_energy",
+              egestion_energy    = "egestion_energy",
+              excretion_energy   = "excretion_energy",
+              sda_energy         = "sda_energy",
+              net_energy         = "net_energy"
+            ),
+            idx = individual_id
+          )
         }
       } else {
         warning("Invalid individual_id: ", individual_id)
@@ -517,25 +539,18 @@ get_energy_budget_uncertainty <- function(result, individual_id = NULL, confiden
   } else if (method == "mle" && backend == "tmb") {
     # MLE with TMB uncertainty
     if (!is.null(result$method_data$tmb_uncertainty)) {
-      tmb_unc <- result$method_data$tmb_uncertainty
-      
-      budget_result$consumption_energy$estimate <- tmb_unc$total_consumption_energy_est %||% NA
-      budget_result$consumption_energy$se <- tmb_unc$total_consumption_energy_se %||% NA
-      
-      budget_result$respiration_energy$estimate <- tmb_unc$total_respiration_energy_est %||% NA
-      budget_result$respiration_energy$se <- tmb_unc$total_respiration_energy_se %||% NA
-      
-      budget_result$egestion_energy$estimate <- tmb_unc$total_egestion_energy_est %||% NA
-      budget_result$egestion_energy$se <- tmb_unc$total_egestion_energy_se %||% NA
-      
-      budget_result$excretion_energy$estimate <- tmb_unc$total_excretion_energy_est %||% NA
-      budget_result$excretion_energy$se <- tmb_unc$total_excretion_energy_se %||% NA
-      
-      budget_result$sda_energy$estimate <- tmb_unc$total_sda_energy_est %||% NA
-      budget_result$sda_energy$se <- tmb_unc$total_sda_energy_se %||% NA
-      
-      budget_result$net_energy$estimate <- tmb_unc$total_net_energy_est %||% NA
-      budget_result$net_energy$se <- tmb_unc$total_net_energy_se %||% NA
+      budget_result <- assign_energy_components(
+        budget_result,
+        src     = result$method_data$tmb_uncertainty,
+        mapping = c(
+          consumption_energy = "total_consumption_energy",
+          respiration_energy = "total_respiration_energy",
+          egestion_energy    = "total_egestion_energy",
+          excretion_energy   = "total_excretion_energy",
+          sda_energy         = "total_sda_energy",
+          net_energy         = "total_net_energy"
+        )
+      )
     }
   }
   
