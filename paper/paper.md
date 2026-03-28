@@ -97,6 +97,9 @@ bio_obj <- Bioenergetic(
   simulation_settings = list(initial_weight = 11115, duration = 365)
 )
 
+bio_obj$species_params$predator$ED_ini <- 6308.570
+bio_obj$species_params$predator$ED_end <- 6320.776
+
 # Fit p to reach a target final weight
 results <- run_fb4(bio_obj, fit_to = "Weight", fit_value = 14884)
 
