@@ -86,11 +86,11 @@ bio_obj <- Bioenergetic(
   species_params = chinook$life_stages$adult,
   environmental_data = list(
     temperature = data.frame(Day = 1:365,
-                             Temperature = 4 + 6 * sin(2 * pi * (1:365) / 365))
+                             Temperature = 10 + 6 * sin(2 * pi * (1:365) / 365))
   ),
   diet_data = list(
-    proportions  = data.frame(Day = 1:365, Prey1 = 0.6, Prey2 = 0.4),
-    energies     = data.frame(Day = 1:365, Prey1 = 5500, Prey2 = 4800),
+    proportions  = data.frame(Day = 1:365, Prey1 = 0.37, Prey2 = 0.63),
+    energies     = data.frame(Day = 1:365, Prey1 = 5553, Prey2 = 5000),
     indigestible = data.frame(Day = 1:365, Prey1 = 0.05, Prey2 = 0.05),
     prey_names   = c("Prey1", "Prey2")
   ),
@@ -101,7 +101,7 @@ bio_obj$species_params$predator$ED_ini <- 6308.570
 bio_obj$species_params$predator$ED_end <- 6320.776
 
 # Fit p to reach a target final weight
-results <- run_fb4(bio_obj, fit_to = "Weight", fit_value = 14884)
+results <- run_fb4(bio_obj, strategy = "binary_search",, fit_to = "Weight", fit_value = 14884)
 
 # Visualize results
 plot(results, type = "dashboard")
