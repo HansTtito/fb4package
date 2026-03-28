@@ -38,7 +38,7 @@ chinook_params <- fish4_parameters[["Oncorhynchus tshawytscha"]]
 # Create temperature data (seasonal variation)
 temperature_data <- data.frame(
   Day = 1:365,
-  Temperature = 4 + 6 * sin(2 * pi * (1:365) / 365)  # 4°C ± 6°C seasonal cycle
+  Temperature = 10 + 6 * sin(2 * pi * (1:365) / 365)  # 4°C ± 6°C seasonal cycle
 )
 
 # Define diet composition
