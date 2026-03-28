@@ -492,9 +492,23 @@ get_energy_budget_uncertainty <- function(result, individual_id = NULL, confiden
   
   # Calculate z-score for confidence intervals
   z <- z_score(confidence_level)
-  
-  if (method == "hierarchical") {
-    
+
+  if (method %in% c("binary_search", "direct", "bootstrap", "optim") &&
+      !is.null(result$daily_output) && nrow(result$daily_output) > 0) {
+    # For R-backend methods the daily simulation output contains all energy
+    # flows per day.  Sum across days to get the seasonal energy budget.
+    do <- result$daily_output
+
+    budget_result$consumption_energy$estimate <- sum(do$Consumption_energy, na.rm = TRUE)
+    budget_result$respiration_energy$estimate <- sum(do$Respiration,         na.rm = TRUE)
+    budget_result$egestion_energy$estimate    <- sum(do$Egestion,            na.rm = TRUE)
+    budget_result$excretion_energy$estimate   <- sum(do$Excretion,           na.rm = TRUE)
+    budget_result$sda_energy$estimate         <- sum(do$SDA,                 na.rm = TRUE)
+    budget_result$net_energy$estimate         <- sum(do$Net_energy,          na.rm = TRUE)
+    # SE / CI are not available for deterministic methods — leave as NA
+
+  } else if (method == "hierarchical") {
+
     if (is.null(individual_id)) {
       # Population mean
       if (!is.null(result$method_data$population_uncertainty)) {

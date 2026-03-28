@@ -6,7 +6,22 @@
 \usage{
 create_method_specific_data(raw_results, execution_plan, method)
 }
+\arguments{
+\item{raw_results}{Raw output list returned by the strategy}
+
+\item{execution_plan}{Execution plan from \code{create_execution_plan()}}
+
+\item{method}{Normalised method string (e.g. "mle", "bootstrap")}
+}
+\value{
+Named list that becomes \code{result$method_data}
+}
 \description{
-Create method-specific data section
+Builds the \code{$method_data} slot of an \code{fb4_result} object.
+Dispatches on \code{method} and delegates large uncertainty list
+construction to dedicated helpers:
+\code{\link{build_tmb_uncertainty}},
+\code{\link{build_individual_uncertainty}},
+\code{\link{build_population_uncertainty}}.
 }
 \keyword{internal}

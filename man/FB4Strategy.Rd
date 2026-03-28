@@ -10,18 +10,6 @@ An object of class \code{list} of length 3.
 \usage{
 FB4Strategy
 }
-\arguments{
-\item{execution_plan}{List with execution parameters}
-}
-\value{
-Raw results from strategy execution
-Validate execution plan for this strategy
-
-TRUE if valid, otherwise stops with error
-Get strategy metadata
-
-List with strategy information
-}
 \description{
 Defines the common interface that all FB4 execution strategies must implement.
 This ensures consistent behavior across different fitting methods while allowing
@@ -33,7 +21,4 @@ All strategies must implement:
 - validate_plan(execution_plan): Strategy-specific validation
 - get_strategy_info(): Metadata about the strategy
 }
-\keyword{Execute}
 \keyword{internal}
-\keyword{strategy}
-\keyword{the}

@@ -38,28 +38,34 @@ create_binary_search_strategy <- function(execution_plan) {
         execution_plan = plan,
         required_params = c("tolerance", "max_iterations"),
         default_values = list(
-          tolerance = 0.001,
-          max_iterations = 25
+          tolerance      = 0.001,
+          max_iterations = 25,
+          lower          = 0.01,
+          upper          = 5.0
         )
       )
-      
+
       # Execute binary search fitting
       result <- fit_fb4_binary_search(
-        target_value = plan$fit_value,
-        fit_type = tolower(plan$fit_to),
+        target_value              = plan$fit_value,
+        fit_type                  = tolower(plan$fit_to),
         processed_simulation_data = processed_data,
-        oxycal = params$oxycal,
-        tolerance = params$tolerance,
-        max_iterations = params$max_iterations,
-        verbose = params$verbose
+        oxycal                    = params$oxycal,
+        tolerance                 = params$tolerance,
+        max_iterations            = params$max_iterations,
+        lower_bound               = params$lower,
+        upper_bound               = params$upper,
+        verbose                   = params$verbose
       )
-      
+
       # Add strategy metadata using shared function
       strategy_info <- list(
         strategy_type = "binary_search",
         additional_metadata = list(
-          tolerance = params$tolerance,
-          max_iterations = params$max_iterations
+          tolerance      = params$tolerance,
+          max_iterations = params$max_iterations,
+          lower_bound    = params$lower,
+          upper_bound    = params$upper
         )
       )
       
@@ -201,6 +207,7 @@ binary_search_p_value <- function(target_value, fit_type, lower_bound, upper_bou
 #' @keywords internal
 fit_fb4_binary_search <- function(target_value, fit_type, processed_simulation_data,
                                   oxycal = 13560, tolerance = 0.001, max_iterations = 25,
+                                  lower_bound = 0.01, upper_bound = 5.0,
                                   verbose = FALSE) {
   
   # Initial progress message
@@ -225,13 +232,13 @@ fit_fb4_binary_search <- function(target_value, fit_type, processed_simulation_d
   
   # Execute binary search
   search_result <- binary_search_p_value(
-    target_value = target_value,
-    fit_type = fit_type,
-    lower_bound = 0.01,
-    upper_bound = 5,
+    target_value        = target_value,
+    fit_type            = fit_type,
+    lower_bound         = lower_bound,
+    upper_bound         = upper_bound,
     simulation_function = simulation_function,
-    tolerance = tolerance,
-    max_iterations = max_iterations
+    tolerance           = tolerance,
+    max_iterations      = max_iterations
   )
   
   # Progress reporting

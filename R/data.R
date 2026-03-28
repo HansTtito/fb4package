@@ -82,7 +82,7 @@
 #' }
 #'
 #' @seealso 
-#' \code{\link{Bioenergetic}}, \code{\link{list_species}}, \code{\link{species_info}}
+#' \code{\link{Bioenergetic}}, \code{\link{run_fb4}}
 #'
 #' @references
 #' Deslauriers, D., Chipps, S.R., Breck, J.E., Rice, J.A., Madenjian, C.P. (2017). 

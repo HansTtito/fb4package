@@ -1,6 +1,39 @@
 #ifndef FB4_RESPIRATION_HPP
 #define FB4_RESPIRATION_HPP
 
+/*
+ * fb4_respiration.hpp — Respiration sub-model (TMB/C++ backend)
+ *
+ * Implements the two temperature-dependence equations for respiration (REQ 1-2),
+ * the velocity-based activity correction, and conversion of O2 consumption to
+ * energy units used in Fish Bioenergetics 4.0.
+ *
+ * R = RA * W^RB * F(T) * ACT
+ *   RA, RB = allometric intercept and slope
+ *   F(T)   = temperature multiplier (REQ 1 or REQ 2)
+ *   ACT    = activity multiplier
+ *
+ * REQ 1 — simple Q10 exponential with velocity-based activity:
+ *   F(T) = exp(RQ * T)
+ *   Velocity model: VEL = ACT * W^RK4 * exp(BACT * T)  for T <= RTL
+ *                   VEL = RK1 * W^RK4 * exp(RK5 * T)   for T >  RTL
+ *   ACT  = max(1, exp(RTO * VEL))
+ *
+ * REQ 2 — Kitchell et al. (1977):
+ *   V    = (RTM - T) / (RTM - RTO)
+ *   F(T) = V^RX * exp(RX * (1 - V))
+ *
+ * Oxygen consumption is converted to energy via the oxycalorific coefficient (default 13 560 J g-1 O2; Elliott and Davison 1975).
+ *
+ * References:
+ *   Kitchell, J.F., Stewart, D.J. and Weininger, D. (1977). Applications of a bioenergetics model to yellow perch and walleye. J. Fish. Res. Board Can., 34(10), 1922-1935.
+ *
+ *   Elliott, J.M. and Davison, W. (1975). Energy equivalents of oxygen consumption in animal energetics. Oecologia, 19(3), 195-201.
+ *
+ *   Deslauriers, D. et al. (2017). Fish Bioenergetics 4.0: An R-based modeling application. Fisheries, 42(11), 586-596. doi:10.1080/03632415.2017.1377558
+ *
+ *   Hanson, P.C. et al. (1997). Fish Bioenergetics 3.0. UW Sea Grant, WISCU-T-97-001.
+ */
 
 #include "fb4_utils.hpp"
 

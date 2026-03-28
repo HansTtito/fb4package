@@ -2,17 +2,29 @@
 % Please edit documentation in R/09-parameter-processing.R
 \name{process_predator_energy_data}
 \alias{process_predator_energy_data}
-\title{Process predator energy data for equation 1}
+\title{Process predator energy data for equation 1 (PREDEDEQ = 1)}
 \usage{
 process_predator_energy_data(predator_params)
 }
 \arguments{
-\item{predator_params}{Predator parameters}
+\item{predator_params}{List of predator parameters. Must include either:
+\describe{
+  \item{\code{ED_data}}{Numeric vector of length \code{n_days + 1}
+    (e.g., 366 for 365 days). Element \code{[i]} is the energy density
+    at the boundary of day \code{i-1}. Generate with
+    \code{approx(..., xout = 0:n_days)$y} or
+    \code{seq(ED_ini, ED_end, length.out = n_days + 1)}.}
+  \item{\code{ED_ini} + \code{ED_end}}{Scalar start/end values; the
+    function creates the full vector via linear interpolation.}
+}}
 }
 \value{
-Processed parameters with ED_data vector
+Predator parameters list with \code{ED_data} populated.
 }
 \description{
-Process predator energy data for equation 1
+Ensures \code{ED_data} is available as a numeric vector of length
+\code{n_days + 1}. Accepts either a pre-built vector via \code{ED_data}
+or a pair of scalars via \code{ED_ini}/\code{ED_end} (which are linearly
+interpolated to produce the full vector internally).
 }
 \keyword{internal}

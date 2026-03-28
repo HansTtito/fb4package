@@ -23,11 +23,17 @@ prepare_simulation_data(
 
 \item{strategy}{Strategy to use: "binary_search", "optim", "bootstrap", "mle", "hierarchical"}
 
+\item{fit_to}{Target type for fitting (e.g., "Weight"); optional for direct strategy}
+
+\item{fit_value}{Target value to fit to; optional for direct strategy}
+
 \item{first_day}{First simulation day}
 
 \item{last_day}{Last simulation day}
 
 \item{validate_inputs}{Whether to perform comprehensive validation, default TRUE}
+
+\item{oxycal}{Oxycalorific coefficient (J/g O2), default 13560}
 
 \item{output_format}{Output format: "simulation", "tmb_basic", "tmb_hierarchical"}
 

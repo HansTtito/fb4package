@@ -4,5 +4,49 @@
 \alias{egestion-excretion}
 \title{Egestion and Excretion Functions for FB4 Model}
 \description{
-Egestion and Excretion Functions for FB4 Model
+Functions implementing four egestion models (EGEQ 1–4) and four excretion
+models (EXEQ 1–4). These represent losses of consumed energy as feces (F)
+and nitrogenous wastes (U) respectively.
+
+\strong{Egestion models:}
+
+\strong{EGEQ 1} — constant fraction:
+\eqn{F = FA \cdot C}
+
+\strong{EGEQ 2} — Elliott (1976), temperature- and feeding-dependent:
+\eqn{F = FA \cdot T^{FB} \cdot e^{FG \cdot p} \cdot C}
+
+\strong{EGEQ 3} — Stewart et al. (1983), includes indigestible fraction:
+modified form of EGEQ 2 accounting for indigestible prey material.
+
+\strong{EGEQ 4} — Elliott (1976), temperature-dependent only:
+\eqn{F = FA \cdot T^{FB} \cdot C}
+
+\strong{Excretion models:}
+
+\strong{EXEQ 1} — constant fraction of assimilated energy:
+\eqn{U = UA \cdot (C - F)}
+
+\strong{EXEQ 2–3} — Elliott (1976), temperature- and feeding-dependent:
+\eqn{U = UA \cdot T^{UB} \cdot e^{UG \cdot p} \cdot (C - F)}
+
+\strong{EXEQ 4} — temperature-dependent only.
+}
+\references{
+Elliott, J.M. (1976). Energy losses in the waste products of brown trout
+(\emph{Salmo trutta} L.).
+\emph{Journal of Animal Ecology}, 45(2), 561–580.
+
+Stewart, D.J., Weininger, D., Rottiers, D.V. and Edsall, T.A. (1983). An
+energetics model for lake trout, \emph{Salvelinus namaycush}: application to
+the Lake Michigan population.
+\emph{Canadian Journal of Fisheries and Aquatic Sciences}, 40(6), 681–698.
+
+Hanson, P.C., Johnson, T.B., Schindler, D.E. and Kitchell, J.F. (1997).
+\emph{Fish Bioenergetics 3.0}. University of Wisconsin Sea Grant Institute,
+Madison, WI.
+
+Deslauriers, D., Chipps, S.R., Breck, J.E., Rice, J.A. and Madenjian, C.P.
+(2017). Fish Bioenergetics 4.0: An R-based modeling application.
+\emph{Fisheries}, 42(11), 586–596. \doi{10.1080/03632415.2017.1377558}
 }

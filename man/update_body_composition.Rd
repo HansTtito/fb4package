@@ -18,7 +18,7 @@ update_body_composition(
 
 \item{old_composition}{Previous composition (optional)}
 
-\item{water_fraction_new}{Water fraction for new weight}
+\item{processed_composition_params}{List with processed composition parameters}
 }
 \value{
 New body composition

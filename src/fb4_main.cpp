@@ -13,11 +13,24 @@
 #include "includes/fb4_validation.hpp"
 
 /*
- * FB4 TMB Implementation - Basic and Hierarchical Models
- * 
- * Supports both traditional single p_value estimation and 
- * hierarchical modeling with individual variation in p_values.
- * Includes comprehensive uncertainty propagation via delta method.
+ * fb4_main.cpp — TMB objective function for Fish Bioenergetics 4.0
+ *
+ * Supports two model types:
+ *   "basic"        — single p_value estimated by MLE
+ *   "hierarchical" — individual p_values with population-level hyperparameters
+ *
+ * Both types include uncertainty propagation via the TMB delta method (Kristensen et al. 2016) applied to the full FB4 energy balance:
+ *
+ *   C = R + A + SDA + F + U + G
+ *
+ * Sub-model implementations are in the includes/ headers; see each header for the specific equation variants and their literature references.
+ *
+ * Key references:
+ *   Deslauriers, D. et al. (2017). Fish Bioenergetics 4.0: An R-based modeling application. Fisheries, 42(11), 586-596. doi:10.1080/03632415.2017.1377558
+ *
+ *   Kristensen, K., Nielsen, A., Berg, C.W., Skaug, H. and Bell, B.M. (2016). TMB: Automatic differentiation and Laplace approximation. Journal of Statistical Software, 70(5), 1-21. doi:10.18637/jss.v070.i05
+ *
+ *   Hanson, P.C. et al. (1997). Fish Bioenergetics 3.0. UW Sea Grant Institute, Madison, WI. WISCU-T-97-001.
  */
 
 template<class Type>

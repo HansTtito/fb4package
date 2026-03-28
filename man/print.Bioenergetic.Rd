@@ -2,7 +2,7 @@
 % Please edit documentation in R/13.1-bioenergetic-methods.R
 \name{print.Bioenergetic}
 \alias{print.Bioenergetic}
-\title{Print Method for Bioenergetic Objects (Improved)}
+\title{Print Method for Bioenergetic Objects}
 \usage{
 \method{print}{Bioenergetic}(x, ...)
 }
@@ -15,5 +15,15 @@
 Invisibly returns the input object
 }
 \description{
-Print Method for Bioenergetic Objects (Improved)
+Displays a concise one-page overview of a \code{Bioenergetic} object,
+including species identity, initial weight, simulation duration, and the
+status of each required component (parameters, temperature, diet).
+Readiness for fitting is reported in the final status line.
+}
+\examples{
+\dontrun{
+bio <- Bioenergetic("Oncorhynchus mykiss")
+print(bio)
+}
+
 }

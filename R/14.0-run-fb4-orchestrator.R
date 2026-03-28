@@ -24,13 +24,16 @@ NULL
 #' @param covariates Optional covariate matrix or data frame
 #' @param first_day First simulation day, default 1
 #' @param last_day Last simulation day (auto-detected if NULL)
-#' @param backend Backend selection: "r", "tmb"
-#' @param method Fitting method: "binary_search", "optim", "mle", "bootstrap"
+#' @param backend Backend selection: "r" (pure R) or "tmb" (C++ via TMB, faster MLE)
+#' @param strategy Fitting strategy: "binary_search" (default), "direct", "optim",
+#'   "mle" (maximum likelihood), or "bootstrap" (bootstrap estimation)
 #' @param oxycal Oxycalorific coefficient (J/g O2), default 13560
-#' @param tolerance Tolerance for iterative fitting, default 0.001
-#' @param max_iterations Maximum number of iterations, default 25
-#' @param lower Lower bound for p_value search, default 0.01
-#' @param upper Upper bound for p_value search, default 5.0
+#' @param tolerance Convergence tolerance for iterative fitting, default 0.001
+#' @param max_iterations Maximum iterations for binary search, default 25
+#' @param lower Lower bound for p_value search (proportion of Cmax), default 0.01
+#' @param upper Upper bound for p_value search (proportion of Cmax). Biologically,
+#'   p = 1.0 is maximum ration; values > 1.0 are super-maximal. Default 1.0 for
+#'   bootstrap, 5.0 for binary_search.
 #' @param verbose Whether to show progress messages, default FALSE
 #' @param optim_method If using optim, which method: "Brent", "L-BFGS-B", etc.
 #' @param confidence_level Confidence level for MLE/bootstrap intervals, default 0.95
@@ -43,10 +46,20 @@ NULL
 #' @param n_cores Number of cores for parallel processing (NULL = auto-detect)
 #' @param sample_size Sample size for each bootstrap iteration (NULL = same as original)
 #' @param compute_percentiles Whether to compute additional percentiles for bootstrap, default TRUE
-#' @param store_predicted_weights_boot Whether to store predicted weights for bootstrap, default TRUE
-#' @param ... Additional arguments (for future extensions)
+#' @param ... Additional arguments passed to strategy-specific functions
+#'   (e.g., \code{store_predicted_weights_boot} for bootstrap)
 #'
-#' @return fb4_result, fb4_mle_result, fb4_bootstrap_result, or fb4_tmb_result object
+#' @return An object of class \code{fb4_result} containing:
+#'   \describe{
+#'     \item{\code{summary}}{Named list with \code{method}, \code{p_estimate},
+#'       \code{final_weight}, \code{total_consumption}, and method-specific fields
+#'       (\code{p_mean}, \code{p_sd}, confidence intervals, etc.)}
+#'     \item{\code{daily_output}}{Data frame with one row per simulation day:
+#'       \code{Day}, \code{Weight}, \code{Consumption_energy}, \code{Respiration},
+#'       \code{Egestion}, \code{Excretion}, \code{SDA}, \code{Net_energy}, etc.}
+#'     \item{\code{method_data}}{Method-specific data (bootstrap distributions,
+#'       MLE likelihood profile, etc.)}
+#'   }
 #' @export
 run_fb4.Bioenergetic <- function(x, 
                                  fit_to = NULL, 
@@ -88,8 +101,16 @@ run_fb4.Bioenergetic <- function(x,
   # BASIC VALIDATION
   # ============================================================================
   
-  if(is.null(last_day)){
-    last_day <- 365
+  if (is.null(last_day)) {
+    # Infer last_day from the bio object: use simulation duration if set,
+    # otherwise use the maximum day in the temperature data, fallback to 365.
+    if (!is.null(x$simulation_settings$duration)) {
+      last_day <- x$simulation_settings$duration
+    } else if (!is.null(x$environmental_data$temperature)) {
+      last_day <- max(x$environmental_data$temperature$Day)
+    } else {
+      last_day <- 365
+    }
   }
 
   validate_fb4_inputs(x, strategy, fit_to, fit_value, first_day, last_day, observed_weights, covariates)

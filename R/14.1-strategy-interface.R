@@ -23,23 +23,15 @@ NULL
 #'
 #' @keywords internal
 FB4Strategy <- list(
-  
-  #' Execute the strategy
-  #' @param execution_plan List with all necessary parameters
-  #' @return Raw results from strategy execution
+  # execute(execution_plan): Main execution logic — must be implemented by subclass
   execute = function(execution_plan) {
     stop("execute() must be implemented by concrete strategy")
   },
-  
-  #' Validate execution plan for this strategy
-  #' @param execution_plan List with execution parameters
-  #' @return TRUE if valid, otherwise stops with error
+  # validate_plan(execution_plan): Strategy-specific validation
   validate_plan = function(execution_plan) {
     stop("validate_plan() must be implemented by concrete strategy")
   },
-  
-  #' Get strategy metadata
-  #' @return List with strategy information
+  # get_strategy_info(): Returns metadata about the strategy
   get_strategy_info = function() {
     stop("get_strategy_info() must be implemented by concrete strategy")
   }
@@ -136,19 +128,30 @@ create_fb4_strategy <- function(execution_plan) {
   
   method <- execution_plan$strategy
   fit_to <- execution_plan$fit_to
-  
+
+  # Normalise "direct" shorthand: pull p_value / fit_value from additional_params
+  # so that create_direct_strategy can find it at plan$fit_value
+  if (method == "direct") {
+    p_val <- execution_plan$additional_params$p_value %||%
+             execution_plan$additional_params$fit_value %||%
+             execution_plan$fit_value
+    execution_plan$fit_value <- p_val
+    method <- "direct_p_value"
+    execution_plan$strategy <- method
+  }
+
   # Validate concordance between fit_to and strategy
   validate_fit_to_strategy_concordance(fit_to, method)
-  
+
   strategy <- switch(method,
                     "binary_search" = create_binary_search_strategy(execution_plan),
                     "optim" = create_optim_strategy(execution_plan),
                     "mle" = create_mle_strategy(execution_plan),
                     "bootstrap" = create_bootstrap_strategy(execution_plan),
                     "hierarchical" = create_hierarchical_strategy(execution_plan),
-                    "direct_p_value" = create_direct_strategy(execution_plan, execution_plan$fit_to),
-                    "direct_ration_percent" = create_direct_strategy(execution_plan, execution_plan$fit_to),
-                    "direct_ration_grams" = create_direct_strategy(execution_plan, execution_plan$fit_to),
+                    "direct_p_value" = create_direct_strategy(execution_plan, "p_value"),
+                    "direct_ration_percent" = create_direct_strategy(execution_plan, "ration_percent"),
+                    "direct_ration_grams" = create_direct_strategy(execution_plan, "ration_grams"),
                     stop("Unknown method: ", method)
   )
   
@@ -169,16 +172,19 @@ create_fb4_strategy <- function(execution_plan) {
 #'
 #' @keywords internal
 validate_fit_to_strategy_concordance <- function(fit_to, strategy) {
-  
+
+  # NULL fit_to is valid for direct/optim strategies — nothing to validate
+  if (is.null(fit_to)) return(invisible(NULL))
+
   # Define expected concordances
   expected_concordances <- list(
     "p_value" = "direct_p_value",
-    "Ration" = "direct_ration_percent", 
+    "Ration" = "direct_ration_percent",
     "Ration_prey" = "direct_ration_grams"
   )
-  
+
   # Check if fit_to requires specific strategy
-  if (fit_to %in% names(expected_concordances)) {
+  if (isTRUE(fit_to %in% names(expected_concordances))) {
     expected_strategy <- expected_concordances[[fit_to]]
     
     if (strategy != expected_strategy) {

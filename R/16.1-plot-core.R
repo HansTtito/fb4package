@@ -315,7 +315,7 @@ validate_plot_data <- function(daily_data, required_columns, plot_type = "plot")
 #' @description
 #' Extracts species name from fb4_result object for plot titles.
 #'
-#' @param fb4_result FB4 result object
+#' @param x FB4 result object
 #' @return Character string with species name or NULL if not available
 #' @keywords internal
 extract_species_name <- function(x) {
@@ -394,10 +394,8 @@ get_available_plot_types <- function(x) {
 #' @return Logical indicating if uncertainty data is available
 #' @keywords internal
 has_uncertainty <- function(x) {
-  
-  has_bootstrap <- !is.null(x$bootstrap_results)
-  has_mle <- !is.null(x$mle_results)
-  has_hierarchical <- !is.null(x$hierarchical_results)
-  
-  return(has_bootstrap || has_mle || has_hierarchical)
+  # Uncertainty data lives under result$method_data, not at the root.
+  # The reliable check is the method name stored in the summary.
+  method <- x$summary$method %||% ""
+  method %in% c("mle", "bootstrap", "hierarchical")
 }

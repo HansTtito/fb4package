@@ -17,7 +17,7 @@ NULL
 #' @param species_params Raw species parameters from user
 #' @return List with all processed parameters ready for simulation
 #' @export
-process_species_parameters <- function(species_params) {
+process_species_parameters <- function(species_params, n_days = NULL) {
   
   # Validate overall structure first
   validation <- validate_species_equations(species_params)
@@ -50,7 +50,7 @@ process_species_parameters <- function(species_params) {
   }
   
   if ("predator" %in% names(species_params)) {
-    processed_params$predator <- process_predator_params(species_params$predator)
+    processed_params$predator <- process_predator_params(species_params$predator, n_days = n_days)
   }
   
   # Process optional categories
@@ -215,13 +215,19 @@ process_excretion_params <- function(excretion_params) {
 #' @param predator_params Raw predator parameters
 #' @return Processed predator parameters with energy data
 #' @export
-process_predator_params <- function(predator_params) {
-  
+process_predator_params <- function(predator_params, n_days = NULL) {
+
   PREDEDEQ <- predator_params$PREDEDEQ %||% 1
   validate_equation_params("predator", as.character(PREDEDEQ), predator_params)
-  
+
   processed <- predator_params
-  
+
+  # Pass simulation duration so process_predator_energy_data can build the
+  # correct-length ED_data vector when ED_ini/ED_end are supplied
+  if (!is.null(n_days)) {
+    processed$simulation_days <- n_days
+  }
+
   # Special processing for equation 1 (energy data)
   if (PREDEDEQ == 1) {
     processed <- process_predator_energy_data(processed)
@@ -233,15 +239,29 @@ process_predator_params <- function(predator_params) {
   return(processed)
 }
 
-#' Process predator energy data for equation 1
+#' Process predator energy data for equation 1 (PREDEDEQ = 1)
 #'
-#' @param predator_params Predator parameters
-#' @return Processed parameters with ED_data vector
+#' Ensures \code{ED_data} is available as a numeric vector of length
+#' \code{n_days + 1}. Accepts either a pre-built vector via \code{ED_data}
+#' or a pair of scalars via \code{ED_ini}/\code{ED_end} (which are linearly
+#' interpolated to produce the full vector internally).
+#'
+#' @param predator_params List of predator parameters. Must include either:
+#'   \describe{
+#'     \item{\code{ED_data}}{Numeric vector of length \code{n_days + 1}
+#'       (e.g., 366 for 365 days). Element \code{[i]} is the energy density
+#'       at the boundary of day \code{i-1}. Generate with
+#'       \code{approx(..., xout = 0:n_days)$y} or
+#'       \code{seq(ED_ini, ED_end, length.out = n_days + 1)}.}
+#'     \item{\code{ED_ini} + \code{ED_end}}{Scalar start/end values; the
+#'       function creates the full vector via linear interpolation.}
+#'   }
+#' @return Predator parameters list with \code{ED_data} populated.
 #' @keywords internal
 process_predator_energy_data <- function(predator_params) {
   
   # Check if user provided ED_data directly
-  if (!is.null(predator_params$ED_data) && !is.na(predator_params$ED_data)) {
+  if (!is.null(predator_params$ED_data) && !anyNA(predator_params$ED_data)) {
     return(predator_params)
   }
   

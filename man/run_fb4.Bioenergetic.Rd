@@ -49,19 +49,24 @@
 
 \item{last_day}{Last simulation day (auto-detected if NULL)}
 
-\item{backend}{Backend selection: "r", "tmb"}
+\item{backend}{Backend selection: "r" (pure R) or "tmb" (C++ via TMB, faster MLE)}
+
+\item{strategy}{Fitting strategy: "binary_search" (default), "direct", "optim",
+"mle" (maximum likelihood), or "bootstrap" (bootstrap estimation)}
 
 \item{oxycal}{Oxycalorific coefficient (J/g O2), default 13560}
 
-\item{tolerance}{Tolerance for iterative fitting, default 0.001}
+\item{tolerance}{Convergence tolerance for iterative fitting, default 0.001}
 
-\item{max_iterations}{Maximum number of iterations, default 25}
+\item{max_iterations}{Maximum iterations for binary search, default 25}
 
 \item{optim_method}{If using optim, which method: "Brent", "L-BFGS-B", etc.}
 
-\item{lower}{Lower bound for p_value search, default 0.01}
+\item{lower}{Lower bound for p_value search (proportion of Cmax), default 0.01}
 
-\item{upper}{Upper bound for p_value search, default 5.0}
+\item{upper}{Upper bound for p_value search (proportion of Cmax). Biologically,
+p = 1.0 is maximum ration; values > 1.0 are super-maximal. Default 1.0 for
+bootstrap, 5.0 for binary_search.}
 
 \item{hessian}{Whether to compute Hessian for standard errors, default FALSE}
 
@@ -85,14 +90,21 @@
 
 \item{compute_percentiles}{Whether to compute additional percentiles for bootstrap, default TRUE}
 
-\item{...}{Additional arguments (for future extensions)}
-
-\item{method}{Fitting method: "binary_search", "optim", "mle", "bootstrap"}
-
-\item{store_predicted_weights_boot}{Whether to store predicted weights for bootstrap, default TRUE}
+\item{...}{Additional arguments passed to strategy-specific functions
+(e.g., \code{store_predicted_weights_boot} for bootstrap)}
 }
 \value{
-fb4_result, fb4_mle_result, fb4_bootstrap_result, or fb4_tmb_result object
+An object of class \code{fb4_result} containing:
+  \describe{
+    \item{\code{summary}}{Named list with \code{method}, \code{p_estimate},
+      \code{final_weight}, \code{total_consumption}, and method-specific fields
+      (\code{p_mean}, \code{p_sd}, confidence intervals, etc.)}
+    \item{\code{daily_output}}{Data frame with one row per simulation day:
+      \code{Day}, \code{Weight}, \code{Consumption_energy}, \code{Respiration},
+      \code{Egestion}, \code{Excretion}, \code{SDA}, \code{Net_energy}, etc.}
+    \item{\code{method_data}}{Method-specific data (bootstrap distributions,
+      MLE likelihood profile, etc.)}
+  }
 }
 \description{
 S3 method with automatic backend selection and bootstrap estimation.

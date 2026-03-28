@@ -1,174 +1,265 @@
 ---
-title: "Introduction to FB4 Package"
-author: "Fish Bioenergetics 4.0 Development Team"
+title: "Introduction to fb4package"
+author: "Hans Ttito"
 date: "`r Sys.Date()`"
 output: rmarkdown::html_vignette
 vignette: >
-  %\VignetteIndexEntry{Introduction to FB4 Package}
+  %\VignetteIndexEntry{Introduction to fb4package}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---
 
-```{r, include = FALSE}
+```{r setup, include = FALSE}
 knitr::opts_chunk$set(
-  collapse = TRUE,
-  comment = "#>",
+  collapse  = TRUE,
+  comment   = "#>",
   fig.width = 7,
   fig.height = 5
 )
-```
-
-```{r setup}
 library(fb4package)
 ```
 
-# About FB4 Package
-
 ## Overview
 
-The **FB4 Package** is an R-based implementation of fish bioenergetics modeling, built upon the foundation of the Fish Bioenergetics 4.0 (FB4) application developed by Deslauriers et al. (2017). This package provides a comprehensive computational framework for modeling energy allocation in fish by partitioning consumed energy into three fundamental components: metabolism, wastes, and growth.
+`fb4package` is a programmatic R implementation of Fish Bioenergetics 4.0
+(Deslauriers et al. 2017). It partitions consumed energy into metabolism,
+wastes, and growth, providing mechanistic estimates of fish consumption and
+growth under varying environmental conditions.
 
-## Scientific Foundation
+The main workflow has three steps:
 
-Fish bioenergetics modeling has been a widely used tool in fisheries management and research for decades. The approach provides a sound, theoretical tool for quantifying energy allocation in fishes by partitioning consumed energy into three basic components: (1) metabolism, (2) wastes, and (3) growth. The models are particularly valuable for estimating growth or food consumption rates and are especially attractive for estimating feeding rates of free-ranging fishes.
+1. **Build** a `Bioenergetic` object with species parameters, temperature,
+   diet, and initial conditions.
+2. **Run** `run_fb4()` to simulate or fit a bioenergetics model.
+3. **Analyse / visualise** the results.
 
-## Technical Implementation
+---
 
-Building on the foundation of the original FB4 application, this R package provides:
+## 1. Species parameters
 
-- **Modern R-based Implementation**: Unlike the original Shiny-based GUI application, this package offers programmatic access to bioenergetics modeling capabilities
-- **Comprehensive Parameter Database**: Includes species-specific parameters for 105 models covering 73 species as of 2017
-- **Flexible Architecture**: Supports custom modifications and extensions not available in the default package
-- **Reproducible Research**: Enables scripted, version-controlled bioenergetics analyses
+The package ships with a built-in database covering 105 models (73 species).
 
-## Key Features
-
-### Core Modeling Capabilities
-- **Energy Budget Simulation**: Complete modeling of consumption, metabolism, excretion, egestion, and growth
-- **Multi-Species Support**: Built-in parameters for numerous fish species across different life stages
-- **Environmental Integration**: Temperature, dissolved oxygen, and other habitat-dependent functions
-- **Diet Flexibility**: Support for complex, multi-prey diet compositions
-
-### Advanced Functionality
-- **Automatic Parameter Fitting**: Iterative adjustment to reach target growth or consumption values
-- **Temporal Dynamics**: Daily resolution with seasonal environmental variation
-- **Uncertainty Analysis**: Tools for sensitivity analysis and parameter uncertainty assessment
-- **Validation Support**: Comparison with empirical data and model validation workflows
-
-## Quick Start Example
-
-Here's a simple example of how to use the FB4 package:
-
-```{r example, eval=FALSE}
-# Load package data
+```{r species-db}
 data(fish4_parameters)
-
-# List available species
-available_species <- list_species()
-head(available_species)
-
-# Get information for a specific species
-salmon_info <- species_info("Oncorhynchus mykiss")
-print(salmon_info$available_life_stages)
-
-# Create a bioenergetic object
-bio_obj <- Bioenergetic(
-  species_params = salmon_info$life_stages$juvenile,
-  species_info = salmon_info$species_info
-)
-
-# Add environmental data
-temp_data <- data.frame(
-  Day = 1:365,
-  Temperature = 15 + 5 * sin(2 * pi * (1:365) / 365)
-)
-
-bio_obj <- set_environment(bio_obj, temp_data)
-
-# Add simulation settings
-bio_obj <- set_simulation_settings(bio_obj, 
-                                   initial_weight = 10, 
-                                   duration = 365)
-
-# Run simulation
-results <- run_fb4(bio_obj, fit_to = "p-value", fit_value = 0.5)
-
-# Plot results
-plot(results, plot_type = "growth")
+cat("Species in database:", length(fish4_parameters), "\n")
+head(names(fish4_parameters), 8)
 ```
 
-## Research Applications
+Retrieve Chinook salmon (*Oncorhynchus tshawytscha*) and inspect one life
+stage:
 
-This package facilitates bioenergetics modeling applications across a wide spectrum of questions in:
+```{r chinook-params}
+chinook_db  <- fish4_parameters[["Oncorhynchus tshawytscha"]]
+stage       <- names(chinook_db$life_stages)[1]
+cat("Life stage used:", stage, "\n")
 
-- **Fish Biology**: Growth rate estimation, metabolic rate analysis, feeding ecology
-- **Population Ecology**: Individual-based modeling, population dynamics, life history studies
-- **Fisheries Management**: Stock assessment, habitat evaluation, climate change impacts
-- **Aquaculture**: Feed optimization, growth prediction, production planning
-- **Conservation Biology**: Species responses to environmental change, habitat restoration
+sp_params   <- chinook_db$life_stages[[stage]]
+sp_info     <- chinook_db$species_info
 
-## Package Structure
+# Key consumption parameters
+cat("CEQ:", sp_params$consumption$CEQ,
+    "  CA:", sp_params$consumption$CA,
+    "  CB:", sp_params$consumption$CB, "\n")
+```
 
-The FB4 package is organized into several key components:
+---
 
-### Core Classes
-- `Bioenergetic`: Main S3 class for fish bioenergetics models
-- Methods for `print()`, `summary()`, and `str()` for model objects
+## 2. Environmental and diet data
 
-### Data Management
-- `fish4_parameters`: Comprehensive database of species-specific parameters
-- `list_species()`: Browse available species
-- `species_info()`: Get detailed species information
+Temperature and diet are supplied as data frames with a `Day` column.
 
-### Model Configuration
-- `set_environment()`: Set temperature and environmental conditions
-- `set_diet()`: Configure diet composition and prey energies
-- `set_simulation_settings()`: Define initial conditions and duration
-- `set_model_options()`: Control model complexity and outputs
+```{r env-diet}
+days <- 1:100
 
-### Simulation and Analysis
-- `run_fb4()`: Execute bioenergetics simulations
-- `plot.fb4_result()`: Visualization of simulation results
-- `export_fb4_results()`: Export results to CSV
+# Seasonal temperature (°C)
+temp_data <- data.frame(
+  Day         = days,
+  Temperature = round(10 + 5 * sin(2 * pi * (days - 60) / 365), 2)
+)
 
-## Model Theory
+# Two-prey diet (constant proportions, J/g energy densities)
+diet_data <- list(
+  proportions = data.frame(Day = days, Alewife = 0.7, Shrimp = 0.3),
+  prey_names  = c("Alewife", "Shrimp"),
+  energies    = data.frame(Day = days, Alewife = 4900, Shrimp = 3200)
+)
 
-The bioenergetics model implemented in this package follows the fundamental energy balance equation:
+head(temp_data, 3)
+```
 
-$$G = C - (M + F + U)$$
+---
 
-Where:
-- **G** = Growth (energy allocated to somatic and gonadal growth)
-- **C** = Consumption (energy intake from food)
-- **M** = Metabolism (energy used for maintenance, activity, and specific dynamic action)
-- **F** = Egestion (energy lost as feces)
-- **U** = Excretion (energy lost as nitrogenous wastes)
+## 3. Building a `Bioenergetic` object
 
-Each component is modeled using temperature-dependent functions with species-specific parameters derived from laboratory and field studies.
+```{r bio-object}
+bio <- Bioenergetic(
+  species_params      = sp_params,
+  species_info        = sp_info,
+  environmental_data  = list(temperature = temp_data),
+  diet_data           = diet_data,
+  simulation_settings = list(initial_weight = 1800, duration = 100)
+)
 
-## Scientific Reference
+# Required when PREDEDEQ = 2 (energy density as function of weight)
+bio$species_params$predator$ED_ini <- 4500
+bio$species_params$predator$ED_end <- 5500
 
-The theoretical and methodological foundation for this package is described in:
+print(bio)
+```
 
-**Deslauriers, D., Chipps, S.R., Breck, J.E., Rice, J.A., and Madenjian, C.P. (2017).** Fish Bioenergetics 4.0: An R-Based Modeling Application. *Fisheries*, 42(11), 586-596.
+---
 
-## Original FB4 Application
+## 4. Running simulations
 
-This package is inspired by and builds upon the Fish Bioenergetics 4.0 application originally developed by James E. Breck and colleagues. The original FB4 application, with its Shiny-based graphical interface, is available at [fishbioenergetics.org](http://fishbioenergetics.org) and [GitHub](https://github.com/jim-breck/FB4).
+### 4a. Direct simulation — fixed feeding level
 
-## Development Philosophy
+Run the model with a constant proportion of maximum consumption (*p* = 0.8):
 
-While including the same capabilities as previous versions, Fish Bioenergetics 4.0 allows for timely updates and bug fixes and can be continuously improved based on feedback from users. This R package extends that philosophy by providing:
+```{r direct}
+res_direct <- run_fb4(bio, strategy = "direct", p_value = 0.8)
+print(res_direct)
+```
 
-- **Open Source Development**: Transparent, community-driven development process
-- **Modular Design**: Extensible architecture for custom applications
-- **Integration Ready**: Compatible with modern R workflows and data science pipelines
-- **Research Reproducibility**: Version-controlled, scriptable analyses
+### 4b. Binary search — fit to a target final weight
 
-## Contributing
+Find the *p* that produces a target weight of 3 000 g after 100 days:
 
-We welcome contributions from the bioenergetics modeling community. Whether you're interested in adding new species parameters, improving existing functions, or developing new modeling capabilities, your input helps advance the field of fish bioenergetics modeling.
+```{r binary-search}
+res_bs <- run_fb4(bio,
+                  strategy  = "binary_search",
+                  fit_to    = "Weight",
+                  fit_value = 3000)
 
-## Acknowledgments
+cat("Estimated p-value :", round(res_bs$summary$p_value, 4), "\n")
+cat("Final weight      :", round(res_bs$summary$final_weight, 1), "g\n")
+cat("Total consumption :", round(res_bs$summary$total_consumption_g, 1), "g\n")
+```
 
-We acknowledge the foundational work of David Deslauriers, Steven R. Chipps, James E. Breck, James A. Rice, Charles P. Madenjian, and the broader community of bioenergetics researchers who have contributed to the development and validation of fish bioenergetics models over the past several decades.
+### 4c. MLE — uncertainty on *p* from observed weights
+
+When multiple fish weights are available, `strategy = "mle"` returns a
+point estimate of *p* together with its standard error and 95% confidence
+interval:
+
+```{r mle}
+set.seed(42)
+obs_weights <- rnorm(30, mean = 3000, sd = 80)   # 30 observed final weights
+
+res_mle <- run_fb4(bio,
+                   strategy         = "mle",
+                   fit_to           = "Weight",
+                   observed_weights = obs_weights,
+                   upper            = 1.5)
+
+cat("p-value (MLE)  :", round(res_mle$summary$p_value, 4), "\n")
+cat("SE             :", round(res_mle$summary$p_se,    4), "\n")
+cat("Converged      :", res_mle$summary$converged, "\n")
+```
+
+### 4d. Bootstrap — non-parametric uncertainty
+
+```{r bootstrap}
+set.seed(42)
+res_boot <- run_fb4(bio,
+                    strategy         = "bootstrap",
+                    fit_to           = "Weight",
+                    observed_weights = obs_weights,
+                    n_bootstrap      = 200,
+                    upper            = 1.5,
+                    parallel         = FALSE)
+
+cat("p mean (bootstrap):", round(res_boot$summary$p_mean, 4), "\n")
+cat("p SD              :", round(res_boot$summary$p_sd,   4), "\n")
+```
+
+---
+
+## 5. Comparing strategies
+
+A quick look at how each method estimates *p* for the same data:
+
+```{r compare, echo=FALSE}
+methods <- c("binary_search", "mle", "bootstrap")
+p_vals  <- c(
+  res_bs$summary$p_value,
+  res_mle$summary$p_value,
+  res_boot$summary$p_mean
+)
+cat(sprintf("%-15s  p = %.4f\n", methods, p_vals))
+```
+
+---
+
+## 6. Analysing results
+
+```{r analysis}
+growth   <- analyze_growth_patterns(res_bs)
+feeding  <- analyze_feeding_performance(res_bs)
+energy   <- analyze_energy_budget(res_bs)
+
+cat(sprintf("Final weight              : %.1f g\n",
+            growth$final_weight$estimate))
+cat(sprintf("Specific growth rate      : %.4f g/g/day\n",
+            growth$specific_growth_rate$estimate))
+cat(sprintf("Total consumption         : %.1f g\n",
+            feeding$total_consumption$estimate))
+cat(sprintf("Gross conversion efficiency: %.3f\n",
+            feeding$gross_conversion_efficiency$estimate))
+```
+
+---
+
+## 7. Visualising results
+
+```{r plot-growth, fig.cap="Daily growth trajectory from binary search fit."}
+plot(res_bs, type = "growth")
+```
+
+```{r plot-energy, fig.cap="Daily energy budget partitioning."}
+plot(res_bs, type = "energy")
+```
+
+```{r plot-dashboard, fig.cap="Full dashboard (growth, consumption, temperature, energy)."}
+plot(res_bs, type = "dashboard")
+```
+
+---
+
+## 8. Temperature × p sensitivity
+
+Explore how final weight varies across temperatures and feeding levels:
+
+```{r sensitivity, fig.cap="Temperature and p-value sensitivity grid."}
+plot(bio,
+     type         = "sensitivity",
+     temperatures = seq(6, 18, by = 3),
+     p_values     = seq(0.4, 1.0, by = 0.1))
+```
+
+---
+
+## Energy balance equation
+
+The model follows:
+
+$$G = C - (R + F + U + \text{SDA})$$
+
+where **G** = growth, **C** = consumption, **R** = respiration,
+**F** = egestion, **U** = excretion, and **SDA** = specific dynamic action.
+Consumption is:
+
+$$C = C_{\max}(W,T) \cdot p$$
+
+with $C_{\max} = C_A \cdot W^{C_B}$ scaled by a temperature function
+$f(T)$ specific to each species equation (CEQ 1–4).
+
+---
+
+## References
+
+Deslauriers D, Chipps SR, Breck JE, Rice JA, Madenjian CP (2017). Fish
+Bioenergetics 4.0: An R-Based Modeling Application. *Fisheries* 42(11):586–596.
+<https://doi.org/10.1080/03632415.2017.1377558>
+
+Hewett SW, Johnson BL (1992). Fish Bioenergetics Model 2. University of
+Wisconsin Sea Grant Institute Technical Report WIS-SG-92-250.

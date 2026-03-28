@@ -170,10 +170,10 @@ calculate_body_composition <- function(weight, processed_composition_params) {
 #' @param old_weight Previous weight (g)
 #' @param new_weight New weight (g)
 #' @param old_composition Previous composition (optional)
-#' @param water_fraction_new Water fraction for new weight
+#' @param processed_composition_params List with processed composition parameters
 #' @return New body composition
 #' @export
-update_body_composition <- function(old_weight, new_weight, old_composition = NULL, 
+update_body_composition <- function(old_weight, new_weight, old_composition = NULL,
                                     processed_composition_params) {
   # Calculate new composition
   new_composition <- calculate_body_composition(new_weight, processed_composition_params)

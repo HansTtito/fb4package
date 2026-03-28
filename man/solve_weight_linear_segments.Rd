@@ -16,7 +16,15 @@ solve_weight_linear_segments(
 \arguments{
 \item{available_energy}{Available energy (J)}
 
-\item{predator_params}{Predator parameters}
+\item{Alpha1}{Intercept for first size segment}
+
+\item{Beta1}{Slope for first size segment}
+
+\item{Alpha2}{Intercept for second size segment}
+
+\item{Beta2}{Slope for second size segment}
+
+\item{Cutoff}{Weight cutoff between segments (g)}
 }
 \value{
 Final weight (g)

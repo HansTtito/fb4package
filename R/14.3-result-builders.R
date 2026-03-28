@@ -137,7 +137,9 @@ create_unified_summary <- function(raw_results, execution_plan, method) {
     summary$fit_to <- "Weight"
     summary$predicted_weight <- raw_results$predicted_weight %||% raw_results$adreport_values$final_weight
     summary$total_consumption_g <- raw_results$total_consumption_g  %||% raw_results$total_consumption_g_est
+    summary$total_consumption <- summary$total_consumption_g  # backward-compat alias
     summary$p_estimate <- raw_results$p_estimate
+    summary$p_value <- summary$p_estimate   # backward-compat alias (consistent with other methods)
     summary$p_se <- raw_results$p_se
     summary$sigma_estimate <- raw_results$sigma_estimate
     summary$converged <- raw_results$converged %||% FALSE

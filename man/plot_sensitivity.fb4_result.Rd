@@ -2,13 +2,13 @@
 % Please edit documentation in R/16.3-plot-analysis.R
 \name{plot_sensitivity.fb4_result}
 \alias{plot_sensitivity.fb4_result}
-\title{Plot sensitivity analysis for FB4 results}
+\title{Plot temperature sensitivity analysis for a Bioenergetic object}
 \usage{
 plot_sensitivity.fb4_result(
-  fb4_result,
-  temperatures = seq(2, 20, by = 1),
-  feeding_levels = c(0.5, 0.75, 1),
-  feeding_type = "proportion_cmax",
+  bio_obj,
+  temperatures = seq(4, 20, by = 2),
+  p_values = seq(0.3, 1, by = 0.1),
+  simulation_days = 365,
   color_scheme = "grayscale",
   add_annotations = TRUE,
   verbose = FALSE,
@@ -16,38 +16,45 @@ plot_sensitivity.fb4_result(
 )
 }
 \arguments{
-\item{fb4_result}{FB4 result object}
+\item{bio_obj}{Bioenergetic object with species parameters, temperature
+profile, diet, and simulation settings.}
 
-\item{temperatures}{Vector of temperatures to test, default seq(5, 20, 2)}
+\item{temperatures}{Numeric vector of absolute temperatures (°C) to test.
+Default \code{seq(4, 20, by = 2)}.}
 
-\item{feeding_levels}{Vector of feeding levels, default c(0.5, 0.75, 1.0)}
+\item{p_values}{Numeric vector of p_values (proportion of Cmax) to
+evaluate. Must be in (0, 1]. Default \code{seq(0.3, 1.0, by = 0.1)}.}
 
-\item{feeding_type}{Type of feeding levels: "proportion_cmax" or "p_value", default "proportion_cmax"}
+\item{simulation_days}{Number of simulation days. Default 365.}
 
-\item{color_scheme}{Color scheme: "grayscale", "color", or color name, default "grayscale"}
+\item{color_scheme}{Color scheme for the plot. Default \code{"grayscale"}.}
 
-\item{add_annotations}{Add optimal temperature annotations, default TRUE}
+\item{add_annotations}{Add optimal temperature annotations. Default TRUE.}
 
-\item{verbose}{Show analysis progress, default FALSE}
+\item{verbose}{Show analysis progress. Default FALSE.}
 
-\item{...}{Additional arguments passed to plot()}
+\item{...}{Additional arguments passed to \code{plot_growth_temperature_sensitivity()}.}
 }
 \value{
 NULL (creates plot)
 }
 \description{
-Runs sensitivity analysis internally and creates plots. Called by plot.fb4_result().
-Does analysis + plotting in one step.
+Runs \code{analyze_growth_temperature_sensitivity} and plots the result.
+Sensitivity analysis requires a \code{Bioenergetic} object (not an
+\code{fb4_result}), because it re-runs the model across a grid of
+temperatures and p_values. Use \code{plot(bio_obj, type = "sensitivity")}
+as the primary interface; this function is the underlying implementation.
 }
 \examples{
 \dontrun{
-# Simple usage
-plot(fb4_result, type = "sensitivity")
+# Primary interface (recommended):
+plot(bio_obj, type = "sensitivity")
 
-# Custom parameters
-plot(fb4_result, type = "sensitivity", 
-     temperatures = seq(8, 18, 1),
-     feeding_type = "p_value", 
-     feeding_levels = c(-0.2, 0, 0.2))
+# Custom temperature range and p_values:
+plot_sensitivity.fb4_result(
+  bio_obj      = bio_chinook,
+  temperatures = seq(4, 14, by = 2),
+  p_values     = seq(0.3, 0.9, by = 0.1)
+)
 }
 }

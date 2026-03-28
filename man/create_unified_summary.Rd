@@ -2,11 +2,26 @@
 % Please edit documentation in R/14.3-result-builders.R
 \name{create_unified_summary}
 \alias{create_unified_summary}
-\title{Create unified summary section}
+\title{Build the \code{$summary} slot of an fb4_result object}
 \usage{
 create_unified_summary(raw_results, execution_plan, method)
 }
+\arguments{
+\item{raw_results}{Raw output list returned by the strategy}
+
+\item{execution_plan}{Execution plan from \code{create_execution_plan()}}
+
+\item{method}{Normalised method string (e.g. "mle", "bootstrap")}
+}
+\value{
+Named list that becomes \code{result$summary}
+}
 \description{
-Create unified summary section
+**Internal constructor helper** — called once by \code{build_fb4_result_unified()}
+when the result object is first assembled. Translates raw strategy outputs into
+the standardised \code{$summary} slot that all downstream code reads from.
+
+This is NOT a post-hoc analysis function. For user-facing comprehensive
+analysis of a finished result, see \code{\link{create_result_summary}}.
 }
 \keyword{internal}

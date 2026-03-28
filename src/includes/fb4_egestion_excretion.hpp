@@ -1,6 +1,56 @@
 #ifndef FB4_EGESTION_EXCRETION_HPP
 #define FB4_EGESTION_EXCRETION_HPP
 
+/*
+ * fb4_egestion_excretion.hpp — Egestion and excretion sub-models (TMB/C++ backend)
+ *
+ * Implements four egestion models (EGEQ 1-4) and four excretion models
+ * (EXEQ 1-4) used in Fish Bioenergetics 4.0.
+ *
+ * EGESTION MODELS:
+ *   EGEQ 1 — constant fraction:
+ *     F = FA * C
+ *
+ *   EGEQ 2 — Elliott (1976), temperature- and feeding-dependent:
+ *     F = FA * T^FB * exp(FG * p) * C
+ *
+ *   EGEQ 3 — Stewart et al. (1983), includes indigestible prey fraction:
+ *     PE = FA * T^FB * exp(FG * p)
+ *     PF = ((PE - 0.1) / 0.9) * (1 - indigest) + indigest   [clamped 0-1]
+ *     F  = PF * C
+ *
+ *   EGEQ 4 — Luo and Brandt (1993), temperature-dependent only (no ration effect):
+ *     F = FA * T^FB * C
+ *
+ * EXCRETION MODELS:
+ *   EXEQ 1 — constant fraction of assimilated energy:
+ *     U = UA * (C - F)
+ *
+ *   EXEQ 2 — Elliott (1976), temperature- and feeding-dependent:
+ *     U = UA * T^UB * exp(UG * p) * (C - F)
+ *
+ *   EXEQ 3 — same form as EXEQ 2 (alternate parameterisation)
+ *
+ *   EXEQ 4 — Luo and Brandt (1993), temperature-dependent only (no ration effect):
+ *     U = UA * T^UB * (C - F)
+ *
+ * References:
+ *   Elliott, J.M. (1976). Energy losses in the waste products of brown trout
+ *   (Salmo trutta L.). Journal of Animal Ecology, 45(2), 561-580.
+ *
+ *   Stewart, D.J., Weininger, D., Rottiers, D.V. and Edsall, T.A. (1983). An
+ *   energetics model for lake trout, Salvelinus namaycush: application to the
+ *   Lake Michigan population. Can. J. Fish. Aquat. Sci., 40(6), 681-698.
+ *
+ *   Deslauriers, D. et al. (2017). Fish Bioenergetics 4.0: An R-based modeling
+ *   application. Fisheries, 42(11), 586-596. doi:10.1080/03632415.2017.1377558
+ *
+ *   Luo, J. and Brandt, S.B. (1993). Bay anchovy Anchoa mitchilli production and
+ *   consumption in mid-Chesapeake Bay based on a bioenergetics model and acoustic
+ *   measures of fish abundance. Mar. Ecol. Prog. Ser., 98(3), 223-236.
+ *
+ *   Hanson, P.C. et al. (1997). Fish Bioenergetics 3.0. UW Sea Grant, WISCU-T-97-001.
+ */
 
 #include "fb4_utils.hpp"
 

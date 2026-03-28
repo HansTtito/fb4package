@@ -4,7 +4,7 @@
 \alias{process_predator_params}
 \title{Process predator energy density parameters}
 \usage{
-process_predator_params(predator_params)
+process_predator_params(predator_params, n_days = NULL)
 }
 \arguments{
 \item{predator_params}{Raw predator parameters}

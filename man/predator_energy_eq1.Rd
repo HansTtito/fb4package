@@ -9,14 +9,24 @@ predator_energy_eq1(weight, day, energy_data)
 \arguments{
 \item{weight}{Fish weight (g) - not used in this equation}
 
-\item{day}{Simulation day}
+\item{day}{Simulation day (integer, 1-based)}
 
-\item{energy_data}{Vector with energy densities by day}
+\item{energy_data}{Numeric vector of energy densities (J/g). Must have
+length \code{n_days + 1} — one value per day boundary, from the start
+of day 1 through the end of the last day. For a 365-day simulation,
+provide 366 values. Use \code{approx(..., xout = 0:n_days)} or
+\code{seq(ED_ini, ED_end, length.out = n_days + 1)} to generate this
+vector. If only initial and final values are known, use
+\code{ED_ini}/\code{ED_end} in the predator parameters instead.}
 }
 \value{
 Energy density (J/g)
 }
 \description{
-Retrieves energy density from pre-calculated daily data
+Retrieves energy density from pre-calculated daily data.
+The function accesses both \code{energy_data[day]} (start of day) and
+\code{energy_data[day + 1]} (end of day) during weight calculations,
+so the vector must have \strong{n_days + 1} elements (e.g., 366 for a
+365-day simulation: indices 1 to 366 represent days 0 to 365).
 }
 \keyword{internal}

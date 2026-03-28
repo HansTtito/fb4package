@@ -2,21 +2,33 @@
 % Please edit documentation in R/15.1-analysis-extraction.R
 \name{create_result_summary}
 \alias{create_result_summary}
-\title{Create comprehensive result summary}
+\title{Comprehensive post-simulation analysis summary}
 \usage{
 create_result_summary(result, individual_id = NULL, confidence_level = 0.95)
 }
 \arguments{
-\item{result}{FB4 result object}
+\item{result}{An \code{fb4_result} object returned by \code{run_fb4()}}
 
-\item{individual_id}{Individual ID for hierarchical models (NULL for population summary)}
+\item{individual_id}{For hierarchical models: individual ID to extract
+(\code{NULL} returns population-level summary)}
 
-\item{confidence_level}{Confidence level for intervals (default 0.95)}
+\item{confidence_level}{Confidence level for uncertainty intervals, default 0.95}
 }
 \value{
-List with comprehensive summary
+Named list with \code{model_info}, \code{growth}, \code{feeding},
+  \code{energy_budget}, and \code{model_fit} sections
 }
 \description{
-Creates a comprehensive summary of FB4 results including all key
-metrics with uncertainty estimates when available.
+**Post-hoc analysis function** — takes a finished \code{fb4_result} object
+and bundles growth, feeding, and energy-budget analyses into a single list.
+Useful when you need all major metrics in one call.
+
+This is different from the internal \code{$summary} slot (built automatically
+during result construction by \code{create_unified_summary()}). This function
+re-derives richer metrics from \code{daily_output} and supports uncertainty
+propagation for MLE / bootstrap / hierarchical results.
+}
+\seealso{
+\code{\link{analyze_growth_patterns}}, \code{\link{analyze_feeding_performance}},
+  \code{\link{analyze_energy_budget}}
 }

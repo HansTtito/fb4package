@@ -10,11 +10,21 @@ NULL
 
 #' Energy density from interpolated data - Equation 1 (Low-level)
 #'
-#' Retrieves energy density from pre-calculated daily data
+#' Retrieves energy density from pre-calculated daily data.
+#' The function accesses both \code{energy_data[day]} (start of day) and
+#' \code{energy_data[day + 1]} (end of day) during weight calculations,
+#' so the vector must have \strong{n_days + 1} elements (e.g., 366 for a
+#' 365-day simulation: indices 1 to 366 represent days 0 to 365).
 #'
 #' @param weight Fish weight (g) - not used in this equation
-#' @param day Simulation day
-#' @param energy_data Vector with energy densities by day
+#' @param day Simulation day (integer, 1-based)
+#' @param energy_data Numeric vector of energy densities (J/g). Must have
+#'   length \code{n_days + 1} — one value per day boundary, from the start
+#'   of day 1 through the end of the last day. For a 365-day simulation,
+#'   provide 366 values. Use \code{approx(..., xout = 0:n_days)} or
+#'   \code{seq(ED_ini, ED_end, length.out = n_days + 1)} to generate this
+#'   vector. If only initial and final values are known, use
+#'   \code{ED_ini}/\code{ED_end} in the predator parameters instead.
 #' @return Energy density (J/g)
 #' @keywords internal
 predator_energy_eq1 <- function(weight, day, energy_data) {
@@ -98,7 +108,11 @@ solve_weight_power_function <- function(initial_weight, net_energy, Alpha1, Beta
 #' Solves final weight for piecewise linear function (PREDEDEQ = 2)
 #'
 #' @param available_energy Available energy (J)
-#' @param predator_params Predator parameters
+#' @param Alpha1 Intercept for first size segment
+#' @param Beta1 Slope for first size segment
+#' @param Alpha2 Intercept for second size segment
+#' @param Beta2 Slope for second size segment
+#' @param Cutoff Weight cutoff between segments (g)
 #' @return Final weight (g)
 #' @keywords internal
 solve_weight_linear_segments <- function(available_energy, Alpha1, Beta1, Alpha2, Beta2, Cutoff) {

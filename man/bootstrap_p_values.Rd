@@ -2,7 +2,7 @@
 % Please edit documentation in R/14.2.4-strategy-bootstrap.R
 \name{bootstrap_p_values}
 \alias{bootstrap_p_values}
-\title{Bootstrap estimation for p_values with parallel option (Low-level - OPTIMIZED)}
+\title{Bootstrap estimation of p_values with optional parallel processing}
 \usage{
 bootstrap_p_values(
   processed_simulation_data,
@@ -11,32 +11,51 @@ bootstrap_p_values(
   sample_size = NULL,
   parallel = FALSE,
   n_cores = NULL,
+  upper_p = 1,
   verbose = FALSE,
   store_predicted_weights = TRUE
 )
 }
 \arguments{
-\item{processed_simulation_data}{Complete processed simulation data (contains initial_weight)}
+\item{processed_simulation_data}{Complete processed simulation data (must
+contain \code{simulation_settings$initial_weight} and
+\code{simulation_settings$observed_weights})}
 
 \item{n_bootstrap}{Number of bootstrap iterations, default 1000}
 
 \item{oxycal}{Oxycalorific coefficient (J/g O2), default 13560}
 
-\item{sample_size}{Sample size for each bootstrap iteration (NULL = same as original)}
+\item{sample_size}{Sample size per iteration; \code{NULL} = same as data}
 
-\item{parallel}{Whether to use parallel processing, default FALSE}
+\item{parallel}{Logical; use parallel processing? default \code{FALSE}}
 
-\item{n_cores}{Number of cores for parallel processing (NULL = auto-detect)}
+\item{n_cores}{Number of cores for parallel processing (\code{NULL} =
+auto-detect via \code{future::availableCores()})}
 
-\item{verbose}{Whether to show progress messages, default FALSE}
+\item{verbose}{Logical; show progress messages? default \code{FALSE}}
 
-\item{store_predicted_weights}{Whether to store predicted final weights, default TRUE}
+\item{store_predicted_weights}{Logical; store predicted final weights?
+default \code{TRUE}}
 }
 \value{
-List with bootstrap results including p_values, consumption, and predicted weights
+Named list with:
+  \describe{
+    \item{p_values}{Valid p_value estimates (NAs removed)}
+    \item{consumption_estimates}{Valid consumption estimates}
+    \item{predicted_weights}{Valid predicted weights, or \code{NULL}}
+    \item{success_rate, n_bootstrap, successful_iterations}{Diagnostics}
+    \item{parallel_used, n_cores_used}{Execution metadata}
+  }
 }
 \description{
-Estimates population p_value and consumption using bootstrap resampling of final weights.
-Now uses shared simulation execution functions for consistency and reduced duplication.
+Estimates population p_value and consumption using bootstrap resampling of
+final weights. Parallel execution is supported via the \pkg{future} /
+\pkg{furrr} ecosystem when \code{parallel = TRUE}.
+
+Each iteration delegates to \code{\link{bootstrap_single_iteration}} so that
+the sequential and parallel code paths share a single implementation.
+}
+\seealso{
+\code{\link{bootstrap_single_iteration}}, \code{\link{fit_fb4_bootstrap}}
 }
 \keyword{internal}

@@ -4,5 +4,39 @@
 \alias{respiration-functions}
 \title{Respiration Functions for FB4 Model}
 \description{
-Respiration Functions for FB4 Model
+Functions implementing the two respiration temperature-dependence equations
+(REQ 1–2), activity correction, and conversion of oxygen consumption to
+energy units. Respiration is modelled as:
+
+\deqn{R = RA \cdot W^{RB} \cdot F(T) \cdot \mathrm{ACT}}
+
+where \eqn{RA} and \eqn{RB} are species-specific intercept and slope
+coefficients, \eqn{W} is body mass (g), \eqn{F(T)} is a temperature function,
+and \eqn{\mathrm{ACT}} is an activity multiplier.
+
+\strong{REQ 1} — simple Q10 exponential with activity:
+\eqn{F(T) = e^{RQ \cdot T}}; velocity-based activity from Kitchell et al. (1977).
+
+\strong{REQ 2} — Kitchell et al. (1977):
+\eqn{F(T) = V^{RX} \cdot e^{RX(1-V)}}, where \eqn{V = (RTM - T)/(RTM - RTO)}.
+
+Oxygen consumption is converted to energy using the oxycalorific coefficient
+(default 13 560 J g\eqn{^{-1}} O\eqn{_2}; Elliott and Davison 1975).
+}
+\references{
+Kitchell, J.F., Stewart, D.J. and Weininger, D. (1977). Applications of a
+bioenergetics model to yellow perch and walleye.
+\emph{Journal of the Fisheries Research Board of Canada}, 34(10), 1922–1935.
+
+Elliott, J.M. and Davison, W. (1975). Energy equivalents of oxygen consumption
+in animal energetics.
+\emph{Oecologia}, 19(3), 195–201.
+
+Hanson, P.C., Johnson, T.B., Schindler, D.E. and Kitchell, J.F. (1997).
+\emph{Fish Bioenergetics 3.0}. University of Wisconsin Sea Grant Institute,
+Madison, WI.
+
+Deslauriers, D., Chipps, S.R., Breck, J.E., Rice, J.A. and Madenjian, C.P.
+(2017). Fish Bioenergetics 4.0: An R-based modeling application.
+\emph{Fisheries}, 42(11), 586–596. \doi{10.1080/03632415.2017.1377558}
 }

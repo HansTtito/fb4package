@@ -182,8 +182,11 @@ validate_fb4_inputs <- function(bio_obj, strategy, fit_to = NULL, fit_value = NU
   # Strategy-specific validation (delegated to optimized functions)
   if (strategy %in% c("mle", "bootstrap", "hierarchical")) {
     validate_statistical_method_inputs(strategy, observed_weights, covariates)
+  } else if (strategy %in% c("direct", "optim")) {
+    # direct/optim use p_value directly — fit_to/fit_value not required
+    invisible(NULL)
   } else {
-    # Traditional strategies need fit_to/fit_value
+    # Remaining traditional strategies (binary_search, etc.) need fit_to/fit_value
     if (is.null(fit_to) || is.null(fit_value)) {
       stop("fit_to and fit_value required for traditional strategies")
     } else {

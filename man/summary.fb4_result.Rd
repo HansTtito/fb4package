@@ -2,7 +2,7 @@
 % Please edit documentation in R/13.1-bioenergetic-methods.R
 \name{summary.fb4_result}
 \alias{summary.fb4_result}
-\title{Summary Method for fb4_result Objects (Unified)}
+\title{Summary Method for fb4_result Objects}
 \usage{
 \method{summary}{fb4_result}(object, ...)
 }
@@ -15,5 +15,18 @@
 Invisibly returns the input object
 }
 \description{
-Summary Method for fb4_result Objects (Unified)
+Prints the compact \code{print.fb4_result} output followed by a detailed
+section with execution metadata (backend, version, timing) and
+method-specific diagnostics: optimisation tolerances for traditional
+methods, statistical details and profile-likelihood availability for MLE,
+success rate and percentiles for bootstrap, and individual/population
+parameter distributions for hierarchical fits.  Daily output column
+availability is reported at the end.
+}
+\examples{
+\dontrun{
+result <- run_fb4(bio, fit_to = "Weight", fit_value = 150)
+summary(result)
+}
+
 }

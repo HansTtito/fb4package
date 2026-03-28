@@ -24,6 +24,7 @@ NULL
 #'
 #' @return \code{x} if not \code{NULL}, otherwise \code{y}
 #'
+#' @name op-null-default
 #' @keywords internal
 #'
 #' @examples

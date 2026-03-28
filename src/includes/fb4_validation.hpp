@@ -7,12 +7,9 @@
 /*
  * Validation Functions for FB4 Model
  * 
- * Provides parameter validation, range checking, and biological
- * constraint enforcement for TMB implementation.
+ * Provides parameter validation, range checking, and biological constraint enforcement for TMB implementation.
  * 
- * Note: This is a simplified version focusing on critical validations
- * that can be performed efficiently in TMB. Full validation is done 
- * in R preprocessing.
+ * Note: This is a simplified version focusing on critical validations that can be performed efficiently in TMB. Full validation is done in R preprocessing.
  */
 
 namespace fb4 {

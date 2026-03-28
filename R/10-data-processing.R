@@ -16,27 +16,42 @@ NULL
 #'
 #' @param bio_obj Bioenergetic object (must be pre-validated)
 #' @param strategy Strategy to use: "binary_search", "optim", "bootstrap", "mle", "hierarchical"
+#' @param fit_to Target type for fitting (e.g., "Weight"); optional for direct strategy
+#' @param fit_value Target value to fit to; optional for direct strategy
 #' @param first_day First simulation day
 #' @param last_day Last simulation day
 #' @param validate_inputs Whether to perform comprehensive validation, default TRUE
+#' @param oxycal Oxycalorific coefficient (J/g O2), default 13560
 #' @param output_format Output format: "simulation", "tmb_basic", "tmb_hierarchical"
 #' @param observed_weights Data frame with columns: individual_id, initial_weight and observed_weight
 #' @param covariates Optional covariate matrix or data frame or choose a column of individual_data
 #' @return List with complete processed data ready for simulation
 #' @export
-prepare_simulation_data <- function(bio_obj, strategy, fit_to = NULL, fit_value = NULL, first_day = 1, last_day = NULL, 
+prepare_simulation_data <- function(bio_obj, strategy, fit_to = NULL, fit_value = NULL, first_day = 1, last_day = NULL,
                                    validate_inputs = TRUE, oxycal = 13560,
                                    output_format = "simulation", observed_weights = NULL, covariates = NULL) {
-  
+
+  # Infer last_day from bio object if not provided (same logic as run_fb4 orchestrator)
+  if (is.null(last_day)) {
+    if (!is.null(bio_obj$simulation_settings$duration)) {
+      last_day <- bio_obj$simulation_settings$duration
+    } else if (!is.null(bio_obj$environmental_data$temperature)) {
+      last_day <- max(bio_obj$environmental_data$temperature$Day)
+    } else {
+      last_day <- 365
+    }
+  }
+
   # Comprehensive input validation
   if (validate_inputs) {
     validate_fb4_inputs(bio_obj, strategy, fit_to, fit_value, first_day, last_day, observed_weights, covariates)
   }
-  
+
   # Process species parameters (from parameter-processing.R)
   message("Processing species parameters...")
-  processed_species_params <- process_species_parameters(bio_obj$species_params)
-  
+  n_days_sim <- last_day - first_day + 1
+  processed_species_params <- process_species_parameters(bio_obj$species_params, n_days = n_days_sim)
+
   # Process temporal data
   message("Processing temporal data...")
   processed_temporal_data <- process_bioenergetic_data(bio_obj, first_day, last_day)
@@ -94,6 +109,11 @@ prepare_simulation_data <- function(bio_obj, strategy, fit_to = NULL, fit_value 
     return(transform_to_tmb_hierarchical(simulation_data, observed_weights, covariates = covariates))
   }
   
+  # Convenience top-level aliases expected by tests and direct callers
+  simulation_data$n_days       <- simulation_data$temporal_data$duration
+  simulation_data$temperatures <- simulation_data$temporal_data$temperature
+  simulation_data$initial_weight <- simulation_data$simulation_settings$initial_weight
+
   message("Simulation data preparation complete. Ready for simulation.")
   return(simulation_data)
 }
@@ -111,7 +131,18 @@ prepare_simulation_data <- function(bio_obj, strategy, fit_to = NULL, fit_value 
 #' @return List with processed temporal data ready for simulation
 #' @export
 process_bioenergetic_data <- function(bio_obj, first_day, last_day) {
-  
+
+  # Resolve last_day if not provided
+  if (is.null(last_day)) {
+    if (!is.null(bio_obj$simulation_settings$duration)) {
+      last_day <- bio_obj$simulation_settings$duration
+    } else if (!is.null(bio_obj$environmental_data$temperature)) {
+      last_day <- max(bio_obj$environmental_data$temperature$Day)
+    } else {
+      last_day <- 365
+    }
+  }
+
   # Basic input validation
   if (first_day >= last_day) {
     stop("first_day must be less than last_day")
@@ -172,12 +203,12 @@ process_bioenergetic_data <- function(bio_obj, first_day, last_day) {
         method = "linear"
       )
     } else {
-      # Create default indigestible fractions (10% for all prey)
+      # Create default indigestible fractions (0% for all prey, matching FB4 default)
       default_indigestible <- data.frame(Day = target_days)
       for (prey in prey_names) {
-        default_indigestible[[prey]] <- 0.1
+        default_indigestible[[prey]] <- 0.0
       }
-      warning("No indigestible fraction data provided, using default 10% for all prey")
+      warning("No indigestible fraction data provided, using default 0% for all prey (FB4 default)")
       default_indigestible
     }
   }, error = function(e) {
@@ -231,6 +262,7 @@ process_bioenergetic_data <- function(bio_obj, first_day, last_day) {
 #' @param settings Raw simulation settings
 #' @param first_day First simulation day
 #' @param last_day Last simulation day
+#' @param oxycal Oxycalorific coefficient (J/g O2), default 13560
 #' @return Processed simulation settings
 #' @export
 process_simulation_settings <- function(settings, first_day, last_day, oxycal = 13560) {
@@ -488,7 +520,7 @@ extract_data_sources <- function(bio_obj) {
   if (!is.null(bio_obj$diet_data$indigestible)) {
     sources$indigestible_fractions <- "user_provided"
   } else {
-    sources$indigestible_fractions <- "default_10percent"
+    sources$indigestible_fractions <- "default_0percent"
   }
   
   if (!is.null(bio_obj$reproduction_data)) {

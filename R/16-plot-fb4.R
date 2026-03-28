@@ -64,8 +64,12 @@ plot.fb4_result <- function(x, type = "dashboard", save_plot = NULL, ...) {
     "temperature" = plot_temperature(x, ...),
     "energy" = plot_energy(x, ...),
     "uncertainty" = plot_uncertainty.fb4_result(x, ...),
+    "sensitivity" = stop(
+      "type = 'sensitivity' requires a Bioenergetic object, not an fb4_result.\n",
+      "Use: plot(bio_obj, type = 'sensitivity') instead."
+    ),
     stop("Unknown plot type: '", type, "'. Available: dashboard, growth, ",
-         "consumption, temperature, energy, uncertainty, sensitivity")
+         "consumption, temperature, energy, uncertainty")
   )
   
   invisible(x)

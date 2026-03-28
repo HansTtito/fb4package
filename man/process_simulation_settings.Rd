@@ -12,6 +12,8 @@ process_simulation_settings(settings, first_day, last_day, oxycal = 13560)
 \item{first_day}{First simulation day}
 
 \item{last_day}{Last simulation day}
+
+\item{oxycal}{Oxycalorific coefficient (J/g O2), default 13560}
 }
 \value{
 Processed simulation settings

@@ -96,6 +96,6 @@ Fish Bioenergetics 4.0: An R-based modeling application.
 Fisheries, 42(11), 586-596.
 }
 \seealso{
-\code{\link{Bioenergetic}}, \code{\link{list_species}}, \code{\link{species_info}}
+\code{\link{Bioenergetic}}, \code{\link{run_fb4}}
 }
 \keyword{datasets}

@@ -93,96 +93,54 @@ results <- run_fb4(
 
 # View results
 print(paste("Final weight:", round(results$summary$final_weight, 2), "g"))
-print(paste("Optimal p-value:", round(results$summary$p_value, 6)))
-print(paste("Converged:", results$fit_info$fit_successful))
+print(paste("p estimate  :", round(results$summary$p_estimate, 4)))
 ```
 
 ## Visualization
 
 The package includes comprehensive visualization functions for analyzing simulation results:
 
-### Growth Analysis
+### Growth, consumption, temperature, energy
 
 ```r
-# Plot growth trajectory with cumulative growth
-plot(results, plot_type = "growth", show_cumulative = TRUE)
-
-# This creates two panels:
-# 1. Weight trajectory over time with growth statistics
-# 2. Cumulative weight gain from initial weight
+plot(results, type = "growth")       # weight trajectory + daily growth rate
+plot(results, type = "consumption")  # daily consumption (g/g/day) and total
+plot(results, type = "temperature")  # temperature profile vs p_value
+plot(results, type = "energy")       # energy components (respiration, SDA, net)
+plot(results, type = "dashboard")    # 2×2 summary panel
 ```
 
-![](man/figures/growth_analysis.png)
-
-### Consumption Analysis
+### Uncertainty (bootstrap / MLE)
 
 ```r
-# Plot consumption components including diet breakdown
-plot(results, plot_type = "consumption", show_diet_breakdown = TRUE)
+set.seed(42)
+obs_weights <- rnorm(20, mean = 14500, sd = 500)
 
-# This creates a 4-panel plot showing:
-# 1. Daily consumption rate (g/g/day)
-# 2. Total daily consumption (g/day)  
-# 3. Cumulative food consumption
-# 4. Consumption by diet items (anchoveta vs sardina)
+results_boot <- run_fb4(
+  bio_obj,
+  strategy         = "bootstrap",
+  observed_weights = obs_weights,
+  n_bootstrap      = 500,
+  upper            = 1.0,
+  parallel         = FALSE
+)
+
+plot(results_boot, type = "uncertainty")
 ```
 
-![](man/figures/consumption_analysis.png)
-
-### Temperature Effects
+### Temperature sensitivity
 
 ```r
-# Plot temperature profile and its relationship with consumption
-plot(results, plot_type = "temperature", add_smooth = TRUE)
-
-# This creates two panels:
-# 1. Temperature profile over time with smoothed trend
-# 2. Scatter plot of temperature vs consumption rate with correlation
-```
-![](man/figures/temperature_analysis.png)
-
-### Energy Budget
-
-```r
-# Plot energy components
-plot(results, plot_type = "energy", 
-     components = c("Consumption_energy", "Respiration", "Net_energy"))
-
-# Shows energy flow through consumption, respiration, and net energy
-```
-![](man/figures/energy_budget.png)
-
-### Comprehensive Dashboard
-
-```r
-# Create a complete simulation dashboard
-plot(results, plot_type = "dashboard")
-
-# 2x2 dashboard showing:
-# - Growth trajectory
-# - Consumption rate  
-# - Temperature profile
-# - Growth efficiency or feeding level
-```
-![](man/figures/simulation_dashboard.png)
-
-### Save Plots
-
-```r
-# Save any plot to file
-plot(results, plot_type = "growth", save_plot = "growth_analysis.png")
-plot(results, plot_type = "dashboard", save_plot = "simulation_dashboard.pdf")
+# Sensitivity of growth to temperature × feeding level
+plot(bio_obj, type = "sensitivity",
+     temperatures = seq(4, 20, by = 2),
+     p_values     = seq(0.3, 1.0, by = 0.1))
 ```
 
-### Export Results
+### Export daily results to CSV
 
 ```r
-# Export daily data to CSV
-export_fb4_results(results, "simulation_results.csv")
-
-# This creates:
-# - simulation_results.csv (daily data)
-# - simulation_results_summary.txt (summary statistics)
+write.csv(results$daily_output, "simulation_results.csv", row.names = FALSE)
 ```
 
 ## Advanced Usage
@@ -225,9 +183,9 @@ results_precise <- run_fb4(
 
 - **Core Functions**: `Bioenergetic()`, `run_fb4()`, `run_fb4_simulation_complete()`
 - **Parameter Management**: `set_parameter_value()`, `get_parameter_value()`
-- **Visualization**: `plot.fb4_result()`, `plot_growth_components()`, `plot_consumption_components()`, `plot_temperature_profile()`, `plot_energy_components()`, `plot_dashboard()`
-- **Data Export**: `export_fb4_results()`, `summary.fb4_result()`
-- **Built-in Data**: `fish4_parameters` - comprehensive species database
+- **Visualization**: `plot(fb4_result, type = ...)` — types: `"growth"`, `"consumption"`, `"temperature"`, `"energy"`, `"uncertainty"`, `"dashboard"`; `plot(bio_obj, type = ...)` — types: `"dashboard"`, `"temperature"`, `"diet"`, `"energy"`, `"sensitivity"`
+- **Analysis**: `analyze_growth_patterns()`, `analyze_feeding_performance()`, `analyze_energy_budget()`, `comprehensive_nutritional_analysis()`
+- **Built-in Data**: `fish4_parameters` — comprehensive species parameter database
 - **Validation Tools**: Model checking and parameter validation functions
 
 ## Visualization Features

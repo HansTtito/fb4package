@@ -143,28 +143,16 @@ optim_search_p_value <- function(target_value, fit_type, simulation_function,
     return(abs(sim_result - target_value))
   }
   
-  # Run optimization
-  if (method == "Brent") {
-    # For 1D problems, Brent is usually best
-    optim_result <- optim(
-      par = (lower + upper) / 2,  # Start in middle
-      fn = objective_function,
-      method = "Brent",
-      lower = lower,
-      upper = upper,
-      hessian = hessian
-    )
-  } else {
-    # For other methods
-    optim_result <- optim(
-      par = (lower + upper) / 2,
-      fn = objective_function, 
-      method = method,
-      lower = lower,
-      upper = upper,
-      hessian = hessian
-    )
-  }
+  # Run optimization — all supported methods (Brent, L-BFGS-B, …) use the
+  # same optim() call; the previous if/else was dead code.
+  optim_result <- optim(
+    par     = (lower + upper) / 2,
+    fn      = objective_function,
+    method  = method,
+    lower   = lower,
+    upper   = upper,
+    hessian = hessian
+  )
   
   return(list(
     p_value = optim_result$par,

@@ -18,22 +18,30 @@ create_direct_strategy <- function(execution_plan, direct_type) {
   strategy <- list(
     
     execute = function(plan) {
-      
+
       if (plan$verbose) {
         message("Executing direct strategy: ", direct_type)
       }
-      
+
+      # Resolve method value: create_fb4_strategy normalises fit_value in its
+      # LOCAL copy of execution_plan, but R passes lists by value so the outer
+      # execution_plan still has fit_value = NULL when execute() is called.
+      # Fall back to additional_params$p_value / fit_value as a safety net.
+      method_value <- plan$fit_value %||%
+                      plan$additional_params$p_value %||%
+                      plan$additional_params$fit_value
+
       # Use shared data preparation
       processed_data <- prepare_simulation_data(
         bio_obj = plan$bio_obj,
-        strategy = "search-binary",
+        strategy = "direct",
         fit_to = plan$fit_to,
-        fit_value = plan$fit_value,
+        fit_value = method_value,
         first_day = plan$first_day,
         last_day = plan$last_day,
         output_format = "simulation"
       )
-      
+
       # Extract common parameters using shared function
       params <- extract_strategy_parameters(
         execution_plan = plan,
@@ -41,11 +49,11 @@ create_direct_strategy <- function(execution_plan, direct_type) {
           oxycal = plan$oxycal
         )
       )
-      
+
       # Execute direct method using shared commons
       result <- run_fb4_direct_method(
         method_type = direct_type,
-        method_value = plan$fit_value,
+        method_value = method_value,
         processed_simulation_data = processed_data,
         oxycal = params$oxycal,
         verbose = params$verbose
@@ -65,23 +73,26 @@ create_direct_strategy <- function(execution_plan, direct_type) {
     },
     
     validate_plan = function(plan) {
-      # Use shared validation
-      validate_common_strategy_inputs(
-        fit_to = plan$fit_to,
-        fit_value = plan$fit_value,
-        strategy_type = paste("direct", direct_type, sep = "_")
-      )
-      
+      # Resolve using same fallback chain as execute()
+      val <- plan$fit_value %||%
+             plan$additional_params$p_value %||%
+             plan$additional_params$fit_value
+
+      # Direct strategies don't use fit_to — only validate val directly
+      if (is.null(val) || !is.numeric(val) || length(val) != 1) {
+        stop("Direct strategy requires a single numeric fit_value (e.g. p_value = 0.5)")
+      }
+
       # Method-specific validation
-      if (direct_type == "p_value" && (plan$fit_value <= 0 || plan$fit_value > 5)) {
+      if (direct_type == "p_value" && (val <= 0 || val > 5)) {
         stop("p_value must be between 0 and 5")
       }
-      
-      if (direct_type == "ration_percent" && (plan$fit_value < 0 || plan$fit_value > 100)) {
+
+      if (direct_type == "ration_percent" && (val < 0 || val > 100)) {
         stop("ration_percent must be between 0 and 100")
       }
       
-      if (direct_type == "ration_grams" && plan$fit_value <= 0) {
+      if (direct_type == "ration_grams" && val <= 0) {
         stop("ration_grams must be positive")
       }
       

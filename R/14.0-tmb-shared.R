@@ -794,13 +794,10 @@ extract_adreport_values <- function(report, model_type) {
   } else if (model_type == "hierarchical") {
     n_individuals <- report$n_individuals %||% 1
     return(list(
-      final_weights = report$final_weights %||% rep(NA, report$n_individuals %||% 1),
-      mean_final_weight = report$mean_final_weight %||% NA,
-      individual_p_values = report$individual_p_values %||% rep(NA, length(results$individual_p_estimates)),
-
       # Variables individuales (vectores con n_individuals elementos cada uno):
-      individual_p_values = report$individual_p_values,
-      final_weights = report$final_weights,
+      individual_p_values = report$individual_p_values %||% rep(NA, n_individuals),
+      final_weights = report$final_weights %||% rep(NA, n_individuals),
+      mean_final_weight = report$mean_final_weight %||% NA,
       individual_total_consumption = report$individual_total_consumption,
       individual_total_growth = report$individual_total_growth,
       individual_relative_growth = report$individual_relative_growth,

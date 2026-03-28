@@ -2,7 +2,7 @@
 % Please edit documentation in R/13.1-bioenergetic-methods.R
 \name{print.fb4_result}
 \alias{print.fb4_result}
-\title{Print Method for fb4_result Objects (Unified)}
+\title{Print Method for fb4_result Objects}
 \usage{
 \method{print}{fb4_result}(x, ...)
 }
@@ -15,5 +15,18 @@
 Invisibly returns the input object
 }
 \description{
-Print Method for fb4_result Objects (Unified)
+Displays a concise summary of an \code{fb4_result} object.  The output
+adapts to the fitting method used: traditional methods (binary search,
+optim, direct) show weight, growth, consumption, and convergence;
+\code{"mle"} shows parameter estimates with confidence intervals and
+AIC; \code{"bootstrap"} shows mean/SD estimates and CI; and
+\code{"hierarchical"} shows population-level parameters with model fit
+statistics.
+}
+\examples{
+\dontrun{
+result <- run_fb4(bio, fit_to = "Weight", fit_value = 150)
+print(result)
+}
+
 }

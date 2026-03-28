@@ -481,7 +481,7 @@ validate_predator_requirements <- function(eq_reqs, predator_params, validation)
   
   # Special validation for PREDEDEQ = 1 (data requirements)
   if (!is.null(predator_params$PREDEDEQ) && predator_params$PREDEDEQ == 1) {
-    has_ed_data <- !is.null(predator_params$ED_data) && !is.na(predator_params$ED_data)
+    has_ed_data <- !is.null(predator_params$ED_data) && !anyNA(predator_params$ED_data)
     has_ed_ini_end <- !is.null(predator_params$ED_ini) && !is.null(predator_params$ED_end) &&
       !is.na(predator_params$ED_ini) && !is.na(predator_params$ED_end)
     

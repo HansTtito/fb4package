@@ -2,7 +2,7 @@
 % Please edit documentation in R/13.1-bioenergetic-methods.R
 \name{summary.Bioenergetic}
 \alias{summary.Bioenergetic}
-\title{Summary Method for Bioenergetic Objects (Improved)}
+\title{Summary Method for Bioenergetic Objects}
 \usage{
 \method{summary}{Bioenergetic}(object, ...)
 }
@@ -15,5 +15,16 @@
 Invisibly returns the input object
 }
 \description{
-Summary Method for Bioenergetic Objects (Improved)
+Prints a detailed multi-section summary of a \code{Bioenergetic} object,
+covering species identity, parameter categories, environmental data
+statistics, diet composition, simulation settings, and overall readiness
+status.  Complements \code{print.Bioenergetic}, which shows the compact
+single-page view.
+}
+\examples{
+\dontrun{
+bio <- Bioenergetic("Oncorhynchus mykiss")
+summary(bio)
+}
+
 }

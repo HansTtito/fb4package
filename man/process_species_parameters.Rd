@@ -4,7 +4,7 @@
 \alias{process_species_parameters}
 \title{Process all species parameters for simulation}
 \usage{
-process_species_parameters(species_params)
+process_species_parameters(species_params, n_days = NULL)
 }
 \arguments{
 \item{species_params}{Raw species parameters from user}

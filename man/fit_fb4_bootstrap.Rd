@@ -14,6 +14,7 @@ fit_fb4_bootstrap(
   compute_percentiles = TRUE,
   parallel = FALSE,
   n_cores = NULL,
+  upper_p = 1,
   verbose = FALSE,
   store_predicted_weights = TRUE
 )

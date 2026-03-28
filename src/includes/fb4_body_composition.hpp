@@ -7,12 +7,10 @@
 /*
  * Body Composition Functions for FB4 Model
  * 
- * Based on Breck (2014) regressions for estimating protein and ash
- * from water content, with fat calculated by subtraction.
+ * Based on Breck (2014) regressions for estimating protein and ash from water content, with fat calculated by subtraction.
  * 
  * References:
- * Breck, J.E. 2014. Body composition in fishes: body size matters. 
- * Aquaculture 433:40-49.
+ * Breck, J.E. 2014. Body composition in fishes: body size matters. Aquaculture 433:40-49.
  */
 
 namespace fb4 {

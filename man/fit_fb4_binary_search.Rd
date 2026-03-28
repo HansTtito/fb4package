@@ -11,6 +11,8 @@ fit_fb4_binary_search(
   oxycal = 13560,
   tolerance = 0.001,
   max_iterations = 25,
+  lower_bound = 0.01,
+  upper_bound = 5,
   verbose = FALSE
 )
 }
