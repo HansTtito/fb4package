@@ -34,31 +34,17 @@ While the original FB4 [@deslauriers2017] source code is available and includes 
 
 # Mathematical Framework
 
-The FB4 model expresses the daily energy balance of an individual fish as:
+The FB4 model expresses the daily energy balance of an individual fish as [@kitchell1977; @deslauriers2017]:
 
 $$C = (R + S + F + U) + \Delta B$$
 
-where $C$ is daily consumption (J g⁻¹ day⁻¹), $R$ is standard or active respiration, $S$ is the specific dynamic action (SDA), $F$ is egestion (fecal losses), $U$ is excretion (urinary losses), and $\Delta B$ is the change in somatic energy density (growth or loss). Each component is modeled as a temperature- and weight-dependent function using species-specific parameters.
+where $C$ is consumption, $R$ respiration, $S$ specific dynamic action, $F$ egestion, $U$ excretion, and $\Delta B$ the change in somatic energy (all in J g⁻¹ day⁻¹). Each term is modeled as a temperature- and weight-dependent function using species-specific parameters.
 
-Maximum consumption is described by:
+Actual daily consumption is computed as:
 
-$$C_{max} = C_A \cdot W^{C_B} \cdot f(T)$$
+$$C = p \cdot C_A \cdot W^{C_B} \cdot f(T)$$
 
-where $C_A$ and $C_B$ are allometric parameters, $W$ is fish body mass (g), and $f(T)$ is a temperature-dependence function (Kitchell–Lessem, Elliott, or polynomial form, selected via the `CEQ` parameter). Actual daily consumption is then:
-
-$$C = p \cdot C_{max}$$
-
-where $p \in (0, 5]$ is the proportion of maximum consumption realized by the fish — the central parameter estimated by `fb4package`. Respiration follows a similar allometric structure with activity and dissolved oxygen corrections [@stewart1991].
-
-The key inferential contribution of `fb4package` is the formal estimation of $p$ from observed weight data via maximum likelihood. Observed final weights are modelled as log-normally distributed around the model-predicted weight:
-
-$$\ln W_{obs,i} \sim \mathcal{N}(\ln W_{pred},\ \sigma^2)$$
-
-yielding the negative log-likelihood:
-
-$$\mathcal{L}(p, \sigma) = n \ln \sigma + \frac{1}{2\sigma^2} \sum_{i=1}^{n} \left(\ln W_{obs,i} - \ln W_{pred}\right)^2$$
-
-This objective function is minimized jointly over $p$ and $\sigma$ using TMB [@kristensen2016], which provides analytical gradients via automatic differentiation and Hessian-based standard errors via the Laplace approximation.
+where $p \in (0, 5]$ is the proportion of maximum consumption realized by the fish, $C_A$ and $C_B$ are allometric parameters, $W$ is body mass (g), and $f(T)$ is a temperature-dependence function (multiple forms supported via the `CEQ` parameter). Estimating $p$ from observed growth data is the central inferential task that `fb4package` addresses — through binary search, maximum likelihood via TMB [@kristensen2016], or bootstrap resampling.
 
 # Key Features
 
