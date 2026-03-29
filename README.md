@@ -40,7 +40,7 @@ print(res)
 ```
 
 Full documentation, vignettes, and function reference are available at
-<https://hansttito.github.io/fb4package>.
+<https://hansttito.github.io/fb4package/>.
 
 ## Documentation
 
@@ -59,7 +59,7 @@ Bioenergetics 4.0: An R-Based Modeling Application. *Fisheries* 42(11):586–596
 
 ## Code of Conduct
 
-Please note that fb4package is released with a [Contributor Code of Conduct](https://hansttito.github.io/fb4package/CODE_OF_CONDUCT.html). By contributing to this project, you agree to abide by its terms.
+Please note that fb4package is released with a [Contributor Code of Conduct](https://github.com/HansTtito/fb4package/blob/main/CODE_OF_CONDUCT.md). By contributing to this project, you agree to abide by its terms.
 
 ## License
 
