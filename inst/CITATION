@@ -1,0 +1,27 @@
+bibentry(
+  bibtype  = "Manual",
+  title    = "fb4package: Fish Bioenergetics 4.0 Modeling in R",
+  author   = person("Hans", "Ttito", email = "kvttitos@gmail.com",
+                    comment = c(ORCID = "0000-0003-3732-9419")),
+  year     = "2026",
+  note     = "R package version 2.0.0",
+  url      = "https://github.com/HansTtito/fb4package"
+)
+
+bibentry(
+  bibtype = "Article",
+  title   = "Fish Bioenergetics 4.0: An {R}-Based Modeling Application",
+  author  = c(
+    person("David",   "Deslauriers"),
+    person("Steven R.", "Chipps"),
+    person("James E.", "Breck"),
+    person("James A.", "Rice"),
+    person("Charles P.", "Madenjian")
+  ),
+  journal = "Fisheries",
+  year    = "2017",
+  volume  = "42",
+  number  = "11",
+  pages   = "586--596",
+  doi     = "10.1080/03632415.2017.1377558"
+)

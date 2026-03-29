@@ -9,3 +9,5 @@
 ^paper$
 ^test_chinook_equivalence\.R$
 ^vignettes/.*_cache$
+^CODE_OF_CONDUCT\.md$
+^\.github$

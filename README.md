@@ -57,6 +57,10 @@ Deslauriers D, Chipps SR, Breck JE, Rice JA, Madenjian CP (2017). Fish
 Bioenergetics 4.0: An R-Based Modeling Application. *Fisheries* 42(11):586–596.
 <https://doi.org/10.1080/03632415.2017.1377558>
 
+## Code of Conduct
+
+Please note that fb4package is released with a [Contributor Code of Conduct](https://hanststito.github.io/fb4package/CODE_OF_CONDUCT.html). By contributing to this project, you agree to abide by its terms.
+
 ## License
 
 MIT
