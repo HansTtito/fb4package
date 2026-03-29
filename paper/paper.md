@@ -116,4 +116,6 @@ plot(results, type = "dashboard")
 
 # Acknowledgements
 
-The bioenergetics equations implemented in this package follow those published by @deslauriers2017 and the original Wisconsin bioenergetics model lineage [@kitchell1977; @hewett1992; @hanson1997]. The author thanks the developers of the original FB4 Shiny application for making the source code publicly available, and the TMB development team \[@kristensen201
+The bioenergetics equations implemented in this package follow those published by @deslauriers2017 and the original Wisconsin bioenergetics model lineage [@kitchell1977; @hewett1992; @hanson1997]. The author thanks the developers of the original FB4 Shiny application for making the source code publicly available, and the TMB development team [@kristensen2016] for the automatic differentiation framework that enables the high-performance backend.
+
+# References
