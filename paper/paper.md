@@ -30,7 +30,7 @@ bibliography: paper.bib
 
 Fish bioenergetics models have been applied for decades to quantify energy budgets, estimate foraging rates of free-ranging fish, assess habitat quality, evaluate climate change impacts on fish populations, and support aquaculture production planning [@hanson1997; @chipps2008]. The original Wisconsin bioenergetics model [@hewett1992] and its successors, including Fish Bioenergetics 3.0 and 4.0 [@deslauriers2017], made these tools widely accessible through graphical user interfaces. However, GUI-based tools present practical limitations: analyses conducted through point-and-click interfaces are difficult to document and reproduce; running simulations across many species, environmental scenarios, or bootstrap replicates requires scripting; embedding bioenergetics calculations within broader analytical workflows (population models, stock assessments) demands programmatic access; and formal statistical estimation of parameter uncertainty requires optimization frameworks that are not easily exposed through a GUI.
 
-While the original FB4 [@deslauriers2017] source code is available and includes an R Shiny interface, it was not designed as a reusable R package. `fb4package` addresses this gap by providing a fully documented, object-oriented R package that faithfully implements the FB4 equations while extending the modeling capabilities with modern statistical methods and a high-performance computational backend.
+While the original FB4 [@deslauriers2017] source code is available and includes an R Shiny interface, it was not designed as a reusable R package. `fb4package` addresses this gap by providing a fully documented, tested, object-oriented R package that faithfully implements the FB4 equations while extending the modeling capabilities with modern statistical methods and a high-performance computational backend. The package is publicly available on GitHub with a full pkgdown documentation site and a test suite covering the core simulation and fitting routines.
 
 # Mathematical Framework
 
@@ -44,7 +44,7 @@ Actual daily consumption is computed as:
 
 $$C = p \cdot C_A \cdot W^{C_B} \cdot f(T)$$
 
-where $p \in (0, 5]$ is the proportion of maximum consumption realized by the fish, $C_A$ and $C_B$ are allometric parameters, $W$ is body mass (g), and $f(T)$ is a temperature-dependence function (multiple forms supported via the `CEQ` parameter). Estimating $p$ from observed growth data is the central inferential task that `fb4package` addresses — through binary search, maximum likelihood via TMB [@kristensen2016], or bootstrap resampling.
+where $p \in (0, 5]$ is the proportion of maximum consumption realized by the fish, $C_A$ and $C_B$ are allometric parameters, $W$ is body mass (g), and $f(T)$ is a temperature-dependence function (multiple forms supported via the `CEQ` parameter). Estimating $p$ from observed growth data is supported through several fitting approaches implemented in the package: binary search, maximum likelihood estimation via TMB [@kristensen2016], and bootstrap resampling.
 
 # Key Features
 
@@ -62,7 +62,7 @@ where $p \in (0, 5]$ is the proportion of maximum consumption realized by the fi
 
 # Comparison with Existing Tools
 
-The original FB4 Shiny application [@deslauriers2017] is the primary reference implementation of the FB4 equations and remains the standard for point-and-click use. `fb4package` complements it by exposing the full modeling workflow programmatically: all simulation steps are accessible through a documented S3 class interface, formal MLE and bootstrap uncertainty quantification are available out of the box, a compiled TMB backend handles computationally intensive workflows, and the complete FB4 species parameter database is bundled with the package.
+The original FB4 Shiny application [@deslauriers2017] is the primary reference implementation of the FB4 equations and remains the standard for point-and-click use. `fb4package` complements it by exposing the full modeling workflow programmatically: all simulation steps are accessible through a documented S3 class interface, formal MLE and bootstrap uncertainty quantification are available out of the box, a compiled TMB backend handles computationally intensive workflows, and the complete FB4 species parameter database is bundled with the package. This design enables reproducible analyses, batch simulations across species or environmental scenarios, and integration into larger stock assessment or population modeling workflows that are not feasible through the GUI interface.
 
 # Example Usage
 
@@ -102,6 +102,6 @@ plot(results, type = "dashboard")
 
 # Acknowledgements
 
-The bioenergetics equations implemented in this package follow those published by @deslauriers2017 and the original Wisconsin bioenergetics model lineage [@kitchell1977; @hewett1992; @hanson1997]. The author thanks the developers of the original FB4 Shiny application for making the source code publicly available, and the TMB development team [@kristensen2016] for the automatic differentiation framework that enables the high-performance backend.
+The bioenergetics equations implemented in this package follow those published by @deslauriers2017 and the original Wisconsin bioenergetics model lineage [@kitchell1977; @hewett1992; @hanson1997]. This work builds on the original FB4 framework but focuses on providing a reproducible and extensible software implementation rather than new biological theory. The author thanks the developers of the original FB4 Shiny application for making the source code publicly available, and the TMB development team [@kristensen2016] for the automatic differentiation framework that enables the high-performance backend.
 
 # References

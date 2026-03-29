@@ -40,16 +40,16 @@ print(res)
 ```
 
 Full documentation, vignettes, and function reference are available at
-<https://hanststito.github.io/fb4package>.
+<https://hansttito.github.io/fb4package>.
 
 ## Documentation
 
-- [Introduction](https://hanststito.github.io/fb4package/articles/fb4-introduction.html)
-- [Statistical estimation strategies](https://hanststito.github.io/fb4package/articles/fb4-statistical-estimation.html)
-- [Case study: Chinook salmon](https://hanststito.github.io/fb4package/articles/fb4-case-study-chinook.html)
-- [Species database](https://hanststito.github.io/fb4package/articles/fb4-species-database.html)
-- [Temperature and climate](https://hanststito.github.io/fb4package/articles/fb4-temperature-climate.html)
-- [Function reference](https://hanststito.github.io/fb4package/reference/index.html)
+- [Introduction](https://hansttito.github.io/fb4package/articles/fb4-introduction.html)
+- [Statistical estimation strategies](https://hansttito.github.io/fb4package/articles/fb4-statistical-estimation.html)
+- [Case study: Chinook salmon](https://hansttito.github.io/fb4package/articles/fb4-case-study-chinook.html)
+- [Species database](https://hansttito.github.io/fb4package/articles/fb4-species-database.html)
+- [Temperature and climate](https://hansttito.github.io/fb4package/articles/fb4-temperature-climate.html)
+- [Function reference](https://hansttito.github.io/fb4package/reference/index.html)
 
 ## Reference
 
@@ -59,7 +59,7 @@ Bioenergetics 4.0: An R-Based Modeling Application. *Fisheries* 42(11):586–596
 
 ## Code of Conduct
 
-Please note that fb4package is released with a [Contributor Code of Conduct](https://hanststito.github.io/fb4package/CODE_OF_CONDUCT.html). By contributing to this project, you agree to abide by its terms.
+Please note that fb4package is released with a [Contributor Code of Conduct](https://hansttito.github.io/fb4package/CODE_OF_CONDUCT.html). By contributing to this project, you agree to abide by its terms.
 
 ## License
 
