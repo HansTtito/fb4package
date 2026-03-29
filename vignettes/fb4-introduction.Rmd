@@ -14,7 +14,9 @@ knitr::opts_chunk$set(
   collapse  = TRUE,
   comment   = "#>",
   fig.width = 7,
-  fig.height = 5
+  fig.height = 5,
+  message   = FALSE,
+  warning   = FALSE
 )
 library(fb4package)
 ```
@@ -135,21 +137,25 @@ cat("Final weight      :", round(res_bs$summary$final_weight, 1), "g\n")
 cat("Total consumption :", round(res_bs$summary$total_consumption_g, 1), "g\n")
 ```
 
+```{r obs-weights-def, include=FALSE}
+set.seed(42)
+obs_weights <- rnorm(30, mean = 3000, sd = 80)
+```
+
 ### 4c. MLE — uncertainty on *p* from observed weights
 
 When multiple fish weights are available, `strategy = "mle"` returns a
 point estimate of *p* together with its standard error and 95% confidence
 interval:
 
-```{r mle}
+```{r mle, cache=TRUE}
 set.seed(42)
 obs_weights <- rnorm(30, mean = 3000, sd = 80)   # 30 observed final weights
 
 res_mle <- run_fb4(bio,
                    strategy         = "mle",
                    fit_to           = "Weight",
-                   observed_weights = obs_weights,
-                   upper            = 1.5)
+                   observed_weights = obs_weights)
 
 cat("p-value (MLE)  :", round(res_mle$summary$p_value, 4), "\n")
 cat("SE             :", round(res_mle$summary$p_se,    4), "\n")
@@ -158,14 +164,14 @@ cat("Converged      :", res_mle$summary$converged, "\n")
 
 ### 4d. Bootstrap — non-parametric uncertainty
 
-```{r bootstrap}
+```{r bootstrap, cache=TRUE}
 set.seed(42)
 res_boot <- run_fb4(bio,
                     strategy         = "bootstrap",
                     fit_to           = "Weight",
                     observed_weights = obs_weights,
-                    n_bootstrap      = 200,
-                    upper            = 1.5,
+                    upper            = 1,
+                    n_bootstrap      = 100,
                     parallel         = FALSE)
 
 cat("p mean (bootstrap):", round(res_boot$summary$p_mean, 4), "\n")
@@ -176,16 +182,24 @@ cat("p SD              :", round(res_boot$summary$p_sd,   4), "\n")
 
 ## 5. Comparing strategies
 
-A quick look at how each method estimates *p* for the same data:
+All three methods converge on similar *p* estimates for the same data —
+binary search gives a point estimate, while MLE and bootstrap additionally
+quantify uncertainty:
 
 ```{r compare, echo=FALSE}
-methods <- c("binary_search", "mle", "bootstrap")
-p_vals  <- c(
-  res_bs$summary$p_value,
-  res_mle$summary$p_value,
-  res_boot$summary$p_mean
+comparison <- data.frame(
+  Strategy        = c("binary_search", "mle", "bootstrap"),
+  p_estimate      = round(c(res_bs$summary$p_value,
+                             res_mle$summary$p_value,
+                             res_boot$summary$p_mean), 4),
+  SE_or_SD        = round(c(NA, res_mle$summary$p_se, res_boot$summary$p_sd), 4),
+  Uncertainty     = c("none (point estimate)", "SE (asymptotic)", "SD (non-parametric)"),
+  stringsAsFactors = FALSE
 )
-cat(sprintf("%-15s  p = %.4f\n", methods, p_vals))
+knitr::kable(comparison,
+             col.names = c("Strategy", "p estimate", "SE / SD", "Uncertainty type"),
+             align     = c("l", "r", "r", "l"),
+             caption   = "MLE and bootstrap use obs_weights (run interactively); binary search fits to a target weight.")
 ```
 
 ---
@@ -229,29 +243,12 @@ plot(res_bs, type = "dashboard")
 
 Explore how final weight varies across temperatures and feeding levels:
 
-```{r sensitivity, fig.cap="Temperature and p-value sensitivity grid."}
+```{r sensitivity, fig.cap="Temperature and p-value sensitivity grid.", message=FALSE, warning=FALSE}
 plot(bio,
      type         = "sensitivity",
-     temperatures = seq(6, 18, by = 3),
-     p_values     = seq(0.4, 1.0, by = 0.1))
+     temperatures = seq(6, 20, by = 2),
+     p_values     = seq(0.3, 1.0, by = 0.1))
 ```
-
----
-
-## Energy balance equation
-
-The model follows:
-
-$$G = C - (R + F + U + \text{SDA})$$
-
-where **G** = growth, **C** = consumption, **R** = respiration,
-**F** = egestion, **U** = excretion, and **SDA** = specific dynamic action.
-Consumption is:
-
-$$C = C_{\max}(W,T) \cdot p$$
-
-with $C_{\max} = C_A \cdot W^{C_B}$ scaled by a temperature function
-$f(T)$ specific to each species equation (CEQ 1–4).
 
 ---
 
@@ -259,7 +256,4 @@ $f(T)$ specific to each species equation (CEQ 1–4).
 
 Deslauriers D, Chipps SR, Breck JE, Rice JA, Madenjian CP (2017). Fish
 Bioenergetics 4.0: An R-Based Modeling Application. *Fisheries* 42(11):586–596.
-<https://doi.org/10.1080/03632415.2017.1377558>
-
-Hewett SW, Johnson BL (1992). Fish Bioenergetics Model 2. University of
-Wisconsin Sea Grant Institute Technical Report WIS-SG-92-250.
+<https://doi.org/10.1080/03632415.2017.1377558> 

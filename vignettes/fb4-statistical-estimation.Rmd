@@ -1,0 +1,311 @@
+---
+title: "Statistical Estimation of Feeding Level from Field Data"
+author: "Hans Ttito"
+date: "`r Sys.Date()`"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Statistical Estimation of Feeding Level from Field Data}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r setup, include = FALSE}
+knitr::opts_chunk$set(
+  collapse  = TRUE,
+  comment   = "#>",
+  fig.width = 7,
+  fig.height = 5,
+  message   = FALSE,
+  warning   = FALSE
+)
+library(fb4package)
+```
+
+## Overview
+
+A central challenge in fish bioenergetics is estimating the **proportion of
+maximum consumption** (*p*) that a fish population actually achieves — and
+quantifying the uncertainty in that estimate. `fb4package` provides three
+estimation strategies, each suited to a different data situation:
+
+| Strategy | Data required | Output |
+|---|---|---|
+| `binary_search` | Single target weight | Point estimate of *p* |
+| `mle` | Sample of final weights | *p*, SE, 95 % CI, AIC |
+| `bootstrap` | Sample of final weights | *p*, bootstrap CI, distribution |
+
+This vignette demonstrates all three on the same simulated dataset and compares
+their outputs.
+
+---
+
+## 1. Shared model setup
+
+We use a 100-day simulation for a generic salmonid with manually specified
+parameters, so results are fully reproducible without the built-in database.
+
+```{r shared-setup}
+days <- 1:100
+
+# Species parameters (Stewart & Ibarra 1991 — Chinook salmon juvenile)
+sp_params <- list(
+  consumption = list(
+    CEQ = 2, CA = 0.303, CB = -0.275,
+    CQ = 3.0, CTO = 15.0, CTM = 20.0,
+    CTL = 24.0, CK1 = 0.1, CK4 = 0.13
+  ),
+  respiration = list(
+    REQ = 1, RA = 0.00264, RB = -0.217,
+    RQ = 0.06818, RTO = 0.0234, RTM = 0.0,
+    RTL = 25.0, RK1 = 1.0, RK4 = 0.13, RK5 = 0.0
+  ),
+  activity    = list(ACT = 1.0, BACT = 0.0),
+  sda         = list(SDA = 0.172),
+  egestion    = list(EGEQ = 1, FA = 0.212, FB = -0.222, FG = 0.631),
+  excretion   = list(EXEQ = 1, UA = 0.0314, UB = 0.58, UG = -0.299),
+  predator    = list(
+    PREDEDEQ = 2,
+    Alpha1 = 4500, Beta1 = 6.0,
+    Alpha2 = 5500, Beta2 = 2.0,
+    Cutoff = 250
+  )
+)
+
+sp_info <- list(
+  scientific_name = "Oncorhynchus tshawytscha",
+  common_name     = "Chinook salmon",
+  life_stage      = "juvenile"
+)
+
+# Seasonal temperature (°C)
+temp_data <- data.frame(
+  Day         = days,
+  Temperature = round(8 + 6 * sin(2 * pi * (days - 20) / 365), 2)
+)
+
+# Two-prey diet with seasonal shift
+alewife <- pmax(0, 0.65 + 0.20 * sin(2 * pi * (days - 30) / 365))
+shrimp  <- pmax(0, 1 - alewife)
+diet_props  <- data.frame(Day = days,
+                           Alewife = round(alewife, 4),
+                           Shrimp  = round(shrimp,  4))
+prey_energy <- data.frame(Day = days, Alewife = 4900, Shrimp = 3200)
+
+bio <- Bioenergetic(
+  species_params      = sp_params,
+  species_info        = sp_info,
+  environmental_data  = list(temperature = temp_data),
+  diet_data           = list(
+    proportions = diet_props,
+    prey_names  = c("Alewife", "Shrimp"),
+    energies    = prey_energy
+  ),
+  simulation_settings = list(initial_weight = 10, duration = 100)
+)
+```
+
+---
+
+## 2. Simulated field data
+
+We first run a simulation at a "true" *p* = 0.70 to obtain the deterministic
+final weight, then draw 30 observed weights around that value with 6 % CV to
+mimic field sampling variability.
+
+```{r field-data}
+# Reference simulation at true p
+res_ref <- run_fb4(bio,
+                   fit_to    = "p_value",
+                   fit_value = 0.70,
+                   strategy  = "direct_p_value",
+                   verbose   = FALSE)
+
+true_final_wt <- res_ref$summary$final_weight
+cat(sprintf("True final weight at p = 0.70 : %.1f g\n", true_final_wt))
+
+# Simulate 30 field observations
+set.seed(2024)
+n_obs       <- 30
+obs_weights <- rnorm(n_obs,
+                     mean = true_final_wt,
+                     sd   = true_final_wt * 0.06)
+
+cat(sprintf("Observed weights (n = %d) : mean = %.1f g  SD = %.1f g\n",
+            n_obs, mean(obs_weights), sd(obs_weights)))
+```
+
+---
+
+## 3. Strategy 1 — Binary search on the mean weight
+
+The simplest approach: find the *p* that produces a final weight equal to the
+**sample mean** of the observed weights.
+
+```{r binary-search}
+res_bs <- run_fb4(bio,
+                  fit_to    = "Weight",
+                  fit_value = mean(obs_weights),
+                  strategy  = "binary_search",
+                  verbose   = FALSE)
+
+cat(sprintf("Binary search  p = %.4f  (final weight = %.1f g)\n",
+            res_bs$summary$p_value,
+            res_bs$summary$final_weight))
+```
+
+This is fast and unambiguous, but provides **no information about uncertainty**.
+
+---
+
+## 4. Strategy 2 — Maximum Likelihood Estimation
+
+MLE assumes final weights follow a **log-normal distribution** around the
+model-predicted weight.  It estimates *p* and the observation error (σ)
+simultaneously, returning standard errors and confidence intervals derived
+from the Fisher information matrix.
+
+```{r mle}
+res_mle <- run_fb4(bio,
+                   fit_to           = "Weight",
+                   observed_weights = obs_weights,
+                   strategy         = "mle",
+                   estimate_sigma   = TRUE,
+                   confidence_level = 0.95,
+                   compute_profile  = FALSE,
+                   verbose          = FALSE)
+
+cat(sprintf("MLE  p = %.4f  SE = %.4f\n",
+            res_mle$summary$p_estimate,
+            res_mle$summary$p_se))
+cat(sprintf("     95%% CI : [%.4f, %.4f]\n",
+            res_mle$method_data$confidence_intervals$p_ci_lower,
+            res_mle$method_data$confidence_intervals$p_ci_upper))
+cat(sprintf("     sigma  = %.4f   AIC = %.2f   converged = %s\n",
+            res_mle$summary$sigma_estimate,
+            res_mle$method_data$aic,
+            res_mle$summary$converged))
+```
+
+### Likelihood profile
+
+Setting `compute_profile = TRUE` evaluates the log-likelihood across a grid
+of *p* values, providing a visual check on the shape of the likelihood surface.
+
+```{r mle-profile, cache=TRUE, fig.cap="Log-likelihood profile over p-values."}
+res_mle_prof <- run_fb4(bio,
+                         fit_to           = "Weight",
+                         observed_weights = obs_weights,
+                         strategy         = "mle",
+                         estimate_sigma   = TRUE,
+                         compute_profile  = TRUE,
+                         profile_grid_size = 20,
+                         verbose          = FALSE)
+
+plot(res_mle_prof, type = "uncertainty")
+```
+
+---
+
+## 5. Strategy 3 — Bootstrap
+
+Bootstrap resampling makes **no distributional assumptions**.  At each
+iteration it resamples the observed weights with replacement, computes the
+mean, and finds the *p* that matches it via optimisation.  The resulting
+distribution of *p* estimates is used for inference.
+
+```{r bootstrap, cache=TRUE}
+res_boot <- run_fb4(bio,
+                    fit_to           = "Weight",
+                    observed_weights = obs_weights,
+                    strategy         = "bootstrap",
+                    n_bootstrap      = 200,
+                    parallel         = FALSE,
+                    confidence_level = 0.95,
+                    verbose          = FALSE)
+
+cat(sprintf("Bootstrap  p mean = %.4f  SD = %.4f\n",
+            res_boot$summary$p_mean,
+            res_boot$summary$p_sd))
+cat(sprintf("           95%% CI : [%.4f, %.4f]\n",
+            res_boot$method_data$confidence_intervals$p_ci_lower,
+            res_boot$method_data$confidence_intervals$p_ci_upper))
+cat(sprintf("           Success rate : %.1f%%\n",
+            res_boot$method_data$bootstrap_info$success_rate * 100))
+```
+
+For long runs, activate parallel processing with `parallel = TRUE` and
+`n_cores = parallel::detectCores() - 1`.
+
+---
+
+## 6. Comparing the three strategies
+
+```{r comparison, echo=FALSE}
+methods  <- c("True p", "Binary search", "MLE", "Bootstrap")
+p_vals   <- c(0.700,
+              res_bs$summary$p_value,
+              res_mle$summary$p_estimate,
+              res_boot$summary$p_mean)
+ci_lower <- c(NA, NA,
+              res_mle$method_data$confidence_intervals$p_ci_lower,
+              res_boot$method_data$confidence_intervals$p_ci_lower)
+ci_upper <- c(NA, NA,
+              res_mle$method_data$confidence_intervals$p_ci_upper,
+              res_boot$method_data$confidence_intervals$p_ci_upper)
+
+result_tbl <- data.frame(
+  Method   = methods,
+  p_value  = round(p_vals,   4),
+  CI_lower = round(ci_lower, 4),
+  CI_upper = round(ci_upper, 4)
+)
+
+knitr::kable(result_tbl, caption = "Comparison of p estimates across strategies",
+             col.names = c("Method", "p estimate", "95% CI lower", "95% CI upper"))
+```
+
+All three methods recover the true *p* ≈ 0.70 closely.  MLE and Bootstrap
+both produce **95 % confidence intervals** that include the true value, as
+expected with 30 observations and 6 % CV.
+
+---
+
+## 7. When to use each strategy
+
+### Binary search
+
+Use when you have a **single target weight** (e.g., mean of a stock assessment
+sample) and only need a point estimate.  It is the fastest option and is
+appropriate when uncertainty is not of scientific interest.
+
+### MLE
+
+Use when you have a **sample of observed weights** and want:
+
+- Asymptotic confidence intervals from the Fisher information matrix
+- Model comparison via AIC (e.g., comparing diet or temperature scenarios)
+- A formal likelihood-based framework for publication
+
+Assumes log-normal errors; check this assumption by inspecting the residuals
+from the final simulation.
+
+### Bootstrap
+
+Use when you want **non-parametric CIs** that do not rely on distributional
+assumptions, or when the likelihood surface is irregular.  Bootstrap is
+also preferable with small sample sizes (*n* < 15) where asymptotic MLE CIs
+may be unreliable.
+
+For both statistical methods, at least **5 observations** are required
+(`bootstrap` requires ≥ 5; `mle` requires ≥ 3).
+
+---
+
+## References
+
+Deslauriers D, Chipps SR, Breck JE, Rice JA, Madenjian CP (2017). Fish
+Bioenergetics 4.0: An R-Based Modeling Application. *Fisheries* 42(11):586–596.
+<https://doi.org/10.1080/03632415.2017.1377558>
+
+Efron B, Tibshirani RJ (1993). *An Introduction to the Bootstrap*.
+Chapman and Hall/CRC, New York.

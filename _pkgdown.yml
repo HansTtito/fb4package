@@ -1,0 +1,224 @@
+url: https://hanststito.github.io/fb4package
+
+template:
+  bootstrap: 5
+  bootswatch: flatly
+  bslib:
+    primary:       "#1a6b9c"
+    secondary:     "#3d9970"
+    success:       "#2ecc71"
+    info:          "#3498db"
+    navbar-bg:     "#1a6b9c"
+    code-bg:       "#f5f8fb"
+    link-color:    "#1a6b9c"
+  includes:
+    in_header: |
+      <style>
+        .navbar-brand { font-weight: 700; letter-spacing: 0.03em; }
+        .pkgdown-footer { border-top: 2px solid #1a6b9c; }
+      </style>
+
+home:
+  title: "fb4package — Fish Bioenergetics 4.0 in R"
+  description: >
+    A modern R implementation of Fish Bioenergetics 4.0 (FB4).
+    Models fish growth, consumption, and energy budgets under varying
+    environmental conditions. Supports binary search, MLE, and bootstrap
+    estimation of feeding level (p-value) with optional TMB backend.
+  links:
+  - text: rOpenSci Software Review
+    href: https://github.com/ropensci/software-review
+  - text: Report a bug
+    href: https://github.com/HansTtito/fb4package/issues
+  - text: Author's blog
+    href: https://hansttito.github.io/mi-blog/projects/fb4package/
+
+navbar:
+  structure:
+    left:  [intro, articles, reference, news]
+    right: [search, github]
+  components:
+    intro:
+      text: "Get started"
+      href: articles/fb4-introduction.html
+    articles:
+      text: "Articles"
+      menu:
+      - text: "Getting started"
+        href: articles/fb4-introduction.html
+      - text: "-------"
+      - text: "Case studies"
+      - text: "Chinook salmon — full workflow"
+        href: articles/fb4-case-study-chinook.html
+      - text: "-------"
+      - text: "Statistical methods"
+      - text: "Estimating p from field data"
+        href: articles/fb4-statistical-estimation.html
+      - text: "-------"
+      - text: "Data & species"
+      - text: "Exploring the species database"
+        href: articles/fb4-species-database.html
+      - text: "-------"
+      - text: "Environmental applications"
+      - text: "Temperature sensitivity & climate scenarios"
+        href: articles/fb4-temperature-climate.html
+    github:
+      icon: fab fa-github fa-lg
+      href: https://github.com/HansTtito/fb4package
+      aria-label: GitHub
+
+articles:
+- title: "Getting started"
+  navbar: "~"
+  contents:
+  - fb4-introduction
+
+- title: "Case studies"
+  desc: >
+    Complete start-to-finish analyses using realistic biological and
+    environmental data.
+  contents:
+  - fb4-case-study-chinook
+
+- title: "Statistical estimation"
+  desc: >
+    Estimating feeding level (p) and its uncertainty from field-observed
+    final weights using maximum likelihood and bootstrap methods.
+  contents:
+  - fb4-statistical-estimation
+
+- title: "Species database"
+  desc: >
+    How to explore, search, and use the built-in parameter database.
+  contents:
+  - fb4-species-database
+
+- title: "Environmental applications"
+  desc: >
+    Temperature sensitivity analysis and climate change scenario projections.
+  contents:
+  - fb4-temperature-climate
+
+reference:
+
+- title: "Core object"
+  desc: >
+    Create and inspect `Bioenergetic` objects — the central data structure
+    that holds all model inputs.
+  contents:
+  - Bioenergetic
+  - is.Bioenergetic
+  - print.Bioenergetic
+  - summary.Bioenergetic
+  - plot.Bioenergetic
+
+- title: "Object configuration"
+  desc: >
+    Convenience functions for updating individual components of a
+    `Bioenergetic` object after creation.
+  contents:
+  - set_environment
+  - set_diet
+  - set_simulation_settings
+  - get_parameter_value
+  - set_parameter_value
+
+- title: "Run simulations"
+  desc: >
+    Main entry point for all FB4 simulations and parameter estimation
+    strategies.
+  contents:
+  - run_fb4
+  - run_fb4.Bioenergetic
+  - run_fb4.default
+
+- title: "Simulation results"
+  desc: >
+    Methods for printing, summarising, and plotting `fb4_result` objects
+    returned by `run_fb4()`.
+  contents:
+  - print.fb4_result
+  - summary.fb4_result
+  - plot.fb4_result
+  - is.fb4_result
+
+- title: "Result analysis"
+  desc: >
+    Functions that extract ecologically meaningful metrics from a finished
+    simulation.
+  contents:
+  - analyze_growth_patterns
+  - analyze_feeding_performance
+  - analyze_energy_budget
+  - analyze_growth_temperature_sensitivity
+  - analyze_population_variation
+  - analyze_composition_by_size
+  - analyze_composition_changes
+  - compare_scenarios
+  - comprehensive_nutritional_analysis
+
+- title: "Species database"
+  desc: >
+    Built-in parameter database and metadata.
+  contents:
+  - fish4_parameters
+
+- title: "Data preparation"
+  desc: >
+    Functions for processing and validating input data before simulation.
+  contents:
+  - prepare_simulation_data
+  - process_bioenergetic_data
+  - process_species_parameters
+  - interpolate_time_series
+
+- title: "Bioenergetics equations"
+  desc: >
+    Low-level equation functions for consumption, respiration, egestion,
+    excretion, and predator energy density.
+  contents:
+  - calculate_consumption
+  - calculate_daily_consumption
+  - calculate_temperature_factor_consumption
+  - calculate_respiration
+  - calculate_sda
+  - calculate_egestion
+  - calculate_excretion
+  - calculate_predator_energy_density
+  - calculate_final_weight_fb4
+  - starts_with("consumption_temp_eq")
+  - starts_with("respiration_temp_eq")
+  - starts_with("egestion_model_")
+  - starts_with("excretion_model_")
+
+- title: "Validation"
+  desc: >
+    Functions for validating model inputs, parameters, and results.
+  contents:
+  - validate_bioenergetic_for_simulation
+  - validate_fb4_inputs
+  - validate_fb4_system
+  - validate_species_equations
+  - validate_diet_consistency
+  - validate_temporal_data
+  - validate_complete_simulation_data
+
+- title: "Utilities"
+  desc: >
+    Helper functions used internally and available for advanced users.
+  contents:
+  - get_color_scheme
+  - check_bioenergetic_readiness
+  - z_score
+  - clamp
+  - safe_sqrt
+  - safe_exp
+
+- title: "Other functions"
+  desc: >
+    Additional exported functions and low-level helpers.
+  contents:
+  - matches(".")
+
+news:
+  one_page: true
