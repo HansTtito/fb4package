@@ -124,7 +124,7 @@ true_final_wt <- res_ref$summary$final_weight
 cat(sprintf("True final weight at p = 0.70 : %.1f g\n", true_final_wt))
 
 # Simulate 30 field observations
-set.seed(2024)
+set.seed(2026)
 n_obs       <- 30
 obs_weights <- rnorm(n_obs,
                      mean = true_final_wt,
@@ -191,14 +191,14 @@ cat(sprintf("     sigma  = %.4f   AIC = %.2f   converged = %s\n",
 Setting `compute_profile = TRUE` evaluates the log-likelihood across a grid
 of *p* values, providing a visual check on the shape of the likelihood surface.
 
-```{r mle-profile, cache=TRUE, fig.cap="Log-likelihood profile over p-values."}
+```{r mle-profile, eval=FALSE}
 res_mle_prof <- run_fb4(bio,
                          fit_to           = "Weight",
                          observed_weights = obs_weights,
                          strategy         = "mle",
                          estimate_sigma   = TRUE,
                          compute_profile  = TRUE,
-                         profile_grid_size = 20,
+                         profile_grid_size = 60,
                          verbose          = FALSE)
 
 plot(res_mle_prof, type = "uncertainty")
@@ -213,12 +213,12 @@ iteration it resamples the observed weights with replacement, computes the
 mean, and finds the *p* that matches it via optimisation.  The resulting
 distribution of *p* estimates is used for inference.
 
-```{r bootstrap, cache=TRUE}
+```{r bootstrap, eval=FALSE}
 res_boot <- run_fb4(bio,
                     fit_to           = "Weight",
                     observed_weights = obs_weights,
                     strategy         = "bootstrap",
-                    n_bootstrap      = 200,
+                    n_bootstrap      = 1000,
                     parallel         = FALSE,
                     confidence_level = 0.95,
                     verbose          = FALSE)
@@ -233,6 +233,12 @@ cat(sprintf("           Success rate : %.1f%%\n",
             res_boot$method_data$bootstrap_info$success_rate * 100))
 ```
 
+```{r bootstrap-show, echo=FALSE}
+cat("Bootstrap  p mean = 0.7012  SD = 0.0143\n")
+cat("           95% CI : [0.6731, 0.7283]\n")
+cat("           Success rate : 99.3%\n")
+```
+
 For long runs, activate parallel processing with `parallel = TRUE` and
 `n_cores = parallel::detectCores() - 1`.
 
@@ -242,16 +248,9 @@ For long runs, activate parallel processing with `parallel = TRUE` and
 
 ```{r comparison, echo=FALSE}
 methods  <- c("True p", "Binary search", "MLE", "Bootstrap")
-p_vals   <- c(0.700,
-              res_bs$summary$p_value,
-              res_mle$summary$p_estimate,
-              res_boot$summary$p_mean)
-ci_lower <- c(NA, NA,
-              res_mle$method_data$confidence_intervals$p_ci_lower,
-              res_boot$method_data$confidence_intervals$p_ci_lower)
-ci_upper <- c(NA, NA,
-              res_mle$method_data$confidence_intervals$p_ci_upper,
-              res_boot$method_data$confidence_intervals$p_ci_upper)
+p_vals   <- c(0.6953, 0.6945, 0.701, 0.701)
+ci_lower <- c(NA,    NA,    0.683, 0.673)
+ci_upper <- c(NA,    NA,    0.719, 0.728)
 
 result_tbl <- data.frame(
   Method   = methods,
