@@ -1,272 +1,62 @@
 # fb4package
 
-## About
-
-The **fb4package** provides a modern R-based implementation of fish bioenergetics modeling, built upon the foundation of Fish Bioenergetics 4.0 developed by Deslauriers et al. (2017). This package enables comprehensive energy budget modeling for fish growth, consumption, and metabolic processes.
-
-**For detailed background, scientific foundation, and development history, see:** `vignette("fb4-introduction")`
-
-## Key Features
-
-- **Comprehensive Energy Budget Modeling**: Complete simulation of consumption, metabolism, excretion, egestion, and growth
-- **Multi-Species Support**: Built-in parameters for 105+ fish species models across different life stages
-- **Automatic Parameter Fitting**: Iterative optimization to reach target weights or consumption rates using binary search algorithms
-- **Environmental Integration**: Temperature effects and habitat-dependent functions (dissolved oxygen, salinity)
-- **Flexible Diet Modeling**: Multi-prey diet compositions with daily variation and indigestible fractions
-- **Temporal Dynamics**: Daily resolution with seasonal environmental variation support
-- **Advanced Visualization**: Comprehensive plotting functions for growth, consumption, energy budgets, and diet analysis
-- **Research Reproducibility**: Scriptable, version-controlled bioenergetics analyses
+An R implementation of Fish Bioenergetics 4.0 (Deslauriers et al. 2017). The
+model partitions consumed energy among metabolism, waste, and growth to produce
+daily estimates of fish consumption and weight gain.
 
 ## Installation
 
 ```r
-# Install from GitHub (development version)
+# Development version from GitHub
 devtools::install_github("HansTtito/fb4package")
 ```
 
-## Quick Start
-
-### Basic Simulation Example
+## Usage
 
 ```r
 library(fb4package)
 
-# Load built-in species parameters
-data("fish4_parameters", package = "fb4package")
-chinook_params <- fish4_parameters[["Oncorhynchus tshawytscha"]]
+data(fish4_parameters)
+chinook <- fish4_parameters[["Oncorhynchus tshawytscha"]]
 
-# Create temperature data (seasonal variation)
-temperature_data <- data.frame(
-  Day = 1:365,
-  Temperature = 10 + 6 * sin(2 * pi * (1:365) / 365)  # 4°C ± 6°C seasonal cycle
-)
-
-# Define diet composition
-diet_data <- data.frame(
-  Day = 1:365,
-  anchoveta = 0.37,  # 37% anchoveta
-  sardina = 0.63     # 63% sardina
-)
-
-# Prey energy densities (J/g)
-prey_energy_data <- data.frame(
-  Day = 1:365,
-  anchoveta = 5553,
-  sardina = 5000
-)
-
-# Indigestible fractions
-indigestible_data <- data.frame(
-  Day = 1:365,
-  anchoveta = 0.05,
-  sardina = 0.05
-)
-
-# Create bioenergetic object
-bio_obj <- Bioenergetic(
-  species_info = chinook_params$species_info,
-  species_params = chinook_params$life_stages$adult,
-  environmental_data = list(temperature = temperature_data),
-  diet_data = list(
-    proportions = diet_data,
-    energies = prey_energy_data,
-    indigestible = indigestible_data,
-    prey_names = c("anchoveta", "sardina")
+bio <- Bioenergetic(
+  species_params     = chinook$life_stages$adult,
+  species_info       = chinook$species_info,
+  environmental_data = list(
+    temperature = data.frame(Day = 1:100,
+                             Temperature = 10 + 5 * sin(2 * pi * (1:100) / 365))
   ),
-  simulation_settings = list(
-    initial_weight = 11115.358,  # Initial weight (g)
-    duration = 365               # Simulation days
-  )
+  diet_data = list(
+    proportions = data.frame(Day = 1:100, Alewife = 0.7, Shrimp = 0.3),
+    prey_names  = c("Alewife", "Shrimp"),
+    energies    = data.frame(Day = 1:100, Alewife = 4900, Shrimp = 3200)
+  ),
+  simulation_settings = list(initial_weight = 1800, duration = 100)
 )
 
-# Set predator energy density parameters
-bio_obj$species_params <- set_parameter_value(bio_obj$species_params, "ED_ini", 6308.570)
-bio_obj$species_params <- set_parameter_value(bio_obj$species_params, "ED_end", 6320.776)
-
-# Run simulation with automatic fitting to target weight
-results <- run_fb4(
-  bio_obj,
-  fit_to = "Weight",
-  fit_value = 14883.695,  # Target final weight (g)
-  max_iterations = 25
-)
-
-# View results
-print(paste("Final weight:", round(results$summary$final_weight, 2), "g"))
-print(paste("p estimate  :", round(results$summary$p_estimate, 4)))
+# Fit p to a target final weight
+res <- run_fb4(bio, strategy = "binary_search", fit_to = "Weight", fit_value = 3000)
+print(res)
 ```
 
-## Visualization
-
-The package includes comprehensive visualization functions for analyzing simulation results:
-
-### Growth, consumption, temperature, energy
-
-```r
-plot(results, type = "growth")       # weight trajectory + daily growth rate
-plot(results, type = "consumption")  # daily consumption (g/g/day) and total
-plot(results, type = "temperature")  # temperature profile vs p_value
-plot(results, type = "energy")       # energy components (respiration, SDA, net)
-plot(results, type = "dashboard")    # 2×2 summary panel
-```
-
-### Uncertainty (bootstrap / MLE)
-
-```r
-set.seed(42)
-obs_weights <- rnorm(20, mean = 14500, sd = 500)
-
-results_boot <- run_fb4(
-  bio_obj,
-  strategy         = "bootstrap",
-  fit_to           = "Weight",
-  observed_weights = obs_weights,
-  n_bootstrap      = 500,
-  upper            = 1.0,
-  parallel         = FALSE
-)
-
-plot(results_boot, type = "uncertainty")
-```
-
-### Temperature sensitivity
-
-```r
-# Sensitivity of growth to temperature × feeding level
-plot(bio_obj, type = "sensitivity",
-     temperatures = seq(4, 20, by = 2),
-     p_values     = seq(0.3, 1.0, by = 0.1))
-```
-
-### Export daily results to CSV
-
-```r
-write.csv(results$daily_output, "simulation_results.csv", row.names = FALSE)
-```
-
-## Advanced Usage
-
-### Custom Species Parameters
-
-```r
-# Modify specific physiological parameters
-bio_obj$species_params <- set_parameter_value(bio_obj$species_params, "CA", 0.303)
-bio_obj$species_params <- set_parameter_value(bio_obj$species_params, "CB", -0.275)
-
-# Set custom energy density parameters
-bio_obj$species_params <- set_parameter_value(bio_obj$species_params, "ED_ini", 6308.570)
-bio_obj$species_params <- set_parameter_value(bio_obj$species_params, "ED_end", 6320.743)
-```
-
-### Different Fitting Options
-
-```r
-# Fit to consumption instead of weight
-results_consumption <- run_fb4(
-  bio_obj,
-  fit_to = "Consumption",
-  fit_value = 6000,  # Target consumption rate (g/g/d)
-  max_iterations = 25
-)
-
-# Fit with custom tolerance
-results_precise <- run_fb4(
-  bio_obj,
-  fit_to = "Weight",
-  fit_value = 14883.695,
-  max_iterations = 50,
-  tolerance = 0.0001  # Higher precision
-)
-```
-
-
-## Package Structure
-
-- **Core Functions**: `Bioenergetic()`, `run_fb4()`, `run_fb4_simulation_complete()`
-- **Parameter Management**: `set_parameter_value()`, `get_parameter_value()`
-- **Visualization**: `plot(fb4_result, type = ...)` — types: `"growth"`, `"consumption"`, `"temperature"`, `"energy"`, `"uncertainty"`, `"dashboard"`; `plot(bio_obj, type = ...)` — types: `"dashboard"`, `"temperature"`, `"diet"`, `"energy"`, `"sensitivity"`
-- **Analysis**: `analyze_growth_patterns()`, `analyze_feeding_performance()`, `analyze_energy_budget()`, `comprehensive_nutritional_analysis()`
-- **Built-in Data**: `fish4_parameters` — comprehensive species parameter database
-- **Validation Tools**: Model checking and parameter validation functions
-
-## Visualization Features
-
-### Automatic Plot Types
-- **Growth**: Weight trajectory, cumulative growth, growth statistics
-- **Consumption**: Consumption rates, total consumption, diet breakdown by prey species
-- **Temperature**: Temperature profiles, temperature-consumption relationships  
-- **Energy**: Energy budget components, growth efficiency
-- **Dashboard**: Multi-panel overview of key metrics
-
-### Customization Options
-- Multiple color schemes (default, colorblind-friendly, monochrome)
-- Flexible plot layouts (single, panel, dashboard)
-- Save options (PNG, PDF, JPEG) with custom dimensions
-- Statistical annotations and trend lines
-- Diet composition analysis for multiple prey species
-
-### Data Export
-- CSV export of daily simulation data
-- Summary statistics in text format
-- Publication-ready plots in multiple formats
-
-## Scientific Applications
-
-This package supports research in:
-
-- **Fish Biology**: Growth rate estimation, metabolic rate analysis, feeding ecology
-- **Population Ecology**: Individual-based modeling, population dynamics, life history studies  
-- **Fisheries Management**: Stock assessment, habitat evaluation, climate change impacts
-- **Aquaculture**: Feed optimization, growth prediction, production planning
-- **Conservation Biology**: Species responses to environmental change, habitat restoration
-- **Ecosystem Modeling**: Predator-prey dynamics, energy flow analysis
-
-## Contributing
-
-We welcome contributions from the bioenergetics modeling community! Whether you're interested in:
-
-- Adding new species parameters
-- Improving existing functions
-- Developing new modeling capabilities  
-- Enhancing visualization functions
-- Reporting bugs or suggesting features
-- Improving documentation or examples
-
-**Please see:** `vignette("fb4-introduction")` for detailed information about the project's scientific foundation and how to get involved.
-
-### Development Guidelines
-
-1. Fork the repository
-2. Create a feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit your changes (`git commit -m 'Add amazing feature'`)
-4. Push to the branch (`git push origin feature/amazing-feature`)
-5. Open a Pull Request
+Full documentation, vignettes, and function reference are available at
+<https://hanststito.github.io/fb4package>.
 
 ## Documentation
 
-- **Introduction**: `vignette("fb4-introduction")` - Scientific background and package overview
-- **Function Reference**: `help(package = "fb4package")` - Complete function documentation
-- **Visualization Guide**: `vignette("fb4-visualization")` - Comprehensive plotting examples
-- **Examples**: `vignette("fb4-examples")` - Additional usage examples and case studies
+- [Introduction](https://hanststito.github.io/fb4package/articles/fb4-introduction.html)
+- [Statistical estimation strategies](https://hanststito.github.io/fb4package/articles/fb4-statistical-estimation.html)
+- [Case study: Chinook salmon](https://hanststito.github.io/fb4package/articles/fb4-case-study-chinook.html)
+- [Species database](https://hanststito.github.io/fb4package/articles/fb4-species-database.html)
+- [Temperature and climate](https://hanststito.github.io/fb4package/articles/fb4-temperature-climate.html)
+- [Function reference](https://hanststito.github.io/fb4package/reference/index.html)
 
-## References
+## Reference
 
-**Primary Reference:**
-Deslauriers, D., Chipps, S. R., Breck, J. E., Rice, J. A., & Madenjian, C. P. (2017). Fish Bioenergetics 4.0: An R-Based Modeling Application. Fisheries, 42(11), 586–596. https://doi.org/10.1080/03632415.2017.1377558
-
-
-**Original FB4 Application:**
-- Website: [fishbioenergetics.org](http://fishbioenergetics.org)
-- GitHub: [jim-breck/FB4](https://github.com/jim-breck/FB4)
+Deslauriers D, Chipps SR, Breck JE, Rice JA, Madenjian CP (2017). Fish
+Bioenergetics 4.0: An R-Based Modeling Application. *Fisheries* 42(11):586–596.
+<https://doi.org/10.1080/03632415.2017.1377558>
 
 ## License
 
-This package is licensed under the MIT License. See `LICENSE` file for details.
-
-## Support
-
-- **Bug Reports**: [GitHub Issues](https://github.com/HansTtito/fb4package/issues)
-- **Questions**: [GitHub Discussions](https://github.com/HansTtito/fb4package/discussions)
-- **Email**: kvttitos@gmail.com
-
----
+MIT
