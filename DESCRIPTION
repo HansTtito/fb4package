@@ -1,6 +1,6 @@
 Package: fb4package
 Type: Package
-Title: Fish Bioenergetics 4.0 Model Implementation with High-Performance 'TMB' Backend
+Title: 'Fish Bioenergetics 4.0' Model Implementation with High-Performance 'TMB' Backend
 Version: 2.0.0
 Authors@R: c(
    person(
@@ -9,8 +9,8 @@ Authors@R: c(
      role = c("aut", "cre")
    )
  )
-Description: An R implementation of fish bioenergetics modeling based on
-    'Fish Bioenergetics 4.0' <doi:10.1080/03632415.2017.1377558>.
+Description: An R package implementing the 'Fish Bioenergetics 4.0' model
+    <doi:10.1080/03632415.2017.1377558> for fisheries research.
     Provides automated parameter
     optimization, multi-prey diet modeling, and comprehensive energy budget
     simulations for fisheries research and aquaculture applications. Features
