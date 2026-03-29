@@ -2,7 +2,7 @@
 % Please edit documentation in R/14.2.5-strategy-mle.R
 \name{compute_likelihood_profile}
 \alias{compute_likelihood_profile}
-\title{Compute likelihood profile for p_value (OPTIMIZED)}
+\title{Compute likelihood profile for p_value}
 \usage{
 compute_likelihood_profile(
   p_estimate,
@@ -33,8 +33,7 @@ compute_likelihood_profile(
 Data frame with p_values and corresponding log_likelihoods
 }
 \description{
-FIXED VERSION: Computes likelihood profile by evaluating the likelihood function
-across a grid of p_values while keeping other parameters optimal.
-Now uses shared simulation function and returns POSITIVE log-likelihoods.
+Computes the likelihood profile by evaluating the log-likelihood function
+across a grid of p_values while keeping all other parameters at their MLE.
 }
 \keyword{internal}

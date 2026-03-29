@@ -1,10 +1,10 @@
 ---
-title: "Case Study: Juvenile Chinook Salmon Bioenergetics"
+title: "Case Study: Chinook Salmon Bioenergetics"
 author: "Hans Ttito"
 date: "`r Sys.Date()`"
 output: rmarkdown::html_vignette
 vignette: >
-  %\VignetteIndexEntry{Case Study: Juvenile Chinook Salmon Bioenergetics}
+  %\VignetteIndexEntry{Case Study: Chinook Salmon Bioenergetics}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---
@@ -312,3 +312,4 @@ Bioenergetics 4.0: An R-Based Modeling Application. *Fisheries* 42(11):586–596
 Stewart DJ, Ibarra M (1991). Predation and production by salmonine fishes in
 Lake Michigan, 1978–88. *Canadian Journal of Fisheries and Aquatic Sciences*
 48(5):909–922. <https://doi.org/10.1139/f91-107>
+         

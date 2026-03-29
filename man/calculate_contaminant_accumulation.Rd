@@ -30,5 +30,17 @@ calculate_contaminant_accumulation(
 List with contaminant results
 }
 \description{
-Main function for calculating contaminant dynamics
+Calculates daily contaminant dynamics (uptake, elimination, body burden)
+for a fish using one of three bioaccumulation models (CONTEQ 1-3).
 }
+\section{Experimental}{
+
+Contaminant modelling is an **experimental feature** under active
+development. This function can be called directly to compute daily
+bioaccumulation for a single time step, but it is **not yet integrated**
+into the main `run_fb4()` simulation loop. Full integration (automatic
+contaminant tracking across all simulation days, inclusion in
+`fb4_result` objects, and TMB backend support) is planned for a future
+release. The API may change.
+}
+

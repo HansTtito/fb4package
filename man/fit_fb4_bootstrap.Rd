@@ -2,7 +2,7 @@
 % Please edit documentation in R/14.2.4-strategy-bootstrap.R
 \name{fit_fb4_bootstrap}
 \alias{fit_fb4_bootstrap}
-\title{Fit FB4 model using bootstrap estimation with parallel option (Mid-level - OPTIMIZED)}
+\title{Fit FB4 model using bootstrap estimation with parallel option}
 \usage{
 fit_fb4_bootstrap(
   final_weights,

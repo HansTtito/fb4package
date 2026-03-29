@@ -2,7 +2,7 @@
 % Please edit documentation in R/14.2.5-strategy-mle.R
 \name{neg_log_likelihood_lognormal}
 \alias{neg_log_likelihood_lognormal}
-\title{Calculate negative log-likelihood for log-normal weight observations (CORRECTED)}
+\title{Calculate negative log-likelihood for log-normal weight observations}
 \usage{
 neg_log_likelihood_lognormal(params, observed_weights, simulation_function)
 }
@@ -19,8 +19,8 @@ neg_log_likelihood_lognormal(params, observed_weights, simulation_function)
 Negative log-likelihood value (scalar)
 }
 \description{
-FIXED VERSION: Calculates the NEGATIVE log-likelihood for observed final weights
+Calculates the negative log-likelihood for observed final weights
 assuming they follow a log-normal distribution around the predicted weight.
-This version is consistent with TMB backend.
+Consistent with the TMB backend implementation.
 }
 \keyword{internal}

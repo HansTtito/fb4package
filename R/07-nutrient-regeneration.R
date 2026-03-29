@@ -59,12 +59,24 @@ calculate_nutrient_allocation <- function(consumption, prey_nutrient_concentrati
 
 #' Calculate nutrient balance (Mid-level - Main function)
 #'
-#' Main function for calculating nitrogen and phosphorus fluxes
+#' @description
+#' Calculates daily nitrogen and phosphorus fluxes (ingestion, retention,
+#' excretion) for a fish using prey and predator elemental concentrations.
 #'
 #' @param consumption Vector of consumption by prey type (g/day)
 #' @param weight_gain Predator weight gain (g/day)
 #' @param processed_nutrient_params List with processed nutrient parameters
-#' @return List with nutrient results
+#' @return List with nutrient results (N and P ingestion, retention, excretion)
+#'
+#' @section Experimental:
+#' Nutrient regeneration modelling is an **experimental feature** under
+#' active development. This function can be called directly to compute
+#' daily N and P fluxes for a single time step, but it is **not yet
+#' integrated** into the main `run_fb4()` simulation loop. Full integration
+#' (automatic daily nutrient tracking, inclusion in `fb4_result` objects,
+#' and TMB backend support) is planned for a future release. The API
+#' may change.
+#'
 #' @export
 calculate_nutrient_balance <- function(consumption, weight_gain, processed_nutrient_params) {
   

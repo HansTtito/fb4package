@@ -196,7 +196,9 @@ calculate_dissolved_fraction <- function(poc_concentration, doc_concentration, k
 
 #' Calculate contaminant accumulation (Mid-level - Main function)
 #'
-#' Main function for calculating contaminant dynamics
+#' @description
+#' Calculates daily contaminant dynamics (uptake, elimination, body burden)
+#' for a fish using one of three bioaccumulation models (CONTEQ 1-3).
 #'
 #' @param respiration_o2 Respiration in g O2/g/day
 #' @param consumption Vector of consumption by prey type (g/day)
@@ -205,6 +207,16 @@ calculate_dissolved_fraction <- function(poc_concentration, doc_concentration, k
 #' @param current_concentration Current concentration in predator (ug/g)
 #' @param processed_contaminant_params List with processed contaminant parameters
 #' @return List with contaminant results
+#'
+#' @section Experimental:
+#' Contaminant modelling is an **experimental feature** under active
+#' development. This function can be called directly to compute daily
+#' bioaccumulation for a single time step, but it is **not yet integrated**
+#' into the main `run_fb4()` simulation loop. Full integration (automatic
+#' contaminant tracking across all simulation days, inclusion in
+#' `fb4_result` objects, and TMB backend support) is planned for a future
+#' release. The API may change.
+#'
 #' @export
 calculate_contaminant_accumulation <- function(respiration_o2, consumption, weight, temperature,
                                                current_concentration, processed_contaminant_params) {

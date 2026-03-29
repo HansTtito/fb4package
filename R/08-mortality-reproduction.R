@@ -215,7 +215,10 @@ calculate_spawn_energy <- function(spawn_fraction, current_weight, energy_densit
 
 #' Calculate daily mortality and reproduction (Mid-level - Main function)
 #'
-#' Main function for calculating mortality and reproduction effects
+#' @description
+#' Calculates daily mortality probability and reproductive energy loss
+#' (natural mortality, fishing mortality, predation mortality, starvation,
+#' and weight-dependent survival) for a single time step.
 #'
 #' @param current_weight Current fish weight (g)
 #' @param temperature Water temperature (deg C)
@@ -223,6 +226,20 @@ calculate_spawn_energy <- function(spawn_fraction, current_weight, energy_densit
 #' @param processed_mortality_params List with processed mortality parameters
 #' @param initial_weight Initial weight for relative calculations (optional)
 #' @return List with mortality and reproduction results
+#'
+#' @section Experimental:
+#' Mortality rate modelling is an **experimental feature** under active
+#' development. This function can be called directly to compute daily
+#' mortality probability for a single time step, but **mortality rates
+#' are not yet integrated** into the main `run_fb4()` simulation loop.
+#' Full integration (automatic daily mortality application, population
+#' survival tracking, and result reporting) is planned for a future
+#' release. The API may change.
+#'
+#' Note: **spawning energy loss** (reproductive cost) *is* already
+#' integrated into `run_fb4()` and applies automatically when
+#' `reproduction_data` is supplied to the `Bioenergetic` object.
+#'
 #' @export
 calculate_mortality_reproduction <- function(current_weight, temperature, day_of_year,
                                              processed_mortality_params, 

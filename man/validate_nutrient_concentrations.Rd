@@ -2,7 +2,7 @@
 % Please edit documentation in R/11.2-parameter-validators.R
 \name{validate_nutrient_concentrations}
 \alias{validate_nutrient_concentrations}
-\title{Validate nutrient concentrations (your original function, optimized)}
+\title{Validate nutrient concentrations}
 \usage{
 validate_nutrient_concentrations(
   nutrient_concentrations,
@@ -18,5 +18,5 @@ validate_nutrient_concentrations(
 List with validation results
 }
 \description{
-Validate nutrient concentrations (your original function, optimized)
+Validate nutrient concentrations
 }

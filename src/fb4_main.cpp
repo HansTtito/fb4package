@@ -44,7 +44,7 @@ Type objective_function<Type>::operator() () {
   if (model_type == "basic") {
     
     // ====================================================================
-    // BASIC MODEL (UPDATED IMPLEMENTATION)
+    // BASIC MODEL
     // ====================================================================
     
     // Parameter declarations
@@ -213,7 +213,7 @@ Type objective_function<Type>::operator() () {
       Type net_energy = consumption_energy - egestion_energy - excretion_energy - respiration_energy - sda_energy;
       
       // ====================================================================
-      // REPRODUCTION AND GROWTH - UPDATED WITH NEW FUNCTION
+      // REPRODUCTION AND GROWTH
       // ====================================================================
       
       // Calculate current energy density
@@ -378,7 +378,7 @@ Type objective_function<Type>::operator() () {
   } else if (model_type == "hierarchical") {
     
     // ====================================================================
-    // HIERARCHICAL MODEL WITH INDIVIDUAL-LEVEL UNCERTAINTY - UPDATED
+    // HIERARCHICAL MODEL WITH INDIVIDUAL-LEVEL UNCERTAINTY
     // ====================================================================
     
     // Generic structure for any number of covariates
@@ -507,7 +507,7 @@ Type objective_function<Type>::operator() () {
       }
       
       // ================================================================
-      // INDIVIDUAL SIMULATION - UPDATED WITH NEW FUNCTION
+      // INDIVIDUAL SIMULATION
       // ================================================================
       
       // Initialize simulation for this individual
@@ -571,7 +571,7 @@ Type objective_function<Type>::operator() () {
         Type net_energy = consumption_energy - egestion_energy - excretion_energy - 
           respiration_energy - sda_energy;
         
-        // Growth calculation - UPDATED WITH NEW FUNCTION
+        // Growth calculation
         Type current_ed = fb4::calculate_predator_energy_density(
           current_weight, day, 
           PREDEDEQ, Alpha1, Beta1, Alpha2, Beta2, Cutoff, ED_data

@@ -25,7 +25,6 @@ NULL (throws error if invalid)
 }
 \description{
 Basic validation of time series data structure and content for use in FB4 simulations.
-This is your original function optimized with core validators.
 }
 \details{
 Performs comprehensive validation including:

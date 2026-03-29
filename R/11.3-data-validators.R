@@ -10,7 +10,7 @@
 NULL
 
 # ============================================================================
-# DIET DATA VALIDATION (your original functions, optimized)
+# DIET DATA VALIDATION
 # ============================================================================
 
 #' Validate Consistency Between Diet and Energy Data
@@ -112,13 +112,13 @@ validate_diet_consistency <- function(diet_data, energy_data) {
 }
 
 # ============================================================================
-# INDIVIDUAL DATA VALIDATION (your original function, optimized)
+# INDIVIDUAL DATA VALIDATION
 # ============================================================================
 
 #' Validate individual data for hierarchical models
 #'
 #' @description
-#' Enhanced version of your validate_individual_data() with more comprehensive checks.
+#' Validates individual fish data for hierarchical mark-recapture models.
 #'
 #' @param individual_data Data frame with individual observations
 #' @param require_positive_growth Whether growth must be positive
@@ -246,7 +246,6 @@ check_weight_outliers <- function(individual_data) {
 #'
 #' @description
 #' Validates temporal data arrays for simulation readiness.
-#' Your original function from data-processing.R, optimized.
 #'
 #' @param temperature Temperature vector
 #' @param diet_matrix Diet proportion matrix
@@ -338,13 +337,13 @@ validate_temporal_data <- function(temperature, diet_matrix, energy_matrix,
 }
 
 # ============================================================================
-# COMPLETE SIMULATION DATA VALIDATION (from your data-processing.R, optimized)
+# COMPLETE SIMULATION DATA VALIDATION
 # ============================================================================
 
 #' Validate complete simulation data
 #'
 #' @description
-#' Your original function from data-processing.R, optimized with core validators.
+#' Validates the complete processed simulation data structure before running.
 #'
 #' @param simulation_data Complete processed simulation data
 #' @keywords internal
@@ -398,7 +397,7 @@ validate_complete_simulation_data <- function(simulation_data) {
 #' Validate data consistency between components
 #'
 #' @description
-#' Your original function from data-processing.R, optimized.
+#' Checks cross-component consistency within processed simulation data.
 #'
 #' @param simulation_data Complete simulation data
 #' @param n_prey_temporal Number of prey species in temporal data
@@ -437,7 +436,7 @@ validate_data_consistency <- function(simulation_data, n_prey_temporal) {
 #' Validate fitting settings
 #'
 #' @description
-#' Your original function from data-processing.R, optimized with core validators.
+#' Validates processed simulation settings before execution.
 #'
 #' @param settings Processed simulation settings
 #' @keywords internal
@@ -469,13 +468,13 @@ validate_fitting_settings <- function(settings) {
 }
 
 # ============================================================================
-# PARAMETER PROCESSING VALIDATION (from your parameter-processing.R, optimized)
+# PARAMETER PROCESSING VALIDATION
 # ============================================================================
 
 #' Validate equation parameters against requirements
 #'
 #' @description
-#' Your original function from parameter-processing.R, optimized with core validators.
+#' Validates equation parameters against their category requirements.
 #'
 #' @param category Category name
 #' @param equation_num Equation number as character

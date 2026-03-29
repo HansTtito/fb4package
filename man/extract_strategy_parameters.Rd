@@ -2,7 +2,7 @@
 % Please edit documentation in R/14.0.1-strategy-commons.R
 \name{extract_strategy_parameters}
 \alias{extract_strategy_parameters}
-\title{Extract common strategy parameters from execution plan (CONSOLIDATED)}
+\title{Extract common strategy parameters from execution plan}
 \usage{
 extract_strategy_parameters(
   execution_plan,

@@ -30,7 +30,7 @@ NULL
 #'
 #' @details
 #' The delta method uses first-order Taylor series approximation:
-#' Var(f(X)) ≈ [f'(μ)]² × Var(X)
+#' Var(f(X)) ~ [f'(mu)]^2 * Var(X)
 #' 
 #' The linearity check verifies that the derivative times delta_size is small
 #' relative to the consumption estimate, indicating local linearity.
@@ -114,7 +114,7 @@ predict_consumption_delta <- function(p_est, p_se, bio_obj, delta_size = 0.001,
   
   derivative <- (consumption_plus - consumption_minus) / (2 * delta_size)
   
-  # Delta method: Var(consumption) ≈ (∂consumption/∂p)² × Var(p)
+  # Delta method: Var(consumption) ~ (d_consumption/d_p)^2 * Var(p)
   consumption_var <- derivative^2 * p_se^2
   consumption_se <- sqrt(consumption_var)
   
@@ -293,7 +293,7 @@ predict_consumption_bootstrap <- function(p_mean, p_sd, bio_obj, n_sims = 1000,
     cl <- parallel::makeCluster(n_cores)
     
     # Export necessary objects
-    parallel::clusterEvalQ(cl, library(fb4package))
+    parallel::clusterEvalQ(cl, loadNamespace("fb4package"))
     parallel::clusterExport(cl, c("bio_obj", "first_day", "last_day"), 
                            envir = environment())
     

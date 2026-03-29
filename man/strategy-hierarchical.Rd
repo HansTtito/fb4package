@@ -2,7 +2,7 @@
 % Please edit documentation in R/14.2.6-strategy-hierarchical.R
 \name{strategy-hierarchical}
 \alias{strategy-hierarchical}
-\title{Strategy-Hierarchical for FB4 Model (UPDATED)}
+\title{Strategy-Hierarchical for FB4 Model}
 \description{
-Strategy-Hierarchical for FB4 Model (UPDATED)
+Strategy-Hierarchical for FB4 Model
 }

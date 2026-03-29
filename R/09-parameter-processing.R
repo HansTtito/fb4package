@@ -15,6 +15,9 @@ NULL
 #' calculating derived parameters and preparing them for simulation.
 #'
 #' @param species_params Raw species parameters from user
+#' @param n_days Integer. Number of simulation days, used to build the
+#'   predator energy density vector when `ED_ini`/`ED_end` are supplied
+#'   (PREDEDEQ = 1). If `NULL` the vector length is inferred later.
 #' @return List with all processed parameters ready for simulation
 #' @export
 process_species_parameters <- function(species_params, n_days = NULL) {
@@ -213,6 +216,9 @@ process_excretion_params <- function(excretion_params) {
 #' Process predator energy density parameters
 #'
 #' @param predator_params Raw predator parameters
+#' @param n_days Integer. Number of simulation days, used to build the
+#'   energy density vector from `ED_ini`/`ED_end` when PREDEDEQ = 1.
+#'   If `NULL` the vector is built lazily when the simulation starts.
 #' @return Processed predator parameters with energy data
 #' @export
 process_predator_params <- function(predator_params, n_days = NULL) {

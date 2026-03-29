@@ -2,7 +2,7 @@
 % Please edit documentation in R/11.2-parameter-validators.R
 \name{validate_parameter_ranges}
 \alias{validate_parameter_ranges}
-\title{Validate parameter ranges (your original function, optimized)}
+\title{Validate parameter ranges}
 \usage{
 validate_parameter_ranges(params, validations, category)
 }
@@ -14,6 +14,6 @@ validate_parameter_ranges(params, validations, category)
 \item{category}{Category name for error messages}
 }
 \description{
-Validate parameter ranges (your original function, optimized)
+Validate parameter ranges
 }
 \keyword{internal}

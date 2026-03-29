@@ -2,7 +2,7 @@
 % Please edit documentation in R/14.2.3-strategy-optim.R
 \name{optim_search_p_value}
 \alias{optim_search_p_value}
-\title{Optimization using optim() for optimal p_value (Low-level - OPTIMIZED)}
+\title{Optimization using optim() for optimal p_value}
 \usage{
 optim_search_p_value(
   target_value,

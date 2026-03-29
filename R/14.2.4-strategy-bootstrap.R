@@ -409,7 +409,7 @@ bootstrap_p_values <- function(processed_simulation_data,
 }
 
 
-#' Fit FB4 model using bootstrap estimation with parallel option (Mid-level - OPTIMIZED)
+#' Fit FB4 model using bootstrap estimation with parallel option
 #'
 #' @description
 #' Coordinates bootstrap fitting process for final weight data.

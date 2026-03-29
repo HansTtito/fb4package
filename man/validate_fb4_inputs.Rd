@@ -36,6 +36,6 @@ validate_fb4_inputs(
 NULL (throws error if invalid)
 }
 \description{
-Your original validate_fb4_inputs() function, optimized with core validators
-while maintaining exact original interface and behavior.
+Validates all inputs for FB4 simulation, including the Bioenergetic object
+and strategy-specific parameters.
 }

@@ -23,17 +23,14 @@ library(fb4package)
 
 ## Overview
 
-`fb4package` is a programmatic R implementation of Fish Bioenergetics 4.0
-(Deslauriers et al. 2017). It partitions consumed energy into metabolism,
-wastes, and growth, providing mechanistic estimates of fish consumption and
-growth under varying environmental conditions.
+`fb4package` implements Fish Bioenergetics 4.0 (Deslauriers et al. 2017) in R.
+The model allocates consumed energy among metabolism, waste, and growth to
+produce daily estimates of fish consumption and weight gain.
 
-The main workflow has three steps:
-
-1. **Build** a `Bioenergetic` object with species parameters, temperature,
-   diet, and initial conditions.
-2. **Run** `run_fb4()` to simulate or fit a bioenergetics model.
-3. **Analyse / visualise** the results.
+Working with the package follows a three-step pattern: build a `Bioenergetic`
+object that holds species parameters, temperature, diet, and initial
+conditions; pass it to `run_fb4()` to run a simulation or fit a feeding
+level; then extract or plot the results.
 
 ---
 
@@ -148,7 +145,7 @@ When multiple fish weights are available, `strategy = "mle"` returns a
 point estimate of *p* together with its standard error and 95% confidence
 interval:
 
-```{r mle, cache=TRUE}
+```{r mle, cache=TRUE, dependson="obs-weights-def"}
 set.seed(42)
 obs_weights <- rnorm(30, mean = 3000, sd = 80)   # 30 observed final weights
 
@@ -164,7 +161,7 @@ cat("Converged      :", res_mle$summary$converged, "\n")
 
 ### 4d. Bootstrap — non-parametric uncertainty
 
-```{r bootstrap, cache=TRUE}
+```{r bootstrap, cache=TRUE, dependson=c("obs-weights-def", "mle")}
 set.seed(42)
 res_boot <- run_fb4(bio,
                     strategy         = "bootstrap",
@@ -199,7 +196,7 @@ comparison <- data.frame(
 knitr::kable(comparison,
              col.names = c("Strategy", "p estimate", "SE / SD", "Uncertainty type"),
              align     = c("l", "r", "r", "l"),
-             caption   = "MLE and bootstrap use obs_weights (run interactively); binary search fits to a target weight.")
+             caption   = "All strategies use the same bio object (Chinook salmon, 100-day simulation). MLE and bootstrap fit to obs_weights; binary search fits to a target weight.")
 ```
 
 ---
@@ -249,6 +246,42 @@ plot(bio,
      temperatures = seq(6, 20, by = 2),
      p_values     = seq(0.3, 1.0, by = 0.1))
 ```
+
+---
+
+## 9. Experimental features
+
+The following modules are implemented as standalone functions but are **not
+yet integrated** into the main `run_fb4()` loop.  They can be called
+directly for custom analyses and will be connected automatically in a
+future release.
+
+### Contaminant bioaccumulation
+
+Three bioaccumulation models (dietary uptake, gill exchange,
+bioenergetics-based):
+
+- `calculate_contaminant_accumulation()` — daily bioaccumulation
+- `process_contaminant_params()` — parameter pre-processing
+
+### Nutrient regeneration
+
+Daily nitrogen and phosphorus fluxes (ingestion, retention, excretion):
+
+- `calculate_nutrient_balance()` — daily N/P budget
+- `calculate_nutrient_efficiencies()` — N and P use efficiencies
+- `process_nutrient_params()` — parameter pre-processing
+
+### Mortality rates
+
+Natural, fishing, and predation mortality rates can be processed via
+`process_mortality_params()` and computed step-by-step with
+`calculate_mortality_reproduction()`, but **mortality rates are not yet
+applied** automatically inside `run_fb4()`.
+
+> **Note:** *spawning energy loss* (reproductive cost) **is** already
+> integrated and applies automatically when `reproduction_data` is
+> supplied to the `Bioenergetic` object.
 
 ---
 

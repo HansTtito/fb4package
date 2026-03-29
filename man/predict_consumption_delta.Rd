@@ -37,7 +37,7 @@ is approximately linear.
 }
 \details{
 The delta method uses first-order Taylor series approximation:
-Var(f(X)) ≈ [f'(μ)]² × Var(X)
+Var(f(X)) ~ [f'(mu)]^2 * Var(X)
 
 The linearity check verifies that the derivative times delta_size is small
 relative to the consumption estimate, indicating local linearity.

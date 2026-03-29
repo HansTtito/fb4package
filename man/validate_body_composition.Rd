@@ -2,7 +2,7 @@
 % Please edit documentation in R/11.2-parameter-validators.R
 \name{validate_body_composition}
 \alias{validate_body_composition}
-\title{Validate body composition (your original function, optimized)}
+\title{Validate body composition}
 \usage{
 validate_body_composition(composition)
 }
@@ -13,5 +13,5 @@ validate_body_composition(composition)
 List with validation results
 }
 \description{
-Validate body composition (your original function, optimized)
+Validate body composition
 }

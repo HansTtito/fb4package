@@ -12,6 +12,6 @@ validate_data_consistency(simulation_data, n_prey_temporal)
 \item{n_prey_temporal}{Number of prey species in temporal data}
 }
 \description{
-Your original function from data-processing.R, optimized.
+Checks cross-component consistency within processed simulation data.
 }
 \keyword{internal}

@@ -218,7 +218,7 @@ summary.Bioenergetic <- function(object, ...) {
       
       # Show top 3 prey by average proportion
       if (length(prey_names) > 0) {
-        avg_props <- sapply(prey_names, function(p) mean(diet_props[[p]], na.rm = TRUE))
+        avg_props <- vapply(prey_names, function(p) mean(diet_props[[p]], na.rm = TRUE), numeric(1))
         top_prey <- sort(avg_props, decreasing = TRUE)[1:min(3, length(avg_props))]
         
         cat("  Main prey:\n")

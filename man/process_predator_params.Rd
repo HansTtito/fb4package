@@ -8,6 +8,10 @@ process_predator_params(predator_params, n_days = NULL)
 }
 \arguments{
 \item{predator_params}{Raw predator parameters}
+
+\item{n_days}{Integer. Number of simulation days, used to build the
+energy density vector from `ED_ini`/`ED_end` when PREDEDEQ = 1.
+If `NULL` the vector is built lazily when the simulation starts.}
 }
 \value{
 Processed predator parameters with energy data

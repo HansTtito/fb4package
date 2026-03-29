@@ -2,7 +2,7 @@
 % Please edit documentation in R/14.2.2-strategy-binary-search.R
 \name{fit_fb4_binary_search}
 \alias{fit_fb4_binary_search}
-\title{Fit FB4 model using binary search (Mid-level - OPTIMIZED)}
+\title{Fit FB4 model using binary search}
 \usage{
 fit_fb4_binary_search(
   target_value,

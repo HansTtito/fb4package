@@ -2,22 +2,20 @@
 #'
 #' @description
 #' Main integration validation functions that orchestrate all other validators.
-#' These are your primary validation entry points, optimized with core validators
-#' but maintaining original interfaces and behavior.
 #'
 #' @name main-validators
 #' @aliases main-validators
 NULL
 
 # ============================================================================
-# BIOENERGETIC OBJECT VALIDATION (your original function, optimized)
+# BIOENERGETIC OBJECT VALIDATION
 # ============================================================================
 
 #' Comprehensive validation for Bioenergetic objects
 #'
 #' @description
-#' Enhanced version of your validate_bioenergetic_for_simulation() with improved
-#' organization and better error accumulation.
+#' Validates a Bioenergetic object before simulation, checking all required
+#' components with comprehensive error accumulation.
 #'
 #' @param bio_obj Bioenergetic object
 #' @return List with validation results
@@ -121,14 +119,14 @@ validate_bioenergetic_for_simulation <- function(bio_obj) {
 }
 
 # ============================================================================
-# FB4 INPUT VALIDATION (your original function, optimized)
+# FB4 INPUT VALIDATION
 # ============================================================================
 
 #' Validate inputs for FB4 simulation
 #'
 #' @description
-#' Your original validate_fb4_inputs() function, optimized with core validators
-#' while maintaining exact original interface and behavior.
+#' Validates all inputs for FB4 simulation, including the Bioenergetic object
+#' and strategy-specific parameters.
 #'
 #' @param bio_obj Bioenergetic object
 #' @param strategy Strategy to use: "binary_search", "optim", "bootstrap", "mle", "hierarchical"
@@ -247,7 +245,7 @@ validate_fb4_inputs <- function(bio_obj, strategy, fit_to = NULL, fit_value = NU
 }
 
 # ============================================================================
-# STATISTICAL METHOD VALIDATION (your original functions, optimized)
+# STATISTICAL METHOD VALIDATION
 # ============================================================================
 
 #' Validate statistical strategy inputs

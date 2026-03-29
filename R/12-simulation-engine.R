@@ -140,7 +140,7 @@ calculate_daily_metabolism <- function(consumption_energy, current_weight, tempe
   )
   
   # Calculate net energy available for growth
-  net_energy = consumption_energy - egestion_energy - excretion_energy - respiration_energy - sda_energy
+  net_energy <- consumption_energy - egestion_energy - excretion_energy - respiration_energy - sda_energy
   
   return(list(
     egestion_energy = egestion_energy,
@@ -495,19 +495,19 @@ convert_daily_results_to_dataframe <- function(daily_results) {
   n_days <- length(daily_results)
   
   data.frame(
-    Day = sapply(daily_results, `[[`, "day"),
-    Weight = sapply(daily_results, `[[`, "final_weight"),
-    Weight_change = sapply(daily_results, `[[`, "weight_change"),
-    Temperature = sapply(daily_results, `[[`, "temperature"),
-    Consumption_gg = sapply(daily_results, `[[`, "consumption_gg"),
-    Consumption_energy = sapply(daily_results, `[[`, "consumption_energy"),
-    P_value = sapply(daily_results, `[[`, "effective_p"),
-    Respiration = sapply(daily_results, `[[`, "respiration_energy"),
-    Egestion = sapply(daily_results, `[[`, "egestion_energy"),
-    Excretion = sapply(daily_results, `[[`, "excretion_energy"),
-    SDA = sapply(daily_results, `[[`, "sda_energy"),
-    Net_energy = sapply(daily_results, `[[`, "net_energy"),
-    Energy_density = sapply(daily_results, `[[`, "energy_density"),
+    Day = vapply(daily_results, `[[`, numeric(1), "day"),
+    Weight = vapply(daily_results, `[[`, numeric(1), "final_weight"),
+    Weight_change = vapply(daily_results, `[[`, numeric(1), "weight_change"),
+    Temperature = vapply(daily_results, `[[`, numeric(1), "temperature"),
+    Consumption_gg = vapply(daily_results, `[[`, numeric(1), "consumption_gg"),
+    Consumption_energy = vapply(daily_results, `[[`, numeric(1), "consumption_energy"),
+    P_value = vapply(daily_results, `[[`, numeric(1), "effective_p"),
+    Respiration = vapply(daily_results, `[[`, numeric(1), "respiration_energy"),
+    Egestion = vapply(daily_results, `[[`, numeric(1), "egestion_energy"),
+    Excretion = vapply(daily_results, `[[`, numeric(1), "excretion_energy"),
+    SDA = vapply(daily_results, `[[`, numeric(1), "sda_energy"),
+    Net_energy = vapply(daily_results, `[[`, numeric(1), "net_energy"),
+    Energy_density = vapply(daily_results, `[[`, numeric(1), "energy_density"),
     stringsAsFactors = FALSE
   )
 }

@@ -283,7 +283,7 @@ analyze_energy_budget <- function(result, individual_id = NULL, confidence_level
         # Approximate SE for proportion using delta method
         prop_se <- NA
         if (!is.na(comp_se) && !is.na(budget$consumption_energy$se)) {
-          # Delta method for ratio: Var(Y/X) ≈ (Y/X)² * [Var(Y)/Y² + Var(X)/X² - 2*Cov(X,Y)/(X*Y)]
+          # Delta method for ratio: Var(Y/X) ~ (Y/X)^2 * [Var(Y)/Y^2 + Var(X)/X^2 - 2*Cov(X,Y)/(X*Y)]
           # Assuming independence: Cov(X,Y) = 0
           cv_comp <- comp_se / comp_est
           cv_cons <- budget$consumption_energy$se / consumption_est
@@ -321,7 +321,7 @@ analyze_energy_budget <- function(result, individual_id = NULL, confidence_level
     )
     
     # Energy balance check
-    total_allocated <- sum(sapply(components, function(x) budget[[x]]$estimate %||% 0))
+    total_allocated <- sum(vapply(components, function(x) budget[[x]]$estimate %||% 0, numeric(1)))
     budget_analysis$balance_check <- list(
       consumption_energy = consumption_est,
       total_allocated = total_allocated,

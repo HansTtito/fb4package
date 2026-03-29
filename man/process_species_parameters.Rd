@@ -8,6 +8,10 @@ process_species_parameters(species_params, n_days = NULL)
 }
 \arguments{
 \item{species_params}{Raw species parameters from user}
+
+\item{n_days}{Integer. Number of simulation days, used to build the
+predator energy density vector when `ED_ini`/`ED_end` are supplied
+(PREDEDEQ = 1). If `NULL` the vector length is inferred later.}
 }
 \value{
 List with all processed parameters ready for simulation

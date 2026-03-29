@@ -145,7 +145,6 @@ create_empty_composition <- function() {
 #'
 #' @description
 #' Basic validation of time series data structure and content for use in FB4 simulations.
-#' This is your original function optimized with core validators.
 #'
 #' @param data Data to validate
 #' @param data_name Name of the dataset (for error messages)

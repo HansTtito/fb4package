@@ -2,7 +2,7 @@
 % Please edit documentation in R/14.2.5-strategy-mle.R
 \name{fit_fb4_mle}
 \alias{fit_fb4_mle}
-\title{Fit FB4 model using Maximum Likelihood Estimation (Mid-level - OPTIMIZED)}
+\title{Fit FB4 model using Maximum Likelihood Estimation}
 \usage{
 fit_fb4_mle(
   observed_weights,

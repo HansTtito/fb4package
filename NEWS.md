@@ -1,6 +1,4 @@
-# fb4package NEWS
-
-## fb4package 2.0.0 (2026-03-28)
+# fb4package 2.0.0 (2026-03-28)
 
 This is a major rewrite. The entire codebase was reorganised from a monolithic
 structure (7 files) into a modular, strategy-based architecture (33 files),
@@ -65,7 +63,7 @@ and an optional TMB/C++ backend was added for statistical estimation methods.
 
 ---
 
-## fb4package 0.1.0
+# fb4package 0.1.0
 
 * Initial release. Pure-R implementation of Fish Bioenergetics 4.0
   (Deslauriers et al. 2017).

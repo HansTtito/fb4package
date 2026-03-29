@@ -82,7 +82,7 @@ solve_weight_power_function <- function(initial_weight, net_energy, Alpha1, Beta
   initial_body_energy <- initial_weight * Alpha1 * (initial_weight^Beta1)
   
   if (abs(Beta1) < 1e-6) {
-    # Beta1 ≈ 0: constant energy density
+    # Beta1 ~= 0: constant energy density
     final_weight <- (initial_body_energy + net_energy) / Alpha1
   } else {
     target_energy <- initial_body_energy + net_energy

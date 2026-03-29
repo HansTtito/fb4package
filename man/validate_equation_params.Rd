@@ -14,6 +14,6 @@ validate_equation_params(category, equation_num, params)
 \item{params}{Parameter list}
 }
 \description{
-Your original function from parameter-processing.R, optimized with core validators.
+Validates equation parameters against their category requirements.
 }
 \keyword{internal}

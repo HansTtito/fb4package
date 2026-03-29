@@ -119,6 +119,7 @@ obs_weights <- rnorm(20, mean = 14500, sd = 500)
 results_boot <- run_fb4(
   bio_obj,
   strategy         = "bootstrap",
+  fit_to           = "Weight",
   observed_weights = obs_weights,
   n_bootstrap      = 500,
   upper            = 1.0,
@@ -164,7 +165,7 @@ bio_obj$species_params <- set_parameter_value(bio_obj$species_params, "ED_end", 
 results_consumption <- run_fb4(
   bio_obj,
   fit_to = "Consumption",
-  fit_value = 0.02,  # Target consumption rate (g/g/d)
+  fit_value = 6000,  # Target consumption rate (g/g/d)
   max_iterations = 25
 )
 

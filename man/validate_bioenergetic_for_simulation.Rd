@@ -13,6 +13,6 @@ validate_bioenergetic_for_simulation(bio_obj)
 List with validation results
 }
 \description{
-Enhanced version of your validate_bioenergetic_for_simulation() with improved
-organization and better error accumulation.
+Validates a Bioenergetic object before simulation, checking all required
+components with comprehensive error accumulation.
 }

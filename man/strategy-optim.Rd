@@ -2,7 +2,7 @@
 % Please edit documentation in R/14.2.3-strategy-optim.R
 \name{strategy-optim}
 \alias{strategy-optim}
-\title{Strategy-Optim for FB4 Model (UPDATED)}
+\title{Strategy-Optim for FB4 Model}
 \description{
-Strategy-Optim for FB4 Model (UPDATED)
+Strategy-Optim for FB4 Model
 }

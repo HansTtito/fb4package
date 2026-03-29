@@ -2,7 +2,7 @@
 % Please edit documentation in R/14.2.3-strategy-optim.R
 \name{fit_fb4_optim}
 \alias{fit_fb4_optim}
-\title{Fit FB4 model using optim() (Mid-level - OPTIMIZED)}
+\title{Fit FB4 model using optim()}
 \usage{
 fit_fb4_optim(
   target_value,

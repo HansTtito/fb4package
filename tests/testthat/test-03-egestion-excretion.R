@@ -8,7 +8,7 @@ exc_p <- processed_exc_params   # EXEQ = 1 (Chinook demo)
 
 # Consumo de referencia en J/g (valor plausible para 1 día)
 C_ref  <- 100   # J/g
-T_ref  <- 10    # °C
+T_ref  <- 10    # deg C
 p_ref  <- 0.5
 
 # =============================================================================

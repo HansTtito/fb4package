@@ -30,7 +30,7 @@ V = (RTM - temperature) / (RTM - RTO)
 ft = V^RX × exp(RX × (1 - V))
 
 Special cases:
-- When temperature ≥ RTM: returns 0.000001 (lethal temperature)
+- When temperature >= RTM: returns 0.000001 (lethal temperature)
 - When ft < 0: returns 0.000001 (mathematical protection)
 
 Note: Negative values can occur with certain RX parameters, hence the minimum bound.

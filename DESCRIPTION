@@ -10,14 +10,13 @@ Authors@R: c(
    )
  )
 Description: An R implementation of fish bioenergetics modeling based on Fish Bioenergetics 4.0 (Deslauriers et al., 2017). Provides automated parameter optimization, multi-prey diet modeling, and comprehensive energy budget simulations for fisheries research and aquaculture applications. Features optional TMB (Template Model Builder) backend for 10-50x speedup in maximum likelihood estimation while maintaining full backward compatibility. The package includes species-specific parameter databases and tools for modeling fish growth, consumption, and metabolism under varying environmental conditions.
-URL: https://github.com/HansTtito/fb4package
+URL: https://hanststito.github.io/fb4package, https://github.com/HansTtito/fb4package
 BugReports: https://github.com/HansTtito/fb4package/issues
 License: MIT + file LICENSE
 Encoding: UTF-8
 LazyData: true
 RoxygenType: 7.3.2
 VignetteBuilder: knitr
-SystemRequirements: C++14
 Depends: 
    R (>= 4.0.0)
 Imports:
@@ -32,6 +31,7 @@ Suggests:
    testthat (>= 3.0.0),
    knitr,
    rmarkdown,
+   pkgdown,
    microbenchmark,
    future,
    furrr

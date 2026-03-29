@@ -1,4 +1,4 @@
-#' Strategy-Optim for FB4 Model (UPDATED)
+#' Strategy-Optim for FB4 Model
 #'
 #' @name strategy-optim
 #' @aliases strategy-optim
@@ -106,10 +106,10 @@ create_optim_strategy <- function(execution_plan) {
 }
 
 # ============================================================================
-# OPTIM ALGORITHMS (OPTIMIZED)
+# OPTIM ALGORITHMS
 # ============================================================================
 
-#' Optimization using optim() for optimal p_value (Low-level - OPTIMIZED)
+#' Optimization using optim() for optimal p_value
 #'
 #' @description
 #' Uses R's optim() function for finding p_value that achieves target metric.
@@ -164,7 +164,7 @@ optim_search_p_value <- function(target_value, fit_type, simulation_function,
   ))
 }
 
-#' Fit FB4 model using optim() (Mid-level - OPTIMIZED)
+#' Fit FB4 model using optim()
 #'
 #' @description
 #' Coordinates optim() fitting process for weight or consumption targets.

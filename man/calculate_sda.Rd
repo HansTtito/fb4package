@@ -24,6 +24,6 @@ Calculates SDA using: SDA = SDA_coeff × (consumption - egestion)
 
 Special cases:
 - When egestion > consumption: egestion is capped at consumption value
-- Result is always ≥ 0
+- Result is always >= 0
 }
 \keyword{internal}

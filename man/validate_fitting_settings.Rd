@@ -10,6 +10,6 @@ validate_fitting_settings(settings)
 \item{settings}{Processed simulation settings}
 }
 \description{
-Your original function from data-processing.R, optimized with core validators.
+Validates processed simulation settings before execution.
 }
 \keyword{internal}

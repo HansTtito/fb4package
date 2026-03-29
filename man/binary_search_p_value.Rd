@@ -2,7 +2,7 @@
 % Please edit documentation in R/14.2.2-strategy-binary-search.R
 \name{binary_search_p_value}
 \alias{binary_search_p_value}
-\title{Binary search for optimal p_value (Low-level - OPTIMIZED)}
+\title{Binary search for optimal p_value}
 \usage{
 binary_search_p_value(
   target_value,

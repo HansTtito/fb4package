@@ -10,7 +10,7 @@
 NULL
 
 # ============================================================================
-# EQUATION REQUIREMENTS (your original structure, maintained)
+# EQUATION REQUIREMENTS
 # ============================================================================
 
 #' Equation requirements for all FB4 components
@@ -256,7 +256,7 @@ EQUATION_REQUIREMENTS <- list(
 )
 
 # ============================================================================
-# MAIN SPECIES VALIDATION (your original function, optimized)
+# MAIN SPECIES VALIDATION
 # ============================================================================
 
 #' Main function to validate all species equations
@@ -364,7 +364,7 @@ validate_category_equation <- function(category_name, category_params, species_p
 }
 
 # ============================================================================
-# REQUIREMENT VALIDATION (your original functions, optimized)
+# REQUIREMENT VALIDATION
 # ============================================================================
 
 #' Validate standard parameter requirements
@@ -495,7 +495,7 @@ validate_predator_requirements <- function(eq_reqs, predator_params, validation)
   return(validation)
 }
 
-#' Validate parameter ranges (your original function, optimized)
+#' Validate parameter ranges
 #'
 #' @param params Parameter list
 #' @param validations Validation specifications
@@ -553,10 +553,10 @@ validate_parameter_ranges <- function(params, validations, category) {
 }
 
 # ============================================================================
-# SPECIALIZED PARAMETER VALIDATORS (your original functions, optimized)
+# SPECIALIZED PARAMETER VALIDATORS
 # ============================================================================
 
-#' Validate predator energy density parameters (your original function)
+#' Validate predator energy density parameters
 #'
 #' @param predator_params List with parameters
 #' @param weight_range Weight range for testing
@@ -631,7 +631,7 @@ validate_predator_energy_params <- function(predator_params, weight_range = c(1,
   return(validation)
 }
 
-#' Validate contaminant parameters (your original function, optimized)
+#' Validate contaminant parameters
 #'
 #' @param contaminant_params List with parameters
 #' @return List with validation results
@@ -709,7 +709,7 @@ validate_contaminant_params <- function(contaminant_params) {
   return(validation)
 }
 
-#' Validate nutrient concentrations (your original function, optimized)
+#' Validate nutrient concentrations
 #'
 #' @param nutrient_concentrations List with N and P concentrations
 #' @param organism_type Organism type for validation
@@ -723,7 +723,7 @@ validate_nutrient_concentrations <- function(nutrient_concentrations, organism_t
     errors = character()
   )
   
-  # Typical ranges (g/g wet weight) - your original ranges
+  # Typical ranges (g/g wet weight)
   typical_ranges <- list(
     fish = list(nitrogen = c(0.08, 0.12), phosphorus = c(0.01, 0.02)),
     zooplankton = list(nitrogen = c(0.07, 0.11), phosphorus = c(0.008, 0.015)),
@@ -782,7 +782,7 @@ validate_nutrient_concentrations <- function(nutrient_concentrations, organism_t
     }
   }
   
-  # Validate N:P ratio (your original logic)
+  # Validate N:P ratio
   if ("nitrogen" %in% names(nutrient_concentrations) && 
       "phosphorus" %in% names(nutrient_concentrations)) {
     
@@ -805,7 +805,7 @@ validate_nutrient_concentrations <- function(nutrient_concentrations, organism_t
   return(validation)
 }
 
-#' Validate body composition (your original function, optimized)
+#' Validate body composition
 #'
 #' @param composition Body composition list
 #' @return List with validation results
@@ -818,7 +818,7 @@ validate_body_composition <- function(composition) {
     errors = character()
   )
   
-  # Typical ranges for fish (fractions) - your original ranges
+  # Typical ranges for fish (fractions)
   typical_ranges <- list(
     water = c(0.65, 0.85),
     protein = c(0.10, 0.25),
@@ -878,7 +878,7 @@ validate_body_composition <- function(composition) {
     }
   }
   
-  # Validate fraction balance (your original logic)
+  # Validate fraction balance
   if (!is.null(composition$balanced) && !composition$balanced) {
     if (!is.null(composition$total_fraction)) {
       validation$errors <- c(validation$errors, 

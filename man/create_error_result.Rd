@@ -2,7 +2,7 @@
 % Please edit documentation in R/14.0.1-strategy-commons.R
 \name{create_error_result}
 \alias{create_error_result}
-\title{Create standardized error result (CONSOLIDATED)}
+\title{Create standardized error result}
 \usage{
 create_error_result(error_message, strategy_type, execution_plan)
 }

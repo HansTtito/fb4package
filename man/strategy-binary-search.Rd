@@ -2,7 +2,7 @@
 % Please edit documentation in R/14.2.2-strategy-binary-search.R
 \name{strategy-binary-search}
 \alias{strategy-binary-search}
-\title{Strategy-Binary-search for FB4 Model (UPDATED)}
+\title{Strategy-Binary-search for FB4 Model}
 \description{
-Strategy-Binary-search for FB4 Model (UPDATED)
+Strategy-Binary-search for FB4 Model
 }

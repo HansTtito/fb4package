@@ -1,4 +1,4 @@
-#' Strategy-Hierarchical for FB4 Model (UPDATED)
+#' Strategy-Hierarchical for FB4 Model
 #'
 #' @name strategy-hierarchical
 #' @aliases strategy-hierarchical

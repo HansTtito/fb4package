@@ -636,7 +636,7 @@ compare_scenarios <- function(result_list,
   }
   
   # Validate all inputs are FB4 results
-  valid_results <- sapply(result_list, is.fb4_result)
+  valid_results <- vapply(result_list, is.fb4_result, logical(1))
   if (!all(valid_results)) {
     invalid_names <- names(result_list)[!valid_results]
     stop("Invalid FB4 result objects: ", paste(invalid_names, collapse = ", "))
@@ -644,7 +644,7 @@ compare_scenarios <- function(result_list,
   
   scenario_names <- names(result_list)
   if (is.null(scenario_names)) {
-    scenario_names <- paste0("Scenario_", 1:length(result_list))
+    scenario_names <- paste0("Scenario_", seq_along(result_list))
     names(result_list) <- scenario_names
   }
   
@@ -658,9 +658,9 @@ compare_scenarios <- function(result_list,
   # Extract comparable metrics from each result
   scenario_data <- data.frame(
     scenario = scenario_names,
-    method = sapply(result_list, function(r) r$summary$method),
-    backend = sapply(result_list, function(r) r$model_info$backend),
-    converged = sapply(result_list, function(r) r$summary$converged %||% TRUE),
+    method = vapply(result_list, function(r) r$summary$method, character(1)),
+    backend = vapply(result_list, function(r) r$model_info$backend, character(1)),
+    converged = vapply(result_list, function(r) r$summary$converged %||% TRUE, logical(1)),
     stringsAsFactors = FALSE
   )
   
@@ -670,9 +670,9 @@ compare_scenarios <- function(result_list,
       get_consumption_uncertainty(r, confidence_level = confidence_level)
     })
     
-    scenario_data$consumption_est <- sapply(consumption_data, function(x) x$estimate %||% NA)
-    scenario_data$consumption_se <- sapply(consumption_data, function(x) x$se %||% NA)
-    scenario_data$consumption_has_uncertainty <- sapply(consumption_data, function(x) x$has_uncertainty)
+    scenario_data$consumption_est <- vapply(consumption_data, function(x) x$estimate %||% NA_real_, numeric(1))
+    scenario_data$consumption_se <- vapply(consumption_data, function(x) x$se %||% NA_real_, numeric(1))
+    scenario_data$consumption_has_uncertainty <- vapply(consumption_data, function(x) x$has_uncertainty, logical(1))
   }
   
   # Add growth metrics
@@ -681,11 +681,11 @@ compare_scenarios <- function(result_list,
       analyze_growth_patterns(r, confidence_level = confidence_level)
     })
     
-    scenario_data$initial_weight <- sapply(growth_data, function(x) x$initial_weight %||% NA)
-    scenario_data$final_weight_est <- sapply(growth_data, function(x) x$final_weight$estimate %||% NA)
-    scenario_data$final_weight_se <- sapply(growth_data, function(x) x$final_weight$se %||% NA)
-    scenario_data$relative_growth_est <- sapply(growth_data, function(x) x$relative_growth$estimate %||% NA)
-    scenario_data$relative_growth_se <- sapply(growth_data, function(x) x$relative_growth$se %||% NA)
+    scenario_data$initial_weight <- vapply(growth_data, function(x) x$initial_weight %||% NA_real_, numeric(1))
+    scenario_data$final_weight_est <- vapply(growth_data, function(x) x$final_weight$estimate %||% NA_real_, numeric(1))
+    scenario_data$final_weight_se <- vapply(growth_data, function(x) x$final_weight$se %||% NA_real_, numeric(1))
+    scenario_data$relative_growth_est <- vapply(growth_data, function(x) x$relative_growth$estimate %||% NA_real_, numeric(1))
+    scenario_data$relative_growth_se <- vapply(growth_data, function(x) x$relative_growth$se %||% NA_real_, numeric(1))
   }
   
   # Add efficiency metrics
@@ -694,10 +694,10 @@ compare_scenarios <- function(result_list,
       get_efficiency_uncertainty(r, confidence_level = confidence_level)
     })
     
-    scenario_data$gross_efficiency_est <- sapply(efficiency_data, function(x) x$gross_growth_efficiency$estimate %||% NA)
-    scenario_data$gross_efficiency_se <- sapply(efficiency_data, function(x) x$gross_growth_efficiency$se %||% NA)
-    scenario_data$metabolic_scope_est <- sapply(efficiency_data, function(x) x$metabolic_scope$estimate %||% NA)
-    scenario_data$metabolic_scope_se <- sapply(efficiency_data, function(x) x$metabolic_scope$se %||% NA)
+    scenario_data$gross_efficiency_est <- vapply(efficiency_data, function(x) x$gross_growth_efficiency$estimate %||% NA_real_, numeric(1))
+    scenario_data$gross_efficiency_se <- vapply(efficiency_data, function(x) x$gross_growth_efficiency$se %||% NA_real_, numeric(1))
+    scenario_data$metabolic_scope_est <- vapply(efficiency_data, function(x) x$metabolic_scope$estimate %||% NA_real_, numeric(1))
+    scenario_data$metabolic_scope_se <- vapply(efficiency_data, function(x) x$metabolic_scope$se %||% NA_real_, numeric(1))
   }
 
   # Add p_value metrics
@@ -725,9 +725,9 @@ compare_scenarios <- function(result_list,
       }
     })
     
-    scenario_data$p_value_est <- sapply(p_value_data, function(x) x$estimate %||% NA)
-    scenario_data$p_value_se <- sapply(p_value_data, function(x) x$se %||% NA)
-    scenario_data$p_value_has_uncertainty <- sapply(p_value_data, function(x) x$has_uncertainty)
+    scenario_data$p_value_est <- vapply(p_value_data, function(x) x$estimate %||% NA_real_, numeric(1))
+    scenario_data$p_value_se <- vapply(p_value_data, function(x) x$se %||% NA_real_, numeric(1))
+    scenario_data$p_value_has_uncertainty <- vapply(p_value_data, function(x) x$has_uncertainty, logical(1))
   }
   
   comparison$scenario_data <- scenario_data
@@ -886,6 +886,14 @@ identify_best_scenarios <- function(scenario_data, metrics) {
       value = scenario_data$gross_efficiency_est[best_idx]
     )
   }
-  
+
+  if ("p_value" %in% metrics && any(!is.na(scenario_data$p_value_est))) {
+    best_idx <- which.max(scenario_data$p_value_est)
+    best_performers$p_value <- list(
+      scenario = scenario_data$scenario[best_idx],
+      value = scenario_data$p_value_est[best_idx]
+    )
+  }
+
   return(best_performers)
 }

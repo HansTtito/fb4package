@@ -54,7 +54,8 @@ if (length(chinook_key) > 0) {
   cat("Clave en DB:", chinook_key[1], "\n")
   chinook_db <- fish4_parameters[[chinook_key[1]]]
   cat("Etapas de vida disponibles:", names(chinook_db$life_stages), "\n")
-  cat("Fuentes:\n"); print(chinook_db$sources)
+  cat("Fuentes:\n")
+  print(chinook_db$sources)
 } else {
   cat("Chinook no encontrado en DB; usando parámetros de Stewart & Ibarra (1991)\n")
 }
@@ -183,10 +184,14 @@ cat("\n=== Summary ===\n")
 summary(bio_chinook)
 
 # Gráficos de setup
-cat("\n>> Plot dashboard de setup\n");       plot(bio_chinook, type = "dashboard")
-cat("\n>> Plot temperatura\n");              plot(bio_chinook, type = "temperature")
-cat("\n>> Plot dieta\n");                    plot(bio_chinook, type = "diet")
-cat("\n>> Plot densidad energética\n");      plot(bio_chinook, type = "energy")
+cat("\n>> Plot dashboard de setup\n")
+plot(bio_chinook, type = "dashboard")
+cat("\n>> Plot temperatura\n")
+plot(bio_chinook, type = "temperature")
+cat("\n>> Plot dieta\n")
+plot(bio_chinook, type = "diet")
+cat("\n>> Plot densidad energética\n")
+plot(bio_chinook, type = "energy")
 
 
 # ==============================================================================
@@ -209,11 +214,16 @@ cat("\n--- Daily output (primeras filas) ---\n")
 print(head(result_bsearch$daily_output, 5))
 
 # Gráficos del resultado
-cat("\n>> Plot dashboard\n");    plot(result_bsearch, type = "dashboard")
-cat("\n>> Plot crecimiento\n");  plot(result_bsearch, type = "growth")
-cat("\n>> Plot consumo\n");      plot(result_bsearch, type = "consumption")
-cat("\n>> Plot temperatura\n");  plot(result_bsearch, type = "temperature")
-cat("\n>> Plot energía\n");      plot(result_bsearch, type = "energy")
+cat("\n>> Plot dashboard\n")
+plot(result_bsearch, type = "dashboard")
+cat("\n>> Plot crecimiento\n")
+plot(result_bsearch, type = "growth")
+cat("\n>> Plot consumo\n")
+plot(result_bsearch, type = "consumption")
+cat("\n>> Plot temperatura\n")
+plot(result_bsearch, type = "temperature")
+cat("\n>> Plot energía\n")
+plot(result_bsearch, type = "energy")
 
 
 # ==============================================================================

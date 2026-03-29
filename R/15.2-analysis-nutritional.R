@@ -280,15 +280,15 @@ calculate_stoichiometric_balance <- function(nutrient_balance) {
 build_composition_df <- function(compositions, weights) {
   data.frame(
     Weight           = weights,
-    Water_g          = sapply(compositions, `[[`, "water_g"),
-    Protein_g        = sapply(compositions, `[[`, "protein_g"),
-    Ash_g            = sapply(compositions, `[[`, "ash_g"),
-    Fat_g            = sapply(compositions, `[[`, "fat_g"),
-    Water_fraction   = sapply(compositions, `[[`, "water_fraction"),
-    Protein_fraction = sapply(compositions, `[[`, "protein_fraction"),
-    Ash_fraction     = sapply(compositions, `[[`, "ash_fraction"),
-    Fat_fraction     = sapply(compositions, `[[`, "fat_fraction"),
-    Energy_density   = sapply(compositions, `[[`, "energy_density"),
+    Water_g          = vapply(compositions, `[[`, numeric(1), "water_g"),
+    Protein_g        = vapply(compositions, `[[`, numeric(1), "protein_g"),
+    Ash_g            = vapply(compositions, `[[`, numeric(1), "ash_g"),
+    Fat_g            = vapply(compositions, `[[`, numeric(1), "fat_g"),
+    Water_fraction   = vapply(compositions, `[[`, numeric(1), "water_fraction"),
+    Protein_fraction = vapply(compositions, `[[`, numeric(1), "protein_fraction"),
+    Ash_fraction     = vapply(compositions, `[[`, numeric(1), "ash_fraction"),
+    Fat_fraction     = vapply(compositions, `[[`, numeric(1), "fat_fraction"),
+    Energy_density   = vapply(compositions, `[[`, numeric(1), "energy_density"),
     stringsAsFactors = FALSE
   )
 }

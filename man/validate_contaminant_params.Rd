@@ -2,7 +2,7 @@
 % Please edit documentation in R/11.2-parameter-validators.R
 \name{validate_contaminant_params}
 \alias{validate_contaminant_params}
-\title{Validate contaminant parameters (your original function, optimized)}
+\title{Validate contaminant parameters}
 \usage{
 validate_contaminant_params(contaminant_params)
 }
@@ -13,5 +13,5 @@ validate_contaminant_params(contaminant_params)
 List with validation results
 }
 \description{
-Validate contaminant parameters (your original function, optimized)
+Validate contaminant parameters
 }

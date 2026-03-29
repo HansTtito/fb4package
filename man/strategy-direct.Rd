@@ -2,7 +2,7 @@
 % Please edit documentation in R/14.2.1-strategy-direct.R
 \name{strategy-direct}
 \alias{strategy-direct}
-\title{Direct Strategies for FB4 Model (UPDATED)}
+\title{Direct Strategies for FB4 Model}
 \description{
-Direct Strategies for FB4 Model (UPDATED)
+Direct Strategies for FB4 Model
 }

@@ -5,6 +5,4 @@
 \title{Main Validation Functions for FB4}
 \description{
 Main integration validation functions that orchestrate all other validators.
-These are your primary validation entry points, optimized with core validators
-but maintaining original interfaces and behavior.
 }

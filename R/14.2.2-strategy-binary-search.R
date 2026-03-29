@@ -1,4 +1,4 @@
-#' Strategy-Binary-search for FB4 Model (UPDATED)
+#' Strategy-Binary-search for FB4 Model
 #'
 #' @name strategy-binary-search
 #' @aliases strategy-binary-search
@@ -106,10 +106,10 @@ create_binary_search_strategy <- function(execution_plan) {
 }
 
 # ============================================================================
-# BINARY SEARCH ALGORITHMS (OPTIMIZED)
+# BINARY SEARCH ALGORITHMS
 # ============================================================================
 
-#' Binary search for optimal p_value (Low-level - OPTIMIZED)
+#' Binary search for optimal p_value
 #'
 #' @description
 #' Pure binary search algorithm for finding p_value that achieves target metric.
@@ -190,7 +190,7 @@ binary_search_p_value <- function(target_value, fit_type, lower_bound, upper_bou
   ))
 }
 
-#' Fit FB4 model using binary search (Mid-level - OPTIMIZED)
+#' Fit FB4 model using binary search
 #'
 #' @description
 #' Coordinates binary search fitting process for weight or consumption targets.

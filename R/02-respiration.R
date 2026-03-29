@@ -78,7 +78,7 @@ respiration_temp_eq1 <- function(temperature, RQ) {
 #' ft = V^RX × exp(RX × (1 - V))
 #' 
 #' Special cases:
-#' - When temperature ≥ RTM: returns 0.000001 (lethal temperature)
+#' - When temperature >= RTM: returns 0.000001 (lethal temperature)
 #' - When ft < 0: returns 0.000001 (mathematical protection)
 #' 
 #' Note: Negative values can occur with certain RX parameters, hence the minimum bound.
@@ -240,7 +240,7 @@ calculate_respiration_params_eq2 <- function(RQ, RTM, RTO) {
 #' 
 #' Special cases:
 #' - When egestion > consumption: egestion is capped at consumption value
-#' - Result is always ≥ 0
+#' - Result is always >= 0
 #' 
 #' @keywords internal
 calculate_sda <- function(consumption_energy, egestion_energy, SDA_coeff) {

@@ -1,4 +1,4 @@
-#' Strategy-MLE for FB4 Model (UPDATED)
+#' Strategy-MLE for FB4 Model
 #'
 #' @name strategy-mle
 #' @aliases strategy-mle
@@ -206,15 +206,15 @@ execute_mle_tmb <- function(plan) {
 
 
 # ============================================================================
-# MLE ALGORITHMS (OPTIMIZED)
+# MLE ALGORITHMS
 # ============================================================================
 
-#' Calculate negative log-likelihood for log-normal weight observations (CORRECTED)
+#' Calculate negative log-likelihood for log-normal weight observations
 #'
 #' @description
-#' FIXED VERSION: Calculates the NEGATIVE log-likelihood for observed final weights
+#' Calculates the negative log-likelihood for observed final weights
 #' assuming they follow a log-normal distribution around the predicted weight.
-#' This version is consistent with TMB backend.
+#' Consistent with the TMB backend implementation.
 #'
 #' @param params Vector of parameters to estimate:
 #'   - params[1]: p_value (feeding level, 0.01-5.0)
@@ -252,12 +252,11 @@ neg_log_likelihood_lognormal <- function(params, observed_weights, simulation_fu
   return(-log_lik)  # Still negative for optim() minimization
 }
 
-#' Maximum Likelihood Estimation for p_value using log-normal distribution (CORRECTED)
+#' Maximum Likelihood Estimation for p_value using log-normal distribution
 #'
 #' @description
-#' FIXED VERSION: Estimates p_value and uncertainty using observed final weights
-#' with frequentist likelihood approach using log-normal distribution.
-#' Now handles log-likelihood signs correctly and uses shared simulation function.
+#' Estimates p_value and uncertainty using observed final weights
+#' with a frequentist likelihood approach assuming log-normal weight distribution.
 #'
 #' @param observed_weights Vector of observed final weights
 #' @param simulation_function Function that runs simulation and returns weight
@@ -341,12 +340,11 @@ mle_estimate_p_value_lognormal <- function(observed_weights, simulation_function
   ))
 }
 
-#' Compute likelihood profile for p_value (OPTIMIZED)
+#' Compute likelihood profile for p_value
 #'
 #' @description
-#' FIXED VERSION: Computes likelihood profile by evaluating the likelihood function
-#' across a grid of p_values while keeping other parameters optimal.
-#' Now uses shared simulation function and returns POSITIVE log-likelihoods.
+#' Computes the likelihood profile by evaluating the log-likelihood function
+#' across a grid of p_values while keeping all other parameters at their MLE.
 #'
 #' @param p_estimate Central p_value (MLE estimate)
 #' @param p_se Standard error of p_value 
@@ -375,17 +373,14 @@ compute_likelihood_profile <- function(p_estimate, p_se, simulation_function,
   p_grid <- seq(p_range[1], p_range[2], length.out = grid_size)
   
   # Evaluate likelihood at each point
-  log_likelihoods <- sapply(p_grid, function(p_val) {
+  log_likelihoods <- vapply(p_grid, function(p_val) {
     tryCatch({
-      # Run simulation for this p_value using shared function
       sim_weight <- simulation_function(p_val)
       
-      # Handle simulation failure
       if (is.null(sim_weight) || is.na(sim_weight) || sim_weight <= 0) {
-        return(NA)
+        return(NA_real_)
       }
       
-      # Calculate positive log-likelihood
       log_lik <- sum(dlnorm(observed_weights, 
                             meanlog = log(sim_weight), 
                             sdlog = sigma_estimate, 
@@ -393,9 +388,9 @@ compute_likelihood_profile <- function(p_estimate, p_se, simulation_function,
       return(log_lik) 
       
     }, error = function(e) {
-      return(NA)
+      return(NA_real_)
     })
-  })
+  }, numeric(1))
   
   # Return profile data
   profile_data <- data.frame(
@@ -410,7 +405,7 @@ compute_likelihood_profile <- function(p_estimate, p_se, simulation_function,
   return(profile_data)
 }
 
-#' Fit FB4 model using Maximum Likelihood Estimation (Mid-level - OPTIMIZED)
+#' Fit FB4 model using Maximum Likelihood Estimation
 #'
 #' @description
 #' Coordinates MLE fitting process using log-normal distribution for weights.

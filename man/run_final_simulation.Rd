@@ -2,7 +2,7 @@
 % Please edit documentation in R/14.0.1-strategy-commons.R
 \name{run_final_simulation}
 \alias{run_final_simulation}
-\title{Run final simulation with optimal parameter (CONSOLIDATED)}
+\title{Run final simulation with optimal parameter}
 \usage{
 run_final_simulation(
   optimal_p_value,

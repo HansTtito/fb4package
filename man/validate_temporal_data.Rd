@@ -25,6 +25,5 @@ validate_temporal_data(
 }
 \description{
 Validates temporal data arrays for simulation readiness.
-Your original function from data-processing.R, optimized.
 }
 \keyword{internal}

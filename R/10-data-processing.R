@@ -673,7 +673,11 @@ transform_to_tmb_basic <- function(simulation_data, observed_weights) {
     PREDEDEQ = as.integer(sp$predator$PREDEDEQ),
     Alpha1 = sp$predator$Alpha1 %||% 0.0, Beta1 = sp$predator$Beta1 %||% 0.0,
     Alpha2 = sp$predator$Alpha2 %||% 0.0, Beta2 = sp$predator$Beta2 %||% 0.0, Cutoff = sp$predator$Cutoff %||% 0.0,
-    ED_data = if (length(sp$predator$ED_data) == 1) rep(sp$predator$ED_data %||% 7000.0, n_days) else sp$predator$ED_data,
+    ED_data = if (!is.null(sp$predator$ED_data) && length(sp$predator$ED_data) > 1) {
+      as.numeric(sp$predator$ED_data)
+    } else {
+      rep(as.numeric(sp$predator$ED_data %||% 7000.0), n_days)
+    },
     
     # Body composition
     water_fraction = sp$composition$water_fraction %||% 0.75,
@@ -786,7 +790,11 @@ transform_to_tmb_hierarchical <- function(simulation_data, individual_data = NUL
     PREDEDEQ = as.integer(sp$predator$PREDEDEQ),
     Alpha1 = sp$predator$Alpha1 %||% 0.0, Beta1 = sp$predator$Beta1 %||% 0.0,
     Alpha2 = sp$predator$Alpha2 %||% 0.0, Beta2 = sp$predator$Beta2 %||% 0.0, Cutoff = sp$predator$Cutoff %||% 0.0,
-    ED_data = if (length(sp$predator$ED_data) == 1) rep(sp$predator$ED_data %||% 7000.0, n_days) else sp$predator$ED_data,
+    ED_data = if (!is.null(sp$predator$ED_data) && length(sp$predator$ED_data) > 1) {
+      as.numeric(sp$predator$ED_data)
+    } else {
+      rep(as.numeric(sp$predator$ED_data %||% 7000.0), n_days)
+    },
     
     # Body composition (same as basic)
     water_fraction = sp$composition$water_fraction %||% 0.75,

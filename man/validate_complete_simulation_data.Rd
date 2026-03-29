@@ -10,6 +10,6 @@ validate_complete_simulation_data(simulation_data)
 \item{simulation_data}{Complete processed simulation data}
 }
 \description{
-Your original function from data-processing.R, optimized with core validators.
+Validates the complete processed simulation data structure before running.
 }
 \keyword{internal}

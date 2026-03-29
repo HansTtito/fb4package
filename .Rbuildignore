@@ -1,3 +1,11 @@
 ^.*\.Rproj$
 ^\.Rproj\.user$
 ^\.vscode$
+^_pkgdown\.yml$
+^docs$
+^pkgdown$
+^doc$
+^Meta$
+^paper$
+^test_chinook_equivalence\.R$
+^vignettes/.*_cache$

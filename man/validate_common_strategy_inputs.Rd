@@ -2,7 +2,7 @@
 % Please edit documentation in R/14.0.1-strategy-commons.R
 \name{validate_common_strategy_inputs}
 \alias{validate_common_strategy_inputs}
-\title{Validate common strategy inputs (CONSOLIDATED)}
+\title{Validate common strategy inputs}
 \usage{
 validate_common_strategy_inputs(
   fit_to = NULL,

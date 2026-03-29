@@ -2,7 +2,7 @@
 % Please edit documentation in R/11.2-parameter-validators.R
 \name{validate_predator_energy_params}
 \alias{validate_predator_energy_params}
-\title{Validate predator energy density parameters (your original function)}
+\title{Validate predator energy density parameters}
 \usage{
 validate_predator_energy_params(predator_params, weight_range = c(1, 1000))
 }
@@ -15,5 +15,5 @@ validate_predator_energy_params(predator_params, weight_range = c(1, 1000))
 List with validation results
 }
 \description{
-Validate predator energy density parameters (your original function)
+Validate predator energy density parameters
 }

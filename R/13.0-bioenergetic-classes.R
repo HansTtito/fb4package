@@ -313,7 +313,7 @@ set_diet.Bioenergetic <- function(x, diet_proportions, prey_energies,
       message("Normalizing diet proportions to sum to 1.0")
       
       # Normalize each row
-      for (i in 1:nrow(diet_proportions)) {
+      for (i in seq_len(nrow(diet_proportions))) {
         if (row_sums[i] > 0) {
           diet_proportions[i, prey_cols] <- diet_proportions[i, prey_cols] / row_sums[i]
         }

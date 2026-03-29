@@ -6,8 +6,18 @@
 
 # Peso objetivo razonable para bio_chinook_30 (800 g inicial, 30 días)
 target_weight_30 <- 900   # g
+
+# Vector numérico de pesos finales — usado por MLE y bootstrap
 obs_weights_30   <- c(880, 890, 895, 900, 905, 910, 920,
                       885, 897, 903, 908, 915, 878, 912, 901)
+
+# Data.frame individual — requerido por la estrategia hierarchical
+obs_individual_30 <- data.frame(
+  individual_id  = paste0("fish_", seq_along(obs_weights_30)),
+  initial_weight = 800,          # igual al initial_weight de bio_chinook_30
+  final_weight   = obs_weights_30,
+  stringsAsFactors = FALSE
+)
 
 # =============================================================================
 # 1. MLE — estructura del resultado
@@ -161,8 +171,9 @@ test_that("run_fb4 hierarchical retorna objeto fb4_result", {
   result <- run_fb4(
     x                = bio_chinook_30,
     strategy         = "hierarchical",
+    backend          = "tmb",
     fit_to           = "Weight",
-    observed_weights = obs_weights_30
+    observed_weights = obs_individual_30
   )
   expect_s3_class(result, "fb4_result")
 })
@@ -174,8 +185,9 @@ test_that("run_fb4 hierarchical: method es 'hierarchical'", {
   result <- run_fb4(
     x                = bio_chinook_30,
     strategy         = "hierarchical",
+    backend          = "tmb",
     fit_to           = "Weight",
-    observed_weights = obs_weights_30
+    observed_weights = obs_individual_30
   )
   expect_equal(result$summary$method, "hierarchical")
 })
@@ -187,8 +199,9 @@ test_that("run_fb4 hierarchical: mu_p_estimate es numerico y positivo", {
   result <- run_fb4(
     x                = bio_chinook_30,
     strategy         = "hierarchical",
+    backend          = "tmb",
     fit_to           = "Weight",
-    observed_weights = obs_weights_30
+    observed_weights = obs_individual_30
   )
   mu_p <- result$summary$mu_p_estimate
   expect_true(is.numeric(mu_p))
@@ -202,25 +215,27 @@ test_that("run_fb4 hierarchical: sigma_p_estimate es numerico y no negativo", {
   result <- run_fb4(
     x                = bio_chinook_30,
     strategy         = "hierarchical",
+    backend          = "tmb",
     fit_to           = "Weight",
-    observed_weights = obs_weights_30
+    observed_weights = obs_individual_30
   )
   sigma_p <- result$summary$sigma_p_estimate
   expect_true(is.numeric(sigma_p))
   expect_gte(sigma_p, 0)
 })
 
-test_that("run_fb4 hierarchical: n_individuals coincide con length(observed_weights)", {
+test_that("run_fb4 hierarchical: n_individuals coincide con nrow(observed_weights)", {
   skip_if_not(requireNamespace("TMB", quietly = TRUE),
               "TMB not available")
   set.seed(1)
   result <- run_fb4(
     x                = bio_chinook_30,
     strategy         = "hierarchical",
+    backend          = "tmb",
     fit_to           = "Weight",
-    observed_weights = obs_weights_30
+    observed_weights = obs_individual_30
   )
-  expect_equal(result$summary$n_individuals, length(obs_weights_30))
+  expect_equal(result$summary$n_individuals, nrow(obs_individual_30))
 })
 
 test_that("run_fb4 hierarchical: summary$converged es logico", {
@@ -230,8 +245,9 @@ test_that("run_fb4 hierarchical: summary$converged es logico", {
   result <- run_fb4(
     x                = bio_chinook_30,
     strategy         = "hierarchical",
+    backend          = "tmb",
     fit_to           = "Weight",
-    observed_weights = obs_weights_30
+    observed_weights = obs_individual_30
   )
   expect_true(is.logical(result$summary$converged))
 })
@@ -245,12 +261,19 @@ test_that("run_fb4 hierarchical: mu_p coherente con binary_search en datos sin r
                   fit_to = "Weight", fit_value = target_weight_30)
   p_true <- r_bs$summary$p_value
 
-  # Generate low-noise observations around that target weight
+  # Generate low-noise observations around that target weight (data.frame format)
   set.seed(99)
-  obs_tight <- rnorm(20, mean = target_weight_30, sd = 5)
+  tight_weights <- rnorm(20, mean = target_weight_30, sd = 5)
+  obs_tight <- data.frame(
+    individual_id  = paste0("fish_", seq_along(tight_weights)),
+    initial_weight = 800,
+    final_weight   = tight_weights,
+    stringsAsFactors = FALSE
+  )
 
   r_hier <- run_fb4(bio_chinook_30, strategy = "hierarchical",
-                    fit_to = "Weight", observed_weights = obs_tight)
+                    backend = "tmb", fit_to = "Weight",
+                    observed_weights = obs_tight)
 
   mu_p <- r_hier$summary$mu_p_estimate
   if (!is.na(mu_p) && is.finite(mu_p)) {

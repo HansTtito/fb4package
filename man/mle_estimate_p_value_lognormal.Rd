@@ -2,7 +2,7 @@
 % Please edit documentation in R/14.2.5-strategy-mle.R
 \name{mle_estimate_p_value_lognormal}
 \alias{mle_estimate_p_value_lognormal}
-\title{Maximum Likelihood Estimation for p_value using log-normal distribution (CORRECTED)}
+\title{Maximum Likelihood Estimation for p_value using log-normal distribution}
 \usage{
 mle_estimate_p_value_lognormal(
   observed_weights,
@@ -24,8 +24,7 @@ mle_estimate_p_value_lognormal(
 List with MLE results
 }
 \description{
-FIXED VERSION: Estimates p_value and uncertainty using observed final weights
-with frequentist likelihood approach using log-normal distribution.
-Now handles log-likelihood signs correctly and uses shared simulation function.
+Estimates p_value and uncertainty using observed final weights
+with a frequentist likelihood approach assuming log-normal weight distribution.
 }
 \keyword{internal}

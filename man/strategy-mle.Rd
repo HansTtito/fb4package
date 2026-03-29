@@ -2,7 +2,7 @@
 % Please edit documentation in R/14.2.5-strategy-mle.R
 \name{strategy-mle}
 \alias{strategy-mle}
-\title{Strategy-MLE for FB4 Model (UPDATED)}
+\title{Strategy-MLE for FB4 Model}
 \description{
-Strategy-MLE for FB4 Model (UPDATED)
+Strategy-MLE for FB4 Model
 }

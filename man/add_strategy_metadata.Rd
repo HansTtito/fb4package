@@ -2,7 +2,7 @@
 % Please edit documentation in R/14.0.1-strategy-commons.R
 \name{add_strategy_metadata}
 \alias{add_strategy_metadata}
-\title{Add standard strategy metadata to results (CONSOLIDATED)}
+\title{Add standard strategy metadata to results}
 \usage{
 add_strategy_metadata(result_list, strategy_info, execution_plan)
 }

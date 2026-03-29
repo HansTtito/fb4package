@@ -25,7 +25,7 @@ Implements temperature equation 2 (Kitchell et al. 1977)
 }
 \details{
 Special cases:
-- When temperature ≥ CTM: returns 0 (typically approximated by the upper incipient lethal temperature)
-- When V ≤ 0: returns 0 (mathematical fallback)
+- When temperature >= CTM: returns 0 (typically approximated by the upper incipient lethal temperature)
+- When V <= 0: returns 0 (mathematical fallback)
 }
 \keyword{internal}

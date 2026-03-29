@@ -27,5 +27,22 @@ calculate_mortality_reproduction(
 List with mortality and reproduction results
 }
 \description{
-Main function for calculating mortality and reproduction effects
+Calculates daily mortality probability and reproductive energy loss
+(natural mortality, fishing mortality, predation mortality, starvation,
+and weight-dependent survival) for a single time step.
 }
+\section{Experimental}{
+
+Mortality rate modelling is an **experimental feature** under active
+development. This function can be called directly to compute daily
+mortality probability for a single time step, but **mortality rates
+are not yet integrated** into the main `run_fb4()` simulation loop.
+Full integration (automatic daily mortality application, population
+survival tracking, and result reporting) is planned for a future
+release. The API may change.
+
+Note: **spawning energy loss** (reproductive cost) *is* already
+integrated into `run_fb4()` and applies automatically when
+`reproduction_data` is supplied to the `Bioenergetic` object.
+}
+

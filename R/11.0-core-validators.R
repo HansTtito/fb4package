@@ -64,14 +64,14 @@ accumulate_validations <- function(..., level = "combined") {
   }
   
   # Filter out NULL results
-  results <- results[!sapply(results, is.null)]
+  results <- results[!vapply(results, is.null, logical(1))]
   
   if (length(results) == 0) {
     return(validation_result(level = level))
   }
   
   # Aggregate results
-  all_valid <- all(sapply(results, function(x) x$valid))
+  all_valid <- all(vapply(results, function(x) x$valid, logical(1)))
   all_errors <- unlist(lapply(results, function(x) x$errors))
   all_warnings <- unlist(lapply(results, function(x) x$warnings))
   all_info <- unlist(lapply(results, function(x) x$info))
@@ -306,7 +306,7 @@ validate_structure_core <- function(data, data_name, required_class = NULL,
   
   # Check class
   if (!is.null(required_class)) {
-    if (!any(sapply(required_class, function(cls) inherits(data, cls)))) {
+    if (!any(vapply(required_class, function(cls) inherits(data, cls), logical(1)))) {
       result$valid <- FALSE
       result$errors <- c(result$errors, 
                         sprintf("%s must be of class: %s", 

@@ -1,4 +1,4 @@
-#' Direct Strategies for FB4 Model (UPDATED)
+#' Direct Strategies for FB4 Model
 #'
 #' @name strategy-direct
 #' @aliases strategy-direct

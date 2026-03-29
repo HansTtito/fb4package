@@ -21,5 +21,5 @@ validate_individual_data(
 NULL (throws error if invalid)
 }
 \description{
-Enhanced version of your validate_individual_data() with more comprehensive checks.
+Validates individual fish data for hierarchical mark-recapture models.
 }

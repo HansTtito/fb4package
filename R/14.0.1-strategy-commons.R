@@ -68,7 +68,7 @@ execute_simulation_with_method <- function(method_type, method_value, processed_
 # SHARED PARAMETER EXTRACTION
 # ============================================================================
 
-#' Extract common strategy parameters from execution plan (CONSOLIDATED)
+#' Extract common strategy parameters from execution plan
 #'
 #' @description
 #' Extracts and validates common parameters used across multiple strategies.
@@ -137,7 +137,7 @@ extract_strategy_parameters <- function(execution_plan, required_params = NULL,
 # SHARED STRATEGY METADATA
 # ============================================================================
 
-#' Add standard strategy metadata to results (CONSOLIDATED)
+#' Add standard strategy metadata to results
 #'
 #' @description
 #' Adds consistent metadata structure to strategy results.
@@ -169,7 +169,7 @@ add_strategy_metadata <- function(result_list, strategy_info, execution_plan) {
 # SHARED FINAL SIMULATION
 # ============================================================================
 
-#' Run final simulation with optimal parameter (CONSOLIDATED)
+#' Run final simulation with optimal parameter
 #'
 #' @description
 #' Runs final detailed simulation using optimal parameter found by strategy.
@@ -214,7 +214,7 @@ run_final_simulation <- function(optimal_p_value, processed_simulation_data,
 # SHARED VALIDATION HELPERS
 # ============================================================================
 
-#' Validate common strategy inputs (CONSOLIDATED)
+#' Validate common strategy inputs
 #'
 #' @description
 #' Common input validation used across strategies.
@@ -269,7 +269,7 @@ validate_common_strategy_inputs <- function(fit_to = NULL, fit_value = NULL,
 # SHARED ERROR HANDLING
 # ============================================================================
 
-#' Create standardized error result (CONSOLIDATED)
+#' Create standardized error result
 #'
 #' @description
 #' Creates consistent error result structure across strategies.

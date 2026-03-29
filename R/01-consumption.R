@@ -74,8 +74,8 @@ consumption_temp_eq1 <- function(temperature, CQ) {
 #' @details
 #' 
 #' Special cases:
-#' - When temperature ≥ CTM: returns 0 (typically approximated by the upper incipient lethal temperature)
-#' - When V ≤ 0: returns 0 (mathematical fallback)
+#' - When temperature >= CTM: returns 0 (typically approximated by the upper incipient lethal temperature)
+#' - When V <= 0: returns 0 (mathematical fallback)
 #' 
 #' @keywords internal
 consumption_temp_eq2 <- function(temperature, CTM, CTO, CX, warn = TRUE) {
