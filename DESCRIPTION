@@ -15,7 +15,6 @@ BugReports: https://github.com/HansTtito/fb4package/issues
 License: MIT + file LICENSE
 Encoding: UTF-8
 LazyData: true
-RoxygenType: 7.3.2
 VignetteBuilder: knitr
 Depends: 
    R (>= 4.0.0)
@@ -28,13 +27,15 @@ Imports:
    Rcpp,
    TMB (>= 1.7.0)
 Suggests:
-   testthat (>= 3.0.0),
-   knitr,
-   rmarkdown,
-   pkgdown,
-   microbenchmark,
-   future,
-   furrr
+    testthat (>= 3.0.0),
+    knitr,
+    rmarkdown,
+    pkgdown,
+    microbenchmark,
+    future,
+    furrr,
+    spelling
 LinkingTo: TMB, RcppEigen
 Config/testthat/edition: 3
 RoxygenNote: 7.3.2
+Language: en-US
