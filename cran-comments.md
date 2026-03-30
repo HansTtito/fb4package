@@ -1,17 +1,12 @@
 ## R CMD check results
 
-0 errors | 0 warnings | 2 notes
+0 errors | 0 warnings | 1 note
 
 * NOTE: Compilation used the following non-portable flag: `-Wa,-mbig-obj`.
   This flag is present only in `src/Makevars.win` (Windows-specific) and is
   required to compile the large TMB C++ object file on Windows. There is no
   portable alternative; other TMB-based CRAN packages (e.g. glmmTMB) carry
   the same note on Windows.
-
-* NOTE: Found no calls to `R_registerRoutines`, `R_useDynamicSymbols`.
-  This is the standard pattern for TMB-based packages. TMB handles native
-  routine registration internally via its own mechanism; explicit calls to
-  `R_registerRoutines` are not used and not needed.
 
 ## Test environments
 
