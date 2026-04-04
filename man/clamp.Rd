@@ -25,11 +25,9 @@ Restricts \code{x} to the interval \code{[min_val, max_val]}.
 Values outside the range are replaced by the nearest bound.
 }
 \examples{
-\dontrun{
-clamp(1.5, 0, 1)             # 1.0 with warning
-clamp(-0.5, 0, 1)            # 0.0 with warning
-clamp(0.3, 0, 1)             # 0.3 (no warning)
-clamp(c(-1, 0.5, 2), 0, 1)  # c(0, 0.5, 1) with warning
-}
+suppressWarnings(clamp(1.5, 0, 1))
+suppressWarnings(clamp(-0.5, 0, 1))
+clamp(0.3, 0, 1)
+suppressWarnings(clamp(c(-1, 0.5, 2), 0, 1))
 }
 \keyword{internal}

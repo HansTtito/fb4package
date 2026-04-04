@@ -31,10 +31,8 @@ Computes a symmetric confidence interval given a point estimate and
 its standard error. Returns \code{NA} bounds when either input is \code{NA}.
 }
 \examples{
-\dontrun{
 calculate_confidence_intervals(0.5, 0.05)
 calculate_confidence_intervals(0.5, 0.05, confidence_level = 0.99)
-calculate_confidence_intervals(NA, 0.05)  # Returns NA bounds
-}
+calculate_confidence_intervals(NA, 0.05)
 }
 \keyword{internal}

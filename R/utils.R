@@ -28,11 +28,9 @@ NULL
 #' @keywords internal
 #'
 #' @examples
-#' \dontrun{
-#' NULL %||% "default"   # Returns "default"
-#' "value" %||% "default" # Returns "value"
-#' list()$missing %||% 0  # Returns 0
-#' }
+#' NULL %||% "default"
+#' "value" %||% "default"
+#' list()$missing %||% 0
 `%||%` <- function(x, y) if (!is.null(x)) x else y
 
 
@@ -57,11 +55,9 @@ NULL
 #' @export
 #'
 #' @examples
-#' \dontrun{
-#' safe_exp(1)      # exp(1)
-#' safe_exp(1000)   # exp(700) with warning
-#' safe_exp(-1000)  # exp(-700) with warning
-#' }
+#' safe_exp(1)
+#' suppressWarnings(safe_exp(1000))
+#' suppressWarnings(safe_exp(-1000))
 safe_exp <- function(x, max_exp = 700, warn = TRUE, param_name = "exponent") {
 
   result <- x
@@ -104,10 +100,8 @@ safe_exp <- function(x, max_exp = 700, warn = TRUE, param_name = "exponent") {
 #' @export
 #'
 #' @examples
-#' \dontrun{
-#' safe_sqrt(4)   # 2
-#' safe_sqrt(-1)  # 0 with warning
-#' }
+#' safe_sqrt(4)
+#' suppressWarnings(safe_sqrt(-1))
 safe_sqrt <- function(x, min_val = 0, warn = TRUE, param_name = "value") {
 
   result <- x
@@ -146,12 +140,10 @@ safe_sqrt <- function(x, min_val = 0, warn = TRUE, param_name = "value") {
 #' @export
 #'
 #' @examples
-#' \dontrun{
-#' clamp(1.5, 0, 1)             # 1.0 with warning
-#' clamp(-0.5, 0, 1)            # 0.0 with warning
-#' clamp(0.3, 0, 1)             # 0.3 (no warning)
-#' clamp(c(-1, 0.5, 2), 0, 1)  # c(0, 0.5, 1) with warning
-#' }
+#' suppressWarnings(clamp(1.5, 0, 1))
+#' suppressWarnings(clamp(-0.5, 0, 1))
+#' clamp(0.3, 0, 1)
+#' suppressWarnings(clamp(c(-1, 0.5, 2), 0, 1))
 clamp <- function(x, min_val, max_val, warn = TRUE, param_name = "value") {
 
   if (min_val > max_val) stop(sprintf(
@@ -216,11 +208,9 @@ z_score <- function(confidence_level = 0.95) {
 #' @export
 #'
 #' @examples
-#' \dontrun{
 #' calculate_confidence_intervals(0.5, 0.05)
 #' calculate_confidence_intervals(0.5, 0.05, confidence_level = 0.99)
-#' calculate_confidence_intervals(NA, 0.05)  # Returns NA bounds
-#' }
+#' calculate_confidence_intervals(NA, 0.05)
 calculate_confidence_intervals <- function(estimate, se,
                                            confidence_level = 0.95,
                                            method = "normal") {

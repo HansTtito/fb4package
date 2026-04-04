@@ -1,6 +1,11 @@
 ## R CMD check results
 
-0 errors | 0 warnings | 1 note
+0 errors | 0 warnings | 2 notes
+
+* NOTE: Possibly misspelled words in DESCRIPTION: `Deslauriers`, `et`, `al`.
+  These words are part of the author citation `Deslauriers et al. (2017)`
+  added to comply with CRAN policy requiring references in the form
+  `authors (year) <doi:...>`. They are not misspellings.
 
 * NOTE: Compilation used the following non-portable flag: `-Wa,-mbig-obj`.
   This flag is present only in `src/Makevars.win` (Windows-specific) and is

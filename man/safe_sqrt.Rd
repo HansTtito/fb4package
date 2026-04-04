@@ -23,9 +23,7 @@ Computes \code{sqrt(x)} with protection against negative inputs.
 Negative values are clamped to \code{min_val} before taking the root.
 }
 \examples{
-\dontrun{
-safe_sqrt(4)   # 2
-safe_sqrt(-1)  # 0 with warning
-}
+safe_sqrt(4)
+suppressWarnings(safe_sqrt(-1))
 }
 \keyword{internal}

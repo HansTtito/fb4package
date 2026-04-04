@@ -23,10 +23,8 @@ Computes \code{exp(x)} with protection against overflow. Values above
 \code{max_exp} are clamped before exponentiation to avoid \code{Inf}.
 }
 \examples{
-\dontrun{
-safe_exp(1)      # exp(1)
-safe_exp(1000)   # exp(700) with warning
-safe_exp(-1000)  # exp(-700) with warning
-}
+safe_exp(1)
+suppressWarnings(safe_exp(1000))
+suppressWarnings(safe_exp(-1000))
 }
 \keyword{internal}

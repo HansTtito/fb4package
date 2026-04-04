@@ -20,10 +20,8 @@ Returns \code{x} if it is not \code{NULL}, otherwise returns \code{y}.
 Equivalent to \code{rlang::\%||\%} but without requiring that dependency.
 }
 \examples{
-\dontrun{
-NULL \%||\% "default"   # Returns "default"
-"value" \%||\% "default" # Returns "value"
-list()$missing \%||\% 0  # Returns 0
-}
+NULL \%||\% "default"
+"value" \%||\% "default"
+list()$missing \%||\% 0
 }
 \keyword{internal}

@@ -9,8 +9,8 @@ Authors@R: c(
      role = c("aut", "cre")
    )
  )
-Description: Implements the 'Fish Bioenergetics 4.0' model
-    (Deslauriers et al. 2017, <doi:10.1080/03632415.2017.1377558>) for
+Description: Implements the 'Fish Bioenergetics 4.0' model of
+    Deslauriers et al. (2017) <doi:10.1080/03632415.2017.1377558> for
     fisheries research. Provides automated parameter
     optimization, multi-prey diet modeling, and comprehensive energy budget
     simulations for fisheries research and aquaculture applications. Features
