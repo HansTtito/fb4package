@@ -36,11 +36,9 @@ NULL
 #' @keywords internal
 #'
 #' @examples
-#' \dontrun{
 #' diet <- data.frame(Day = 1:5, fish = 0.6, zooplankton = 0.4)
 #' energy <- data.frame(Day = 1:5, fish = 4000, zooplankton = 2500)
-#' validate_diet_consistency(diet, energy)
-#' }
+#' isTRUE(validate_diet_consistency(diet, energy))
 #' @export
 validate_diet_consistency <- function(diet_data, energy_data) {
   
@@ -346,6 +344,9 @@ validate_temporal_data <- function(temperature, diet_matrix, energy_matrix,
 #' Validates the complete processed simulation data structure before running.
 #'
 #' @param simulation_data Complete processed simulation data
+#'
+#' @return Invisibly returns \code{TRUE} if validation passes. Throws an error
+#'   with a descriptive message if the simulation data structure is invalid.
 #' @keywords internal
 #' @export
 validate_complete_simulation_data <- function(simulation_data) {

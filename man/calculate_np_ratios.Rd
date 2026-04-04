@@ -21,9 +21,8 @@ Calculates molar and mass N:P ratios for consumption, growth, excretion and eges
 Useful for understanding nutritional ecology and stoichiometric balance.
 }
 \examples{
-\dontrun{
-# From nutrient balance results
-nutrient_results <- calculate_nutrient_balance(consumption, weight_gain, nutrient_params)
-np_ratios <- calculate_np_ratios(nutrient_results$nitrogen, nutrient_results$phosphorus)
-}
+nitrogen   <- list(consumed = 10, growth = 3, excretion = 5, egestion = 2)
+phosphorus <- list(consumed = 1.5, growth = 0.5, excretion = 0.6, egestion = 0.4)
+np_ratios  <- calculate_np_ratios(nitrogen, phosphorus)
+np_ratios$ratios
 }

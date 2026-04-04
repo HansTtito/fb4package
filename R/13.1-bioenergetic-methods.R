@@ -50,8 +50,23 @@ check_bioenergetic_readiness <- function(x) {
 #' @return Invisibly returns the input object
 #'
 #' @examples
-#' \dontrun{
-#' bio <- Bioenergetic("Oncorhynchus mykiss")
+#' \donttest{
+#' data(fish4_parameters)
+#' sp   <- fish4_parameters[["Oncorhynchus tshawytscha"]]$life_stages$adult
+#' info <- fish4_parameters[["Oncorhynchus tshawytscha"]]$species_info
+#' bio  <- Bioenergetic(
+#'   species_params     = sp,
+#'   species_info       = info,
+#'   environmental_data = list(
+#'     temperature = data.frame(Day = 1:30, Temperature = rep(12, 30))
+#'   ),
+#'   diet_data = list(
+#'     proportions = data.frame(Day = 1:30, Prey1 = 1.0),
+#'     energies    = data.frame(Day = 1:30, Prey1 = 5000),
+#'     prey_names  = "Prey1"
+#'   ),
+#'   simulation_settings = list(initial_weight = 100, duration = 30)
+#' )
 #' print(bio)
 #' }
 #'
@@ -143,8 +158,23 @@ print.Bioenergetic <- function(x, ...) {
 #' @return Invisibly returns the input object
 #'
 #' @examples
-#' \dontrun{
-#' bio <- Bioenergetic("Oncorhynchus mykiss")
+#' \donttest{
+#' data(fish4_parameters)
+#' sp   <- fish4_parameters[["Oncorhynchus tshawytscha"]]$life_stages$adult
+#' info <- fish4_parameters[["Oncorhynchus tshawytscha"]]$species_info
+#' bio  <- Bioenergetic(
+#'   species_params     = sp,
+#'   species_info       = info,
+#'   environmental_data = list(
+#'     temperature = data.frame(Day = 1:30, Temperature = rep(12, 30))
+#'   ),
+#'   diet_data = list(
+#'     proportions = data.frame(Day = 1:30, Prey1 = 1.0),
+#'     energies    = data.frame(Day = 1:30, Prey1 = 5000),
+#'     prey_names  = "Prey1"
+#'   ),
+#'   simulation_settings = list(initial_weight = 100, duration = 30)
+#' )
 #' summary(bio)
 #' }
 #'
@@ -304,8 +334,26 @@ summary.Bioenergetic <- function(object, ...) {
 #' @return Invisibly returns the input object
 #'
 #' @examples
-#' \dontrun{
-#' result <- run_fb4(bio, fit_to = "Weight", fit_value = 150)
+#' \donttest{
+#' data(fish4_parameters)
+#' sp   <- fish4_parameters[["Oncorhynchus tshawytscha"]]$life_stages$adult
+#' info <- fish4_parameters[["Oncorhynchus tshawytscha"]]$species_info
+#' bio  <- Bioenergetic(
+#'   species_params     = sp,
+#'   species_info       = info,
+#'   environmental_data = list(
+#'     temperature = data.frame(Day = 1:30, Temperature = rep(12, 30))
+#'   ),
+#'   diet_data = list(
+#'     proportions = data.frame(Day = 1:30, Prey1 = 1.0),
+#'     energies    = data.frame(Day = 1:30, Prey1 = 5000),
+#'     prey_names  = "Prey1"
+#'   ),
+#'   simulation_settings = list(initial_weight = 100, duration = 30)
+#' )
+#' bio$species_params$predator$ED_ini <- 5000
+#' bio$species_params$predator$ED_end <- 5500
+#' result <- run_fb4(bio, strategy = "direct", p_value = 0.5, verbose = FALSE)
 #' print(result)
 #' }
 #'
@@ -457,8 +505,26 @@ print.fb4_result <- function(x, ...) {
 #' @return Invisibly returns the input object
 #'
 #' @examples
-#' \dontrun{
-#' result <- run_fb4(bio, fit_to = "Weight", fit_value = 150)
+#' \donttest{
+#' data(fish4_parameters)
+#' sp   <- fish4_parameters[["Oncorhynchus tshawytscha"]]$life_stages$adult
+#' info <- fish4_parameters[["Oncorhynchus tshawytscha"]]$species_info
+#' bio  <- Bioenergetic(
+#'   species_params     = sp,
+#'   species_info       = info,
+#'   environmental_data = list(
+#'     temperature = data.frame(Day = 1:30, Temperature = rep(12, 30))
+#'   ),
+#'   diet_data = list(
+#'     proportions = data.frame(Day = 1:30, Prey1 = 1.0),
+#'     energies    = data.frame(Day = 1:30, Prey1 = 5000),
+#'     prey_names  = "Prey1"
+#'   ),
+#'   simulation_settings = list(initial_weight = 100, duration = 30)
+#' )
+#' bio$species_params$predator$ED_ini <- 5000
+#' bio$species_params$predator$ED_end <- 5500
+#' result <- run_fb4(bio, strategy = "direct", p_value = 0.5, verbose = FALSE)
 #' summary(result)
 #' }
 #'

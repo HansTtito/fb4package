@@ -26,12 +26,34 @@ NULL
 #' @export
 #'
 #' @examples
-#' \dontrun{
-#' # Compare all individuals across all metrics
-#' comparison <- compare_individuals(hierarchical_result)
-#' 
-#' # Compare only specific metrics
-#' comparison <- compare_individuals(hierarchical_result, metrics = c("consumption", "growth"))
+#' \donttest{
+#' data(fish4_parameters)
+#' sp   <- fish4_parameters[["Oncorhynchus tshawytscha"]]$life_stages$adult
+#' info <- fish4_parameters[["Oncorhynchus tshawytscha"]]$species_info
+#' bio  <- Bioenergetic(
+#'   species_params     = sp,
+#'   species_info       = info,
+#'   environmental_data = list(
+#'     temperature = data.frame(Day = 1:30, Temperature = rep(12, 30))
+#'   ),
+#'   diet_data = list(
+#'     proportions = data.frame(Day = 1:30, Prey1 = 1.0),
+#'     energies    = data.frame(Day = 1:30, Prey1 = 5000),
+#'     prey_names  = "Prey1"
+#'   ),
+#'   simulation_settings = list(initial_weight = 100, duration = 30)
+#' )
+#' bio$species_params$predator$ED_ini <- 5000
+#' bio$species_params$predator$ED_end <- 5500
+#' mr_data <- data.frame(
+#'   individual_id  = paste0("fish_", 1:5),
+#'   initial_weight = c(10, 12, 11, 13, 9),
+#'   final_weight   = c(80, 95, 85, 100, 70)
+#' )
+#' result_hier <- run_fb4(bio, strategy = "hierarchical", backend = "tmb",
+#'                        fit_to = "Weight", observed_weights = mr_data,
+#'                        verbose = FALSE)
+#' comparison <- compare_individuals(result_hier)
 #' }
 compare_individuals <- function(result, metrics = "all", confidence_level = 0.95) {
   
@@ -372,19 +394,44 @@ analyze_population_variation <- function(result, include_covariates = TRUE) {
 #' @param parallel Use parallel processing (default: FALSE)
 #' @param n_cores Number of cores for parallel processing (default: detectCores() - 1)
 #' @param verbose Show progress information (default: TRUE)
-#' 
+#'
+#' @return A data frame with one row per temperature-p_value combination and columns:
+#'   \describe{
+#'     \item{\code{temperature}}{Temperature tested (°C).}
+#'     \item{\code{p_value}}{Feeding level (proportion of Cmax) tested.}
+#'     \item{\code{growth_rate}}{Specific growth rate (percent per day).}
+#'     \item{\code{final_weight}}{Predicted final weight (g).}
+#'     \item{\code{total_consumption}}{Total consumption over the simulation period (g).}
+#'   }
+#'
 #' @export
 #'
 #' @examples
-#' \dontrun{
-#' # Basic sensitivity analysis
-#' results <- analyze_growth_temperature_sensitivity(bio_obj)
-#' 
-#' # Custom parameter ranges for cold water species
+#' \donttest{
+#' data(fish4_parameters)
+#' sp   <- fish4_parameters[["Oncorhynchus tshawytscha"]]$life_stages$adult
+#' info <- fish4_parameters[["Oncorhynchus tshawytscha"]]$species_info
+#' bio  <- Bioenergetic(
+#'   species_params     = sp,
+#'   species_info       = info,
+#'   environmental_data = list(
+#'     temperature = data.frame(Day = 1:30, Temperature = rep(12, 30))
+#'   ),
+#'   diet_data = list(
+#'     proportions = data.frame(Day = 1:30, Prey1 = 1.0),
+#'     energies    = data.frame(Day = 1:30, Prey1 = 5000),
+#'     prey_names  = "Prey1"
+#'   ),
+#'   simulation_settings = list(initial_weight = 100, duration = 30)
+#' )
+#' bio$species_params$predator$ED_ini <- 5000
+#' bio$species_params$predator$ED_end <- 5500
 #' results <- analyze_growth_temperature_sensitivity(
-#'   bio_obj,
-#'   temperatures = seq(4, 14, by = 2),
-#'   p_values = seq(0.2, 0.9, by = 0.1)
+#'   bio,
+#'   temperatures     = c(2, 14),
+#'   p_values         = c(0.4, 0.7),
+#'   simulation_days  = 30,
+#'   verbose          = FALSE
 #' )
 #' }
 analyze_growth_temperature_sensitivity <- function(bio_obj,
@@ -618,14 +665,28 @@ process_temperature <- function(temp, p_values, processed_data, simulation_days,
 #' @export
 #'
 #' @examples
-#' \dontrun{
-#' # Compare different fitting methods
-#' results <- list(
-#'   mle = mle_result,
-#'   hierarchical = hierarchical_result,
-#'   binary_search = binary_result
+#' \donttest{
+#' data(fish4_parameters)
+#' sp   <- fish4_parameters[["Oncorhynchus tshawytscha"]]$life_stages$adult
+#' info <- fish4_parameters[["Oncorhynchus tshawytscha"]]$species_info
+#' bio  <- Bioenergetic(
+#'   species_params     = sp,
+#'   species_info       = info,
+#'   environmental_data = list(
+#'     temperature = data.frame(Day = 1:30, Temperature = rep(12, 30))
+#'   ),
+#'   diet_data = list(
+#'     proportions = data.frame(Day = 1:30, Prey1 = 1.0),
+#'     energies    = data.frame(Day = 1:30, Prey1 = 5000),
+#'     prey_names  = "Prey1"
+#'   ),
+#'   simulation_settings = list(initial_weight = 100, duration = 30)
 #' )
-#' comparison <- compare_scenarios(results)
+#' bio$species_params$predator$ED_ini <- 5000
+#' bio$species_params$predator$ED_end <- 5500
+#' r1 <- run_fb4(bio, strategy = "direct", p_value = 0.4, verbose = FALSE)
+#' r2 <- run_fb4(bio, strategy = "direct", p_value = 0.7, verbose = FALSE)
+#' comparison <- compare_scenarios(list(low_p = r1, high_p = r2))
 #' }
 compare_scenarios <- function(result_list, 
                              metrics = c("consumption", "growth", "efficiency"),

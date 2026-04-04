@@ -24,10 +24,27 @@ Main plotting method for fb4_result objects. Automatically detects
 available data and provides appropriate visualizations.
 }
 \examples{
-\dontrun{
-plot(result)                          # Dashboard
-plot(result, type = "growth")         # Growth trajectory
-plot(result, type = "uncertainty")    # If MLE/bootstrap/hierarchical
-plot(result, save_plot = "output.png")
+\donttest{
+data(fish4_parameters)
+sp   <- fish4_parameters[["Oncorhynchus tshawytscha"]]$life_stages$adult
+info <- fish4_parameters[["Oncorhynchus tshawytscha"]]$species_info
+bio  <- Bioenergetic(
+  species_params     = sp,
+  species_info       = info,
+  environmental_data = list(
+    temperature = data.frame(Day = 1:30, Temperature = rep(12, 30))
+  ),
+  diet_data = list(
+    proportions = data.frame(Day = 1:30, Prey1 = 1.0),
+    energies    = data.frame(Day = 1:30, Prey1 = 5000),
+    prey_names  = "Prey1"
+  ),
+  simulation_settings = list(initial_weight = 100, duration = 30)
+)
+bio$species_params$predator$ED_ini <- 5000
+bio$species_params$predator$ED_end <- 5500
+result <- run_fb4(bio, strategy = "direct", p_value = 0.5, verbose = FALSE)
+plot(result)
+plot(result, type = "growth")
 }
 }

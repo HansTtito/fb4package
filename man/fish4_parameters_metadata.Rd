@@ -52,21 +52,9 @@ Fish Bioenergetics 4.0 simulations:
 }
 }
 \examples{
-\dontrun{
-# Load metadata
 data(fish4_parameters_metadata)
-
-# View database summary
 print(fish4_parameters_metadata$description)
 print(paste("Species count:", fish4_parameters_metadata$n_species))
-print(paste("Creation date:", fish4_parameters_metadata$creation_date))
-
-# Check required parameters
-print(fish4_parameters_metadata$required_parameters)
-
-# View parameter units
-print(fish4_parameters_metadata$units)
-}
 
 }
 \seealso{

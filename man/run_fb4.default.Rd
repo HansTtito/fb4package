@@ -11,6 +11,11 @@
 
 \item{...}{Additional arguments}
 }
+\value{
+No return value. Called for its side effect of stopping execution
+  with an informative error message when \code{x} is not a
+  \code{Bioenergetic} object.
+}
 \description{
 Default method that provides helpful error message.
 }

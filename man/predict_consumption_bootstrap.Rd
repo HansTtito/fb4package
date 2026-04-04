@@ -38,6 +38,22 @@ predict_consumption_bootstrap(
 
 \item{verbose}{Show progress messages, default FALSE}
 }
+\value{
+A named list with elements:
+  \describe{
+    \item{\code{method}}{Character string \code{"bootstrap"}.}
+    \item{\code{consumption_mean}}{Mean total consumption across bootstrap samples (g).}
+    \item{\code{consumption_sd}}{Standard deviation of consumption across samples (g).}
+    \item{\code{consumption_ci}}{Numeric vector of length 2 with lower and upper
+      quantile-based confidence interval bounds (g).}
+    \item{\code{consumption_samples}}{Numeric vector of all successful consumption
+      estimates from bootstrap samples.}
+    \item{\code{n_successful}}{Number of bootstrap iterations that produced valid
+      consumption estimates.}
+    \item{\code{p_mean}}{The supplied \code{p_mean} value.}
+    \item{\code{p_sd}}{The supplied \code{p_sd} value.}
+  }
+}
 \description{
 Propagates p-value uncertainty to consumption predictions using parametric bootstrap.
 Generates multiple samples from the p-value distribution and runs FB4 simulations
@@ -55,18 +71,32 @@ Parallel processing can significantly reduce computation time for large n_sims.
 The method handles simulation failures gracefully and reports success rates.
 }
 \examples{
-\dontrun{
-# Bootstrap uncertainty propagation
-uncertainty_result <- predict_consumption_bootstrap(
-  p_mean = 0.8,
-  p_sd = 0.15,
-  bio_obj = bio_obj,
-  n_sims = 1000,
-  parallel = TRUE
+\donttest{
+data(fish4_parameters)
+sp   <- fish4_parameters[["Oncorhynchus tshawytscha"]]$life_stages$adult
+info <- fish4_parameters[["Oncorhynchus tshawytscha"]]$species_info
+bio  <- Bioenergetic(
+  species_params     = sp,
+  species_info       = info,
+  environmental_data = list(
+    temperature = data.frame(Day = 1:30, Temperature = rep(12, 30))
+  ),
+  diet_data = list(
+    proportions = data.frame(Day = 1:30, Prey1 = 1.0),
+    energies    = data.frame(Day = 1:30, Prey1 = 5000),
+    prey_names  = "Prey1"
+  ),
+  simulation_settings = list(initial_weight = 100, duration = 30)
 )
-
-# Compare with delta method
-delta_result <- predict_consumption_delta(0.8, 0.15, bio_obj)
+bio$species_params$predator$ED_ini <- 5000
+bio$species_params$predator$ED_end <- 5500
+uncertainty_result <- predict_consumption_bootstrap(
+  p_mean   = 0.5,
+  p_sd     = 0.05,
+  bio_obj  = bio,
+  n_sims   = 20,
+  last_day = 30
+)
 }
 
 }

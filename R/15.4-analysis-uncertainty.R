@@ -36,19 +36,50 @@ NULL
 #' relative to the consumption estimate, indicating local linearity.
 #'
 #' @examples
-#' \dontrun{
-#' # Propagate uncertainty from MLE estimate
-#' mle_result <- run_fb4(bio_obj, strategy = "mle", observed_weights = weights)
-#' p_est <- mle_result$summary$p_estimate
-#' p_se <- mle_result$method_data$confidence_intervals$p_se
-#' 
+#' \donttest{
+#' data(fish4_parameters)
+#' sp   <- fish4_parameters[["Oncorhynchus tshawytscha"]]$life_stages$adult
+#' info <- fish4_parameters[["Oncorhynchus tshawytscha"]]$species_info
+#' bio  <- Bioenergetic(
+#'   species_params     = sp,
+#'   species_info       = info,
+#'   environmental_data = list(
+#'     temperature = data.frame(Day = 1:30, Temperature = rep(12, 30))
+#'   ),
+#'   diet_data = list(
+#'     proportions = data.frame(Day = 1:30, Prey1 = 1.0),
+#'     energies    = data.frame(Day = 1:30, Prey1 = 5000),
+#'     prey_names  = "Prey1"
+#'   ),
+#'   simulation_settings = list(initial_weight = 100, duration = 30)
+#' )
+#' bio$species_params$predator$ED_ini <- 5000
+#' bio$species_params$predator$ED_end <- 5500
+#' set.seed(42)
+#' obs_weights <- rnorm(10, mean = 90, sd = 5)
+#' mle_result <- run_fb4(bio, strategy = "mle", fit_to = "Weight",
+#'                       observed_weights = obs_weights, verbose = FALSE)
 #' uncertainty_result <- predict_consumption_delta(
-#'   p_est = p_est,
-#'   p_se = p_se,
-#'   bio_obj = bio_obj      
+#'   p_est   = mle_result$summary$p_value,
+#'   p_se    = mle_result$summary$p_se,
+#'   bio_obj = bio,
+#'   last_day = 30
 #' )
 #' }
 #'
+#' @return A named list with elements:
+#'   \describe{
+#'     \item{\code{method}}{Character string \code{"delta"}.}
+#'     \item{\code{consumption_est}}{Point estimate of total consumption (g).}
+#'     \item{\code{consumption_se}}{Standard error of consumption estimate (g).}
+#'     \item{\code{consumption_ci}}{Numeric vector of length 2 with lower and upper
+#'       confidence interval bounds (g).}
+#'     \item{\code{derivative}}{Numerical derivative of consumption with respect to p.}
+#'     \item{\code{linearity_check}}{Logical; \code{TRUE} if the linearity assumption
+#'       appears satisfied.}
+#'     \item{\code{p_est}}{The supplied \code{p_est} value.}
+#'     \item{\code{p_se}}{The supplied \code{p_se} value.}
+#'   }
 #' @export
 predict_consumption_delta <- function(p_est, p_se, bio_obj, delta_size = 0.001,
                                       first_day = 1, last_day = 365, 
@@ -186,20 +217,48 @@ predict_consumption_delta <- function(p_est, p_se, bio_obj, delta_size = 0.001,
 #' The method handles simulation failures gracefully and reports success rates.
 #'
 #' @examples
-#' \dontrun{
-#' # Bootstrap uncertainty propagation
-#' uncertainty_result <- predict_consumption_bootstrap(
-#'   p_mean = 0.8,
-#'   p_sd = 0.15,
-#'   bio_obj = bio_obj,
-#'   n_sims = 1000,
-#'   parallel = TRUE
+#' \donttest{
+#' data(fish4_parameters)
+#' sp   <- fish4_parameters[["Oncorhynchus tshawytscha"]]$life_stages$adult
+#' info <- fish4_parameters[["Oncorhynchus tshawytscha"]]$species_info
+#' bio  <- Bioenergetic(
+#'   species_params     = sp,
+#'   species_info       = info,
+#'   environmental_data = list(
+#'     temperature = data.frame(Day = 1:30, Temperature = rep(12, 30))
+#'   ),
+#'   diet_data = list(
+#'     proportions = data.frame(Day = 1:30, Prey1 = 1.0),
+#'     energies    = data.frame(Day = 1:30, Prey1 = 5000),
+#'     prey_names  = "Prey1"
+#'   ),
+#'   simulation_settings = list(initial_weight = 100, duration = 30)
 #' )
-#' 
-#' # Compare with delta method
-#' delta_result <- predict_consumption_delta(0.8, 0.15, bio_obj)
+#' bio$species_params$predator$ED_ini <- 5000
+#' bio$species_params$predator$ED_end <- 5500
+#' uncertainty_result <- predict_consumption_bootstrap(
+#'   p_mean   = 0.5,
+#'   p_sd     = 0.05,
+#'   bio_obj  = bio,
+#'   n_sims   = 20,
+#'   last_day = 30
+#' )
 #' }
 #'
+#' @return A named list with elements:
+#'   \describe{
+#'     \item{\code{method}}{Character string \code{"bootstrap"}.}
+#'     \item{\code{consumption_mean}}{Mean total consumption across bootstrap samples (g).}
+#'     \item{\code{consumption_sd}}{Standard deviation of consumption across samples (g).}
+#'     \item{\code{consumption_ci}}{Numeric vector of length 2 with lower and upper
+#'       quantile-based confidence interval bounds (g).}
+#'     \item{\code{consumption_samples}}{Numeric vector of all successful consumption
+#'       estimates from bootstrap samples.}
+#'     \item{\code{n_successful}}{Number of bootstrap iterations that produced valid
+#'       consumption estimates.}
+#'     \item{\code{p_mean}}{The supplied \code{p_mean} value.}
+#'     \item{\code{p_sd}}{The supplied \code{p_sd} value.}
+#'   }
 #' @export
 predict_consumption_bootstrap <- function(p_mean, p_sd, bio_obj, n_sims = 1000,
                                          first_day = 1, last_day = 365,

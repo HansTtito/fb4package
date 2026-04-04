@@ -32,10 +32,8 @@ Performs essential validations:
 }
 }
 \examples{
-\dontrun{
-check_numeric_value(5, "weight")                    # Valid
-check_numeric_value(-1, "weight", min_val = 0)     # Error: below minimum
-check_numeric_value(NA, "weight")                  # Error: not finite
-}
+check_numeric_value(5, "weight")
+try(check_numeric_value(-1, "weight", min_val = 0))
+try(check_numeric_value(NA, "weight"))
 }
 \keyword{internal}

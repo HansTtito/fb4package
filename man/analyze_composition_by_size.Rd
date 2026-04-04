@@ -25,9 +25,7 @@ Analyzes body composition across a range of fish sizes to understand
 allometric relationships and size-dependent changes.
 }
 \examples{
-\dontrun{
-# Analyze composition from 1g to 500g fish
-comp_analysis <- analyze_composition_by_size(c(1, 500), 50, composition_params)
+comp_params <- process_composition_params(list())
+comp_analysis <- analyze_composition_by_size(c(1, 500), 20, comp_params)
 plot(comp_analysis$Weight, comp_analysis$Energy_density)
-}
 }

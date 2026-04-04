@@ -9,9 +9,9 @@ Authors@R: c(
      role = c("aut", "cre")
    )
  )
-Description: An R package implementing the 'Fish Bioenergetics 4.0' model
-    <doi:10.1080/03632415.2017.1377558> for fisheries research.
-    Provides automated parameter
+Description: Implements the 'Fish Bioenergetics 4.0' model
+    (Deslauriers et al. 2017, <doi:10.1080/03632415.2017.1377558>) for
+    fisheries research. Provides automated parameter
     optimization, multi-prey diet modeling, and comprehensive energy budget
     simulations for fisheries research and aquaculture applications. Features
     an optional 'TMB' (Template Model Builder) backend for 10-50x speedup in

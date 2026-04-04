@@ -32,21 +32,47 @@ analyze_growth_temperature_sensitivity(
 
 \item{verbose}{Show progress information (default: TRUE)}
 }
+\value{
+A data frame with one row per temperature-p_value combination and columns:
+  \describe{
+    \item{\code{temperature}}{Temperature tested (°C).}
+    \item{\code{p_value}}{Feeding level (proportion of Cmax) tested.}
+    \item{\code{growth_rate}}{Specific growth rate (percent per day).}
+    \item{\code{final_weight}}{Predicted final weight (g).}
+    \item{\code{total_consumption}}{Total consumption over the simulation period (g).}
+  }
+}
 \description{
 Analyzes how growth rates respond to different temperature and feeding level combinations.
 Uses p-values (proportion of maximum consumption capacity) to simulate feeding scenarios
 from survival levels (p ~0.2) to maximum capacity (p = 1.0). Parallelized for efficiency.
 }
 \examples{
-\dontrun{
-# Basic sensitivity analysis
-results <- analyze_growth_temperature_sensitivity(bio_obj)
-
-# Custom parameter ranges for cold water species
+\donttest{
+data(fish4_parameters)
+sp   <- fish4_parameters[["Oncorhynchus tshawytscha"]]$life_stages$adult
+info <- fish4_parameters[["Oncorhynchus tshawytscha"]]$species_info
+bio  <- Bioenergetic(
+  species_params     = sp,
+  species_info       = info,
+  environmental_data = list(
+    temperature = data.frame(Day = 1:30, Temperature = rep(12, 30))
+  ),
+  diet_data = list(
+    proportions = data.frame(Day = 1:30, Prey1 = 1.0),
+    energies    = data.frame(Day = 1:30, Prey1 = 5000),
+    prey_names  = "Prey1"
+  ),
+  simulation_settings = list(initial_weight = 100, duration = 30)
+)
+bio$species_params$predator$ED_ini <- 5000
+bio$species_params$predator$ED_end <- 5500
 results <- analyze_growth_temperature_sensitivity(
-  bio_obj,
-  temperatures = seq(4, 14, by = 2),
-  p_values = seq(0.2, 0.9, by = 0.1)
+  bio,
+  temperatures     = c(2, 14),
+  p_values         = c(0.4, 0.7),
+  simulation_days  = 30,
+  verbose          = FALSE
 )
 }
 }

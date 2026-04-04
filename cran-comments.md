@@ -8,6 +8,18 @@
   portable alternative; other TMB-based CRAN packages (e.g. glmmTMB) carry
   the same note on Windows.
 
+## Notes on par() / on.exit() usage
+
+All exported plotting functions save graphics parameters with
+`oldpar <- par(no.readonly = TRUE)` and restore them via `on.exit(par(oldpar))`
+as the first statement after the `par()` call.
+
+The internal helper `setup_plot_layout()` (not exported, `@keywords internal`)
+intentionally modifies `par()` and returns the saved settings to the caller.
+Every caller of this helper restores the settings through its own `on.exit()`
+call. The helper itself cannot use `on.exit()` because its purpose is to leave
+the layout active for the duration of the surrounding function.
+
 ## Test environments
 
 * Local Windows 11, R 4.5.1

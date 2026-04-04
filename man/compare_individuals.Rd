@@ -21,11 +21,33 @@ Compares performance metrics between individuals in hierarchical models.
 Provides statistical summaries and identifies outliers.
 }
 \examples{
-\dontrun{
-# Compare all individuals across all metrics
-comparison <- compare_individuals(hierarchical_result)
-
-# Compare only specific metrics
-comparison <- compare_individuals(hierarchical_result, metrics = c("consumption", "growth"))
+\donttest{
+data(fish4_parameters)
+sp   <- fish4_parameters[["Oncorhynchus tshawytscha"]]$life_stages$adult
+info <- fish4_parameters[["Oncorhynchus tshawytscha"]]$species_info
+bio  <- Bioenergetic(
+  species_params     = sp,
+  species_info       = info,
+  environmental_data = list(
+    temperature = data.frame(Day = 1:30, Temperature = rep(12, 30))
+  ),
+  diet_data = list(
+    proportions = data.frame(Day = 1:30, Prey1 = 1.0),
+    energies    = data.frame(Day = 1:30, Prey1 = 5000),
+    prey_names  = "Prey1"
+  ),
+  simulation_settings = list(initial_weight = 100, duration = 30)
+)
+bio$species_params$predator$ED_ini <- 5000
+bio$species_params$predator$ED_end <- 5500
+mr_data <- data.frame(
+  individual_id  = paste0("fish_", 1:5),
+  initial_weight = c(10, 12, 11, 13, 9),
+  final_weight   = c(80, 95, 85, 100, 70)
+)
+result_hier <- run_fb4(bio, strategy = "hierarchical", backend = "tmb",
+                       fit_to = "Weight", observed_weights = mr_data,
+                       verbose = FALSE)
+comparison <- compare_individuals(result_hier)
 }
 }

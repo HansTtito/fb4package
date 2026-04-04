@@ -12,7 +12,7 @@ validate_basic_params(initial_weight, duration)
 \item{duration}{Duration in days}
 }
 \value{
-NULL (throws error if invalid)
+Invisibly returns \code{TRUE} if validation passes; throws an error otherwise.
 }
 \description{
 Validates fundamental model parameters for biological feasibility
@@ -27,9 +27,7 @@ Checks that:
 }
 }
 \examples{
-\dontrun{
-validate_basic_params(10.5, 365)  # Valid
-validate_basic_params(-5, 100)    # Error: negative weight
-}
+isTRUE(validate_basic_params(10.5, 365))
+try(validate_basic_params(-5, 100))
 }
 \keyword{internal}

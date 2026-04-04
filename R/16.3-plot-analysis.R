@@ -28,9 +28,30 @@ NULL
 #' @export
 #'
 #' @examples
-#' \dontrun{
-#' plot_uncertainty.fb4_result(mle_result)
-#' plot_uncertainty.fb4_result(bootstrap_result, parameters = "p_value")
+#' \donttest{
+#' data(fish4_parameters)
+#' sp   <- fish4_parameters[["Oncorhynchus tshawytscha"]]$life_stages$adult
+#' info <- fish4_parameters[["Oncorhynchus tshawytscha"]]$species_info
+#' bio  <- Bioenergetic(
+#'   species_params     = sp,
+#'   species_info       = info,
+#'   environmental_data = list(
+#'     temperature = data.frame(Day = 1:30, Temperature = rep(12, 30))
+#'   ),
+#'   diet_data = list(
+#'     proportions = data.frame(Day = 1:30, Prey1 = 1.0),
+#'     energies    = data.frame(Day = 1:30, Prey1 = 5000),
+#'     prey_names  = "Prey1"
+#'   ),
+#'   simulation_settings = list(initial_weight = 100, duration = 30)
+#' )
+#' bio$species_params$predator$ED_ini <- 5000
+#' bio$species_params$predator$ED_end <- 5500
+#' set.seed(42)
+#' obs_weights <- rnorm(10, mean = 90, sd = 5)
+#' result_mle <- run_fb4(bio, strategy = "mle", fit_to = "Weight",
+#'                       observed_weights = obs_weights, verbose = FALSE)
+#' plot_uncertainty.fb4_result(result_mle)
 #' }
 plot_uncertainty.fb4_result <- function(fb4_result, parameters = "all", 
                                         color_scheme = "blue", add_ci_text = TRUE) {
@@ -70,9 +91,31 @@ plot_uncertainty.fb4_result <- function(fb4_result, parameters = "all",
 #' @export
 #'
 #' @examples
-#' \dontrun{
-#' plot_distributions.fb4_result(bootstrap_result)
-#' plot_distributions.fb4_result(hierarchical_result)
+#' \donttest{
+#' data(fish4_parameters)
+#' sp   <- fish4_parameters[["Oncorhynchus tshawytscha"]]$life_stages$adult
+#' info <- fish4_parameters[["Oncorhynchus tshawytscha"]]$species_info
+#' bio  <- Bioenergetic(
+#'   species_params     = sp,
+#'   species_info       = info,
+#'   environmental_data = list(
+#'     temperature = data.frame(Day = 1:30, Temperature = rep(12, 30))
+#'   ),
+#'   diet_data = list(
+#'     proportions = data.frame(Day = 1:30, Prey1 = 1.0),
+#'     energies    = data.frame(Day = 1:30, Prey1 = 5000),
+#'     prey_names  = "Prey1"
+#'   ),
+#'   simulation_settings = list(initial_weight = 100, duration = 30)
+#' )
+#' bio$species_params$predator$ED_ini <- 5000
+#' bio$species_params$predator$ED_end <- 5500
+#' set.seed(42)
+#' obs_weights <- rnorm(10, mean = 90, sd = 5)
+#' result_boot <- run_fb4(bio, strategy = "bootstrap", fit_to = "Weight",
+#'                        observed_weights = obs_weights, n_bootstrap = 20,
+#'                        verbose = FALSE)
+#' plot_distributions.fb4_result(result_boot)
 #' }
 plot_distributions.fb4_result <- function(fb4_result, color_scheme = "green", 
                                           show_individuals = TRUE) {
@@ -127,15 +170,31 @@ plot_distributions.fb4_result <- function(fb4_result, color_scheme = "green",
 #' @export
 #'
 #' @examples
-#' \dontrun{
-#' # Primary interface (recommended):
-#' plot(bio_obj, type = "sensitivity")
-#'
-#' # Custom temperature range and p_values:
+#' \donttest{
+#' data(fish4_parameters)
+#' sp   <- fish4_parameters[["Oncorhynchus tshawytscha"]]$life_stages$adult
+#' info <- fish4_parameters[["Oncorhynchus tshawytscha"]]$species_info
+#' bio  <- Bioenergetic(
+#'   species_params     = sp,
+#'   species_info       = info,
+#'   environmental_data = list(
+#'     temperature = data.frame(Day = 1:30, Temperature = rep(12, 30))
+#'   ),
+#'   diet_data = list(
+#'     proportions = data.frame(Day = 1:30, Prey1 = 1.0),
+#'     energies    = data.frame(Day = 1:30, Prey1 = 5000),
+#'     prey_names  = "Prey1"
+#'   ),
+#'   simulation_settings = list(initial_weight = 100, duration = 30)
+#' )
+#' bio$species_params$predator$ED_ini <- 5000
+#' bio$species_params$predator$ED_end <- 5500
 #' plot_sensitivity.fb4_result(
-#'   bio_obj      = bio_chinook,
-#'   temperatures = seq(4, 14, by = 2),
-#'   p_values     = seq(0.3, 0.9, by = 0.1)
+#'   bio_obj         = bio,
+#'   temperatures    = c(10, 14),
+#'   p_values        = c(0.4, 0.7),
+#'   simulation_days = 30,
+#'   verbose         = FALSE
 #' )
 #' }
 plot_sensitivity.fb4_result <- function(bio_obj,

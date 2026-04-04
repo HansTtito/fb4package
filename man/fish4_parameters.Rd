@@ -63,31 +63,12 @@ to create species-specific bioenergetic model objects. Parameters can be extract
 using utility functions or accessed directly by species and life stage.
 }
 \examples{
-\dontrun{
-# Load the database
 data(fish4_parameters)
-
-# List available species
-species_names <- names(fish4_parameters)
-head(species_names)
-
-# Get species information
+head(names(fish4_parameters))
 salmon_info <- fish4_parameters[["Oncorhynchus mykiss"]]
-print(salmon_info$species_info)
-
-# Available life stages for a species
 names(salmon_info$life_stages)
-
-# Extract parameters for a specific life stage
 juvenile_params <- salmon_info$life_stages$juvenile
-print(juvenile_params$consumption)
-
-# Use with Bioenergetic constructor
-bio_obj <- Bioenergetic(
-  species_params = juvenile_params,
-  species_info = salmon_info$species_info
-)
-}
+names(juvenile_params$consumption)
 
 }
 \references{

@@ -11,6 +11,10 @@ run_fb4(x, ...)
 
 \item{...}{Arguments passed to methods}
 }
+\value{
+An object of class \code{fb4_result}. See \code{\link{run_fb4.Bioenergetic}}
+  for full details of the return structure.
+}
 \description{
 Generic function that dispatches to appropriate S3 method.
 }

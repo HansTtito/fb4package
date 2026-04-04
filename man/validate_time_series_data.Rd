@@ -21,7 +21,7 @@ validate_time_series_data(
 \item{min_cols}{Minimum number of columns}
 }
 \value{
-NULL (throws error if invalid)
+Invisibly returns \code{TRUE} if validation passes; throws an error otherwise.
 }
 \description{
 Basic validation of time series data structure and content for use in FB4 simulations.
@@ -36,9 +36,7 @@ Performs comprehensive validation including:
 }
 }
 \examples{
-\dontrun{
 temp_data <- data.frame(Day = 1:10, Temperature = 15:24)
-validate_time_series_data(temp_data, "temperature", c("Day", "Temperature"))
-}
+isTRUE(validate_time_series_data(temp_data, "temperature", c("Day", "Temperature")))
 }
 \keyword{internal}

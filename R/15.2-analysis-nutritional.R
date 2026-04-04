@@ -26,11 +26,10 @@ NULL
 #' @export
 #'
 #' @examples
-#' \dontrun{
-#' # From nutrient balance results
-#' nutrient_results <- calculate_nutrient_balance(consumption, weight_gain, nutrient_params)
-#' np_ratios <- calculate_np_ratios(nutrient_results$nitrogen, nutrient_results$phosphorus)
-#' }
+#' nitrogen   <- list(consumed = 10, growth = 3, excretion = 5, egestion = 2)
+#' phosphorus <- list(consumed = 1.5, growth = 0.5, excretion = 0.6, egestion = 0.4)
+#' np_ratios  <- calculate_np_ratios(nitrogen, phosphorus)
+#' np_ratios$ratios
 calculate_np_ratios <- function(nitrogen_fluxes, phosphorus_fluxes, ratio_type = "mass") {
   
   if (!ratio_type %in% c("mass", "molar")) {
@@ -306,11 +305,9 @@ build_composition_df <- function(compositions, weights) {
 #' @export
 #'
 #' @examples
-#' \dontrun{
-#' # Analyze composition from 1g to 500g fish
-#' comp_analysis <- analyze_composition_by_size(c(1, 500), 50, composition_params)
+#' comp_params <- process_composition_params(list())
+#' comp_analysis <- analyze_composition_by_size(c(1, 500), 20, comp_params)
 #' plot(comp_analysis$Weight, comp_analysis$Energy_density)
-#' }
 analyze_composition_by_size <- function(weight_range = c(1, 500), 
                                         n_points = 50, 
                                         processed_composition_params) {

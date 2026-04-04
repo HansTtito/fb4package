@@ -190,24 +190,7 @@ clamp <- function(x, min_val, max_val, warn = TRUE, param_name = "value") {
 # CONFIDENCE INTERVAL UTILITIES
 # ============================================================================
 
-#' Z-score for a given confidence level
-#'
-#' @description
-#' Returns the two-tailed z-score corresponding to a confidence level.
-#' Centralises the \code{qnorm(1 - (1 - confidence_level) / 2)} idiom that
-#' would otherwise be repeated throughout the codebase.
-#'
-#' @param confidence_level Numeric in (0, 1), default 0.95
-#'
-#' @return Positive z-score (e.g. 1.96 for 0.95)
-#'
-#' @keywords internal
-#'
-#' @examples
-#' \dontrun{
-#' z_score(0.95)   # 1.959964
-#' z_score(0.99)   # 2.575829
-#' }
+#' @noRd
 z_score <- function(confidence_level = 0.95) {
   stats::qnorm(1 - (1 - confidence_level) / 2)
 }

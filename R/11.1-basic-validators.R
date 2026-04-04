@@ -37,11 +37,9 @@ NULL
 #' @keywords internal
 #' 
 #' @examples
-#' \dontrun{
-#' check_numeric_value(5, "weight")                    # Valid
-#' check_numeric_value(-1, "weight", min_val = 0)     # Error: below minimum
-#' check_numeric_value(NA, "weight")                  # Error: not finite
-#' }
+#' check_numeric_value(5, "weight")
+#' try(check_numeric_value(-1, "weight", min_val = 0))
+#' try(check_numeric_value(NA, "weight"))
 #' @export
 check_numeric_value <- function(value, name, min_val = -Inf, max_val = Inf) {
   
@@ -81,7 +79,7 @@ check_numeric_value <- function(value, name, min_val = -Inf, max_val = Inf) {
 #' @param initial_weight Initial weight in grams
 #' @param duration Duration in days
 #'
-#' @return NULL (throws error if invalid)
+#' @return Invisibly returns \code{TRUE} if validation passes; throws an error otherwise.
 #'
 #' @details
 #' Checks that:
@@ -94,10 +92,8 @@ check_numeric_value <- function(value, name, min_val = -Inf, max_val = Inf) {
 #' @keywords internal
 #'
 #' @examples
-#' \dontrun{
-#' validate_basic_params(10.5, 365)  # Valid
-#' validate_basic_params(-5, 100)    # Error: negative weight
-#' }
+#' isTRUE(validate_basic_params(10.5, 365))
+#' try(validate_basic_params(-5, 100))
 #' @export
 validate_basic_params <- function(initial_weight, duration) {
   
@@ -151,7 +147,7 @@ create_empty_composition <- function() {
 #' @param required_cols Required column names
 #' @param min_cols Minimum number of columns
 #'
-#' @return NULL (throws error if invalid)
+#' @return Invisibly returns \code{TRUE} if validation passes; throws an error otherwise.
 #'
 #' @details
 #' Performs comprehensive validation including:
@@ -165,10 +161,8 @@ create_empty_composition <- function() {
 #' @keywords internal
 #'
 #' @examples
-#' \dontrun{
 #' temp_data <- data.frame(Day = 1:10, Temperature = 15:24)
-#' validate_time_series_data(temp_data, "temperature", c("Day", "Temperature"))
-#' }
+#' isTRUE(validate_time_series_data(temp_data, "temperature", c("Day", "Temperature")))
 #' @export
 validate_time_series_data <- function(data, data_name, required_cols = NULL, min_cols = NULL) {
   

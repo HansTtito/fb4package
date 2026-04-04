@@ -55,31 +55,12 @@
 #' Original parameters compiled from peer-reviewed literature sources.
 #'
 #' @examples
-#' \dontrun{
-#' # Load the database
 #' data(fish4_parameters)
-#' 
-#' # List available species
-#' species_names <- names(fish4_parameters)
-#' head(species_names)
-#' 
-#' # Get species information
+#' head(names(fish4_parameters))
 #' salmon_info <- fish4_parameters[["Oncorhynchus mykiss"]]
-#' print(salmon_info$species_info)
-#' 
-#' # Available life stages for a species
 #' names(salmon_info$life_stages)
-#' 
-#' # Extract parameters for a specific life stage
 #' juvenile_params <- salmon_info$life_stages$juvenile
-#' print(juvenile_params$consumption)
-#' 
-#' # Use with Bioenergetic constructor
-#' bio_obj <- Bioenergetic(
-#'   species_params = juvenile_params,
-#'   species_info = salmon_info$species_info
-#' )
-#' }
+#' names(juvenile_params$consumption)
 #'
 #' @seealso 
 #' \code{\link{Bioenergetic}}, \code{\link{run_fb4}}
@@ -138,21 +119,9 @@
 #' Generated automatically during database creation from Parameters_official.csv
 #'
 #' @examples
-#' \dontrun{
-#' # Load metadata
 #' data(fish4_parameters_metadata)
-#' 
-#' # View database summary
 #' print(fish4_parameters_metadata$description)
 #' print(paste("Species count:", fish4_parameters_metadata$n_species))
-#' print(paste("Creation date:", fish4_parameters_metadata$creation_date))
-#' 
-#' # Check required parameters
-#' print(fish4_parameters_metadata$required_parameters)
-#' 
-#' # View parameter units
-#' print(fish4_parameters_metadata$units)
-#' }
 #'
 #' @seealso 
 #' \code{\link{fish4_parameters}}, \code{\link{Bioenergetic}}

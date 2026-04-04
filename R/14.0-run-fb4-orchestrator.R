@@ -223,6 +223,9 @@ run_fb4.Bioenergetic <- function(x,
 #'
 #' @param x Object to run FB4 simulation on
 #' @param ... Arguments passed to methods
+#'
+#' @return An object of class \code{fb4_result}. See \code{\link{run_fb4.Bioenergetic}}
+#'   for full details of the return structure.
 #' @export
 run_fb4 <- function(x, ...) {
   UseMethod("run_fb4")
@@ -235,6 +238,10 @@ run_fb4 <- function(x, ...) {
 #'
 #' @param x Object of unsupported class
 #' @param ... Additional arguments
+#'
+#' @return No return value. Called for its side effect of stopping execution
+#'   with an informative error message when \code{x} is not a
+#'   \code{Bioenergetic} object.
 #' @export
 run_fb4.default <- function(x, ...) {
   stop("run_fb4() is only supported for objects of class 'Bioenergetic'. ",

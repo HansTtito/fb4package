@@ -367,8 +367,7 @@ validate_category_equation <- function(category_name, category_params, species_p
 # REQUIREMENT VALIDATION
 # ============================================================================
 
-#' Validate standard parameter requirements
-#' @keywords internal
+#' @noRd
 validate_standard_requirements <- function(eq_reqs, category_params, validation) {
   
   # Check required parameters

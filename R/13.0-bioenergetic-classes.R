@@ -49,7 +49,7 @@ NULL
 #' @export
 #'
 #' @examples
-#' \dontrun{
+#' \donttest{
 #' # Create species parameters
 #' params <- list(
 #'   consumption = list(CEQ = 2, CA = 0.303, CB = -0.275, CQ = 3, CTO = 15, CTM = 25),

@@ -9,6 +9,10 @@ validate_complete_simulation_data(simulation_data)
 \arguments{
 \item{simulation_data}{Complete processed simulation data}
 }
+\value{
+Invisibly returns \code{TRUE} if validation passes. Throws an error
+  with a descriptive message if the simulation data structure is invalid.
+}
 \description{
 Validates the complete processed simulation data structure before running.
 }

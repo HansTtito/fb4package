@@ -28,10 +28,8 @@ Validation includes:
 }
 }
 \examples{
-\dontrun{
 diet <- data.frame(Day = 1:5, fish = 0.6, zooplankton = 0.4)
 energy <- data.frame(Day = 1:5, fish = 4000, zooplankton = 2500)
-validate_diet_consistency(diet, energy)
-}
+isTRUE(validate_diet_consistency(diet, energy))
 }
 \keyword{internal}

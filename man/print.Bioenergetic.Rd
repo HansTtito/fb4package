@@ -21,8 +21,23 @@ status of each required component (parameters, temperature, diet).
 Readiness for fitting is reported in the final status line.
 }
 \examples{
-\dontrun{
-bio <- Bioenergetic("Oncorhynchus mykiss")
+\donttest{
+data(fish4_parameters)
+sp   <- fish4_parameters[["Oncorhynchus tshawytscha"]]$life_stages$adult
+info <- fish4_parameters[["Oncorhynchus tshawytscha"]]$species_info
+bio  <- Bioenergetic(
+  species_params     = sp,
+  species_info       = info,
+  environmental_data = list(
+    temperature = data.frame(Day = 1:30, Temperature = rep(12, 30))
+  ),
+  diet_data = list(
+    proportions = data.frame(Day = 1:30, Prey1 = 1.0),
+    energies    = data.frame(Day = 1:30, Prey1 = 5000),
+    prey_names  = "Prey1"
+  ),
+  simulation_settings = list(initial_weight = 100, duration = 30)
+)
 print(bio)
 }
 
