@@ -24,10 +24,12 @@
 #' Kitchell, J.F., Stewart, D.J. and Weininger, D. (1977). Applications of a
 #' bioenergetics model to yellow perch and walleye.
 #' \emph{Journal of the Fisheries Research Board of Canada}, 34(10), 1922–1935.
+#' \doi{10.1139/f77-258}
 #'
 #' Elliott, J.M. and Davison, W. (1975). Energy equivalents of oxygen consumption
 #' in animal energetics.
 #' \emph{Oecologia}, 19(3), 195–201.
+#' \doi{10.1007/BF00345305}
 #'
 #' Hanson, P.C., Johnson, T.B., Schindler, D.E. and Kitchell, J.F. (1997).
 #' \emph{Fish Bioenergetics 3.0}. University of Wisconsin Sea Grant Institute,
@@ -37,6 +39,7 @@
 #' (2017). Fish Bioenergetics 4.0: An R-based modeling application.
 #' \emph{Fisheries}, 42(11), 586–596. \doi{10.1080/03632415.2017.1377558}
 #'
+#' @return No return value; this page documents the respiration functions module. See individual function documentation for return values.
 #' @name respiration-functions
 #' @aliases respiration-functions
 NULL
@@ -86,7 +89,8 @@ respiration_temp_eq1 <- function(temperature, RQ) {
 respiration_temp_eq2 <- function(temperature, RTM, RTO, RX, warn = TRUE) {
   if (temperature >= RTM) {
     if (warn) {
-      warning("respiration_temp_eq2: temperature (", temperature, "deg C) \u2265 RTM (", RTM, "deg C), returning 0.000001 (lethal temperature)", call. = FALSE)
+      warning("respiration_temp_eq2: temperature (", temperature, "deg C) >= RTM (",
+              RTM, "deg C), returning 0.000001 (lethal temperature)", call. = FALSE)
     }
     return(0.000001)
   }
@@ -120,6 +124,9 @@ calculate_temperature_factor_respiration <- function(temperature, processed_resp
   } else if (REQ == 2) {
     return(respiration_temp_eq2(temperature, processed_respiration_params$RTM, 
                                 processed_respiration_params$RTO, processed_respiration_params$RX))
+  } else {
+    stop("calculate_temperature_factor_respiration: unrecognized REQ value (", REQ,
+         "). Must be 1 or 2.", call. = FALSE)
   }
 }
 
@@ -169,7 +176,17 @@ calculate_activity_factor_respiration <- function(weight, temperature, processed
 #' @param temperature Water temperature (°C)
 #' @param weight Fish weight (g)
 #' @param processed_respiration_params List with processed respiration parameters (includes activity params)
-#' @return Respiration (g O2/g fish/day)
+#' @return A positive numeric scalar giving the daily specific respiration rate
+#'   in g O\eqn{_2} per g fish per day. Returns \code{0.000001} as a minimum
+#'   safety floor when the result is non-finite or non-positive (e.g. at or
+#'   above the lethal temperature \code{RTM}). The value accounts for both the
+#'   temperature-dependence function (REQ 1 or 2) and the activity multiplier.
+#' @examples
+#' # REQ 2: Kitchell et al. (1977) temperature dependence
+#' params <- list(REQ = 2, RA = 0.0033, RB = -0.227,
+#'                RTM = 30, RTO = 18, RX = 0.5, ACT = 1.5)
+#' calculate_respiration(temperature = 15, weight = 100,
+#'                       processed_respiration_params = params)
 #' @export
 calculate_respiration <- function(temperature, weight, processed_respiration_params) {
   
@@ -201,7 +218,7 @@ calculate_respiration <- function(temperature, weight, processed_respiration_par
 #' @param RTM Maximum temperature
 #' @param RTO Optimum temperature
 #' @return List with RY, RZ, RX
-#' @export
+#' @keywords internal
 calculate_respiration_params_eq2 <- function(RQ, RTM, RTO) {
 
   RY <- log(RQ) * (RTM - RTO + 2)
@@ -244,12 +261,12 @@ calculate_respiration_params_eq2 <- function(RQ, RTM, RTO) {
 #' 
 #' @keywords internal
 calculate_sda <- function(consumption_energy, egestion_energy, SDA_coeff) {
-  
+
   # Ensure egestion is not greater than consumption (biologically impossible)
   egestion_energy <- pmin(egestion_energy, consumption_energy)
-  
+
   sda <- SDA_coeff * (consumption_energy - egestion_energy)
-  
+
   return(sda)
 }
 

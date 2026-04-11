@@ -11,6 +11,13 @@ validate_data_consistency(simulation_data, n_prey_temporal)
 
 \item{n_prey_temporal}{Number of prey species in temporal data}
 }
+\value{
+Invisibly returns \code{TRUE} if all cross-component consistency
+  checks pass. Throws an error with a descriptive message when optional
+  contaminant or nutrient concentration matrices are present but their
+  number of columns does not match the number of prey species
+  (\code{n_prey_temporal}).
+}
 \description{
 Checks cross-component consistency within processed simulation data.
 }

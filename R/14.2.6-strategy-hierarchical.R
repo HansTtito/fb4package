@@ -1,5 +1,25 @@
-#' Strategy-Hierarchical for FB4 Model
+#' Hierarchical Estimation Strategy for FB4 Model
 #'
+#' @description
+#' Implements the \code{"hierarchical"} FB4 fitting strategy, which estimates
+#' population-level and individual-level \emph{p}-values using a hierarchical
+#' mixed-effects model compiled with TMB. Individual p_values are treated as
+#' random effects (\code{log_p_individual}), while the population mean
+#' (\code{mu_p}) and standard deviation (\code{sigma_p}) are fixed-effect
+#' hyperparameters. Optional covariates can be supplied to explain variation in
+#' \code{mu_p} across individuals.
+#'
+#' @references
+#' Deslauriers, D., Chipps, S.R., Breck, J.E., Rice, J.A. and Madenjian, C.P.
+#' (2017). Fish Bioenergetics 4.0: An R-based modeling application.
+#' \emph{Fisheries}, 42(11), 586–596. \doi{10.1080/03632415.2017.1377558}
+#'
+#' Kristensen, K., Nielsen, A., Berg, C.W., Skaug, H. and Bell, B.M. (2016).
+#' TMB: Automatic differentiation and Laplace approximation.
+#' \emph{Journal of Statistical Software}, 70(5), 1–21.
+#' \doi{10.18637/jss.v070.i05}
+#'
+#' @return No return value; this page documents the hierarchical estimation strategy functions. See individual function documentation for return values.
 #' @name strategy-hierarchical
 #' @aliases strategy-hierarchical
 NULL

@@ -2,10 +2,20 @@
 #'
 #' @description
 #' Plotting functions for daily simulation output. These functions work with
-#' the daily_output data produced by run_fb4() and visualise growth,
-#' consumption, temperature, and energy patterns over time.
+#' the \code{daily_output} data produced by \code{run_fb4()} and visualise
+#' growth (\code{plot_growth}), consumption (\code{plot_consumption}),
+#' temperature (\code{plot_temperature}), and energy (\code{plot_energy})
+#' patterns over time, as well as an integrated dashboard
+#' (\code{plot_dashboard}).
 #'
+#' @references
+#' Deslauriers, D., Chipps, S.R., Breck, J.E., Rice, J.A. and Madenjian, C.P.
+#' (2017). Fish Bioenergetics 4.0: An R-based modeling application.
+#' \emph{Fisheries}, 42(11), 586–596. \doi{10.1080/03632415.2017.1377558}
+#'
+#' @return No return value, called for side effects (plots). See individual function documentation for details.
 #' @name fb4-daily-plots
+#' @aliases fb4-daily-plots
 #' @importFrom graphics plot lines abline text legend grid par points barplot
 #' @importFrom stats lowess cor
 #' @importFrom utils tail
@@ -377,7 +387,7 @@ plot_energy <- function(fb4_result, components = NULL, show_efficiency = TRUE,
     if (length(energy_cols) == 0) {
       stop("No energy data available")
     }
-    components <- energy_cols[1:min(4, length(energy_cols))]
+    components <- energy_cols[seq_len(min(4, length(energy_cols)))]
   }
   
   # Validate components exist

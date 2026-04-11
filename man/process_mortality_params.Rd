@@ -10,8 +10,18 @@ process_mortality_params(mortality_params)
 \item{mortality_params}{Raw mortality parameters}
 }
 \value{
-Processed mortality parameters
+A list containing all elements of \code{mortality_params} with
+  missing entries filled with defaults: \code{base_mortality = 0.001},
+  \code{natural_mortality} (copied from \code{base_mortality}),
+  \code{fishing_mortality = 0}, \code{predation_mortality = 0},
+  \code{optimal_temp = 15}, \code{thermal_tolerance = 5}, and
+  \code{stress_factor = 2}. If a \code{reproduction} sub-list is present,
+  a \code{spawn_pattern} numeric vector (length 365) is appended.
 }
 \description{
 Process mortality parameters
+}
+\examples{
+process_mortality_params(list(base_mortality = 0.001,
+                              natural_mortality = 0.001))
 }

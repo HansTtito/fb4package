@@ -2,15 +2,25 @@
 #' Methods for FB4 Bioenergetic Model
 #'
 #' @description
-#' S3 class system for the Fish Bioenergetics 4.0 model, providing structured
-#' data containers and methods for bioenergetic simulations and results.
+#' S3 \code{print} and \code{summary} methods for the two main classes of the
+#' FB4 package: \code{"Bioenergetic"} (the model configuration object) and
+#' \code{"fb4_result"} (the simulation output). \code{print} methods produce
+#' a concise one-screen overview; \code{summary} methods extend that with
+#' detailed per-method diagnostics (optimisation convergence, MLE statistics,
+#' bootstrap percentiles, or hierarchical population parameters).
 #'
+#' @references
+#' Deslauriers, D., Chipps, S.R., Breck, J.E., Rice, J.A. and Madenjian, C.P.
+#' (2017). Fish Bioenergetics 4.0: An R-based modeling application.
+#' \emph{Fisheries}, 42(11), 586–596. \doi{10.1080/03632415.2017.1377558}
+#'
+#' @return No return value; this page documents the S3 methods for bioenergetic objects. See individual function documentation for return values.
 #' @name bioenergetic-methods
 #' @aliases bioenergetic-methods
 NULL
 
 # ============================================================================
-# BIOENERGETIC CLASS METHODS (Improved)
+# BIOENERGETIC CLASS METHODS
 # ============================================================================
 
 #' Check Bioenergetic Object Readiness
@@ -95,7 +105,7 @@ print.Bioenergetic <- function(x, ...) {
   } else {
     cat("No initial weight")
   }
-  cat(" \u2192 ", duration, " days\n", sep = "")
+  cat(" -> ", duration, " days\n", sep = "")
   
   # Component status with details
   cat("\nComponents:\n")
@@ -105,35 +115,35 @@ print.Bioenergetic <- function(x, ...) {
   if (ready$has_params) {
     param_count <- length(unlist(x$species_params))
     categories <- paste(names(x$species_params), collapse = ", ")
-    cat("  \u2713 Parameters: ", param_count, " params (", categories, ")\n", sep = "")
+    cat("  [OK] Parameters: ", param_count, " params (", categories, ")\n", sep = "")
   } else {
-    cat("  \u2717 Parameters: Missing\n")
+    cat("  [X] Parameters: Missing\n")
   }
 
   # Temperature
   if (ready$has_temp) {
     temp_data <- x$environmental_data$temperature
     temp_range <- range(temp_data$Temperature, na.rm = TRUE)
-    cat("  \u2713 Temperature: ", nrow(temp_data), " days (",
+    cat("  [OK] Temperature: ", nrow(temp_data), " days (",
         round(temp_range[1], 1), "-", round(temp_range[2], 1), "\u00b0C)\n", sep = "")
   } else {
-    cat("  \u2717 Temperature: Missing\n")
+    cat("  [X] Temperature: Missing\n")
   }
 
   # Diet
   if (ready$has_diet) {
     prey_count <- length(x$diet_data$prey_names)
     diet_days <- nrow(x$diet_data$proportions)
-    cat("  \u2713 Diet: ", prey_count, " prey species, ", diet_days, " days\n", sep = "")
+    cat("  [OK] Diet: ", prey_count, " prey species, ", diet_days, " days\n", sep = "")
   } else {
-    cat("  \u2717 Diet: Missing\n")
+    cat("  [X] Diet: Missing\n")
   }
 
   # Simulation readiness
   is_ready <- ready$has_params && ready$has_temp && ready$has_diet && ready$has_initial
   cat("\nStatus: ")
   if (x$fitted) {
-    cat("\u2713 Fitted and ready\n")
+    cat("[OK] Fitted and ready\n")
   } else if (is_ready) {
     cat("Ready for fitting\n")
   } else {
@@ -207,7 +217,7 @@ summary.Bioenergetic <- function(object, ...) {
           "respiration" = c("RA", "RB", "RQ", "RTO", "RTM"),
           "egestion" = c("FA", "FB", "FG"),
           "excretion" = c("UA", "UB", "UG"),
-          names(params)[1:min(3, length(params))]
+          names(params)[seq_len(min(3, length(params)))]
         )
         
         for (param in key_params) {
@@ -249,7 +259,7 @@ summary.Bioenergetic <- function(object, ...) {
       # Show top 3 prey by average proportion
       if (length(prey_names) > 0) {
         avg_props <- vapply(prey_names, function(p) mean(diet_props[[p]], na.rm = TRUE), numeric(1))
-        top_prey <- sort(avg_props, decreasing = TRUE)[1:min(3, length(avg_props))]
+        top_prey <- sort(avg_props, decreasing = TRUE)[seq_len(min(3, length(avg_props)))]
         
         cat("  Main prey:\n")
         for (i in seq_along(top_prey)) {
@@ -290,7 +300,7 @@ summary.Bioenergetic <- function(object, ...) {
   # Final Status
   cat("STATUS: ")
   if (object$fitted) {
-    cat("\u2713 Model fitted and results available\n")
+    cat("[OK] Model fitted and results available\n")
   } else {
     # Check readiness
     ready <- check_bioenergetic_readiness(object)
@@ -315,7 +325,7 @@ summary.Bioenergetic <- function(object, ...) {
 }
 
 # ============================================================================
-# FB4_RESULT CLASS METHODS (Unified and Improved)
+# FB4_RESULT CLASS METHODS
 # ============================================================================
 
 #' Print Method for fb4_result Objects
@@ -405,12 +415,12 @@ print.fb4_result <- function(x, ...) {
     # Convergence
     cat("\nFITTING: ")
     if (x$summary$converged) {
-      cat("\u2713 Successful")
+      cat("[OK] Successful")
       if (!is.null(x$method_data$optimization_info$iterations)) {
         cat(" (", x$method_data$optimization_info$iterations, " iterations)", sep = "")
       }
     } else {
-      cat("\u2717 Failed - using best approximation")
+      cat("[X] Failed - using best approximation")
     }
     cat("\n")
     
@@ -432,12 +442,12 @@ print.fb4_result <- function(x, ...) {
           round(ci$p_ci_upper, 4), "]\n", sep = "")
     }
     
-    cat("  Measurement error (\u03c3): ", round(x$method_data$sigma_estimate, 3), "\n", sep = "")
+    cat("  Measurement error (sigma): ", round(x$method_data$sigma_estimate, 3), "\n", sep = "")
     
     cat("\nMODEL FIT:\n")
     cat("  Log-likelihood: ", round(x$method_data$log_likelihood, 2), "\n", sep = "")
     cat("  AIC: ", round(x$method_data$aic, 2), "\n", sep = "")
-    cat("  Converged: ", if (x$summary$converged) "\u2713 Yes" else "\u2717 No", "\n", sep = "")
+    cat("  Converged: ", if (x$summary$converged) "[OK] Yes" else "[X] No", "\n", sep = "")
     
   } else if (method == "bootstrap") {
     # Bootstrap method
@@ -449,7 +459,7 @@ print.fb4_result <- function(x, ...) {
     cat("  Predicted weight: ", round(x$summary$predicted_weight, 2), " g\n", sep = "")
     
     if (bootstrap_info$parallel_used) {
-      cat("  Parallel processing: \u2713 (", bootstrap_info$n_cores_used, " cores)\n", sep = "")
+      cat("  Parallel processing: [OK] (", bootstrap_info$n_cores_used, " cores)\n", sep = "")
     }
     cat("\n")
     
@@ -483,7 +493,7 @@ print.fb4_result <- function(x, ...) {
     model_fit <- x$method_data$model_fit
     cat("  Log-likelihood: ", round(model_fit$log_likelihood, 2), "\n", sep = "")
     cat("  AIC: ", round(model_fit$aic, 2), "\n", sep = "")
-    cat("  Converged: ", if (x$summary$converged) "\u2713 Yes" else "\u2717 No", "\n", sep = "")
+    cat("  Converged: ", if (x$summary$converged) "[OK] Yes" else "[X] No", "\n", sep = "")
   }
   
   invisible(x)
@@ -592,7 +602,7 @@ summary.fb4_result <- function(object, ...) {
     cat("  Success rate: ", round(bootstrap_info$success_rate * 100, 1), "%\n", sep = "")
     
     if (bootstrap_info$parallel_used) {
-      cat("  Parallel execution: \u2713 (", bootstrap_info$n_cores_used, 
+      cat("  Parallel execution: [OK] (", bootstrap_info$n_cores_used, 
           " cores used)\n", sep = "")
     }
     

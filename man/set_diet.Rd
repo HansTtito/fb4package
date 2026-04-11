@@ -24,9 +24,24 @@ set_diet(
 \item{normalize_diet}{Logical, whether to normalize diet proportions to sum to 1 (default TRUE)}
 }
 \value{
-Updated Bioenergetic object with new diet data
+The \code{Bioenergetic} object \code{x} with its \code{diet_data}
+  component updated (prey names, proportions, energies, and optionally
+  indigestible fractions), and \code{fitted} reset to \code{FALSE}.
 }
 \description{
 Updates the diet data component of a Bioenergetic object with
 new diet composition and prey energy information.
+}
+\examples{
+\donttest{
+bio <- Bioenergetic(
+  species_params = list(
+    consumption = list(CEQ = 1, CA = 0.303, CB = -0.275, CQ = 0.06)
+  ),
+  species_info = list(common_name = "Example fish")
+)
+diet  <- data.frame(Day = 1:365, prey1 = 0.6, prey2 = 0.4)
+energ <- data.frame(Day = 1:365, prey1 = 4000, prey2 = 2500)
+bio   <- set_diet(bio, diet, energ)
+}
 }

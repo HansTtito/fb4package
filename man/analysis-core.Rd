@@ -3,8 +3,21 @@
 \name{analysis-core}
 \alias{analysis-core}
 \title{Core Analysis Functions for FB4 Results}
+\value{
+No return value; this page documents the core analysis functions. See individual function documentation for return values.
+}
 \description{
 Core functions for extracting and accessing results from FB4 simulations.
 These functions provide a unified interface to access results regardless
-of the fitting method used (basic, optim, MLE, hierarchical).
+of the fitting method used (\code{"direct"}, \code{"optim"},
+\code{"binary_search"}, \code{"mle"}, \code{"bootstrap"},
+\code{"hierarchical"}). Exported functions include
+\code{is.fb4_result}, \code{get_consumption_uncertainty},
+\code{get_efficiency_uncertainty}, \code{get_individual_results},
+\code{get_population_results}, and \code{get_energy_budget_uncertainty}.
+}
+\references{
+Deslauriers, D., Chipps, S.R., Breck, J.E., Rice, J.A. and Madenjian, C.P.
+(2017). Fish Bioenergetics 4.0: An R-based modeling application.
+\emph{Fisheries}, 42(11), 586–596. \doi{10.1080/03632415.2017.1377558}
 }

@@ -2,9 +2,18 @@
 #'
 #' @description
 #' Functions for sensitivity analysis, comparative studies, and population-level
-#' analysis of FB4 simulation results. Includes individual comparisons,
-#' parameter sensitivity assessment, and scenario analysis.
+#' analysis of FB4 simulation results. Includes individual comparisons
+#' (\code{compare_individuals}), population variation decomposition
+#' (\code{analyze_population_variation}), temperature-feeding sensitivity
+#' analysis (\code{analyze_growth_temperature_sensitivity}), and multi-scenario
+#' comparisons (\code{compare_scenarios}).
 #'
+#' @references
+#' Deslauriers, D., Chipps, S.R., Breck, J.E., Rice, J.A. and Madenjian, C.P.
+#' (2017). Fish Bioenergetics 4.0: An R-based modeling application.
+#' \emph{Fisheries}, 42(11), 586–596. \doi{10.1080/03632415.2017.1377558}
+#'
+#' @return No return value; this page documents the sensitivity analysis functions. See individual function documentation for return values.
 #' @name analysis-sensitivity
 #' @aliases analysis-sensitivity
 NULL
@@ -22,7 +31,20 @@ NULL
 #' @param result FB4 result object from hierarchical method
 #' @param metrics Vector of metrics to compare ("consumption", "growth", "efficiency", "all")
 #' @param confidence_level Confidence level for comparisons (default 0.95)
-#' @return List with individual comparisons and statistics
+#' @return A named list with at minimum three context elements:
+#'   \code{n_individuals} (integer), \code{metrics_compared} (character
+#'   vector), and \code{confidence_level} (numeric). Depending on
+#'   \code{metrics}, the following sub-lists are appended; each is produced
+#'   by an internal summary helper and contains \code{metric_name},
+#'   \code{n_valid}, \code{mean}, \code{sd}, \code{min}, \code{max},
+#'   \code{median}, \code{cv}, \code{range}, \code{outliers}, and
+#'   \code{performance}: \code{consumption}, \code{efficiency}, and
+#'   \code{p_value}. The \code{growth} element (when requested) is itself a
+#'   list with two such summaries (\code{total_growth} and
+#'   \code{relative_growth}). A \code{rankings} \code{data.frame} (one row
+#'   per individual; columns for per-metric ranks, \code{composite_rank}, and
+#'   \code{overall_rank}) is always appended. Stops with an error if
+#'   \code{result} was not produced by the hierarchical method.
 #' @export
 #'
 #' @examples
@@ -229,7 +251,7 @@ create_individual_rankings <- function(individual_data, metrics) {
   
   n_individuals <- nrow(individual_data)
   ranking_data <- data.frame(
-    individual_id = 1:n_individuals,
+    individual_id = seq_len(n_individuals),
     stringsAsFactors = FALSE
   )
   
@@ -277,8 +299,31 @@ create_individual_rankings <- function(individual_data, metrics) {
 #'
 #' @param result FB4 result object from hierarchical method
 #' @param include_covariates Include covariate effects in analysis
-#' @return List with population variation analysis
+#' @return A named list with at minimum three elements:
+#'   \describe{
+#'     \item{n_individuals}{Integer. Number of individuals in the analysis.}
+#'     \item{population_parameters}{Named list with sub-lists \code{mu_p},
+#'       \code{sigma_p}, and \code{sigma_obs}, each containing
+#'       \code{estimate}, \code{se}, \code{ci_lower}, and \code{ci_upper}.}
+#'     \item{variance_decomposition}{Named list (present when total variance
+#'       is positive) with \code{between_individual_variance},
+#'       \code{within_individual_variance}, \code{total_variance},
+#'       \code{between_individual_prop}, \code{within_individual_prop}, and
+#'       \code{intraclass_correlation}.}
+#'   }
+#'   When individual outcome data are available, \code{outcome_variation} is
+#'   appended (sub-lists \code{consumption} and optionally \code{growth},
+#'   each with \code{variance}, \code{cv}, and \code{range}). When covariate
+#'   effects are present and \code{include_covariates = TRUE},
+#'   \code{covariate_effects} is also appended. Stops with an error if
+#'   \code{result} was not produced by the hierarchical method.
 #' @export
+#' @examples
+#' \donttest{
+#' # Population variation requires a hierarchical run; shown here for illustration
+#' # result <- run_fb4(bio, strategy = "hierarchical", ...)
+#' # pv <- analyze_population_variation(result)
+#' }
 analyze_population_variation <- function(result, include_covariates = TRUE) {
   
   result_type <- detect_result_type(result)
@@ -561,7 +606,7 @@ process_temperature <- function(temp, p_values, processed_data, simulation_days,
   
   # Create constant temperature data
   temp_data <- data.frame(
-    Day = 1:simulation_days, 
+    Day = seq_len(simulation_days),
     Temperature = rep(temp, simulation_days)
   )
   
@@ -661,7 +706,22 @@ process_temperature <- function(temp, p_values, processed_data, simulation_days,
 #' @param result_list Named list of FB4 result objects
 #' @param metrics Vector of metrics to compare
 #' @param confidence_level Confidence level for comparisons
-#' @return List with comparative analysis
+#' @return A named list with five elements:
+#'   \describe{
+#'     \item{n_scenarios}{Integer. Number of scenarios compared.}
+#'     \item{scenario_names}{Character vector of scenario names.}
+#'     \item{metrics_compared}{Character vector of metrics requested.}
+#'     \item{confidence_level}{Numeric. Confidence level as supplied.}
+#'     \item{scenario_data}{\code{data.frame} with one row per scenario.
+#'       Always contains \code{scenario}, \code{method}, \code{backend}, and
+#'       \code{converged}. Additional \code{*_est} and \code{*_se} columns are
+#'       appended for each requested metric (\code{consumption},
+#'       \code{growth}, \code{efficiency}, \code{p_value}).}
+#'   }
+#'   When at least two scenarios provide uncertainty estimates,
+#'   \code{statistical_tests} is appended (list of pairwise test results).
+#'   \code{best_performers} (named list of scenario names with highest
+#'   estimated value per metric) is always appended.
 #' @export
 #'
 #' @examples
@@ -882,7 +942,7 @@ test_metric_differences <- function(estimates, se_values, scenario_names) {
   ci_upper <- valid_est + z * valid_se
   
   # Pairwise comparisons
-  comparisons <- expand.grid(i = 1:n_valid, j = 1:n_valid)
+  comparisons <- expand.grid(i = seq_len(n_valid), j = seq_len(n_valid))
   comparisons <- comparisons[comparisons$i < comparisons$j, ]
   
   if (nrow(comparisons) > 0) {

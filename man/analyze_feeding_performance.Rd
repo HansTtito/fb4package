@@ -18,9 +18,52 @@ analyze_feeding_performance(
 \item{confidence_level}{Confidence level for intervals (default 0.95)}
 }
 \value{
-List with feeding analysis
+A named list with at minimum \code{method} (character),
+  \code{has_uncertainty} (logical), and \code{individual_id}. Additional
+  elements present when the relevant data are available:
+  \describe{
+    \item{total_consumption}{The list returned by
+      \code{\link{get_consumption_uncertainty}} (\code{estimate}, \code{se},
+      \code{ci_lower}, \code{ci_upper}, plus context scalars).}
+    \item{daily_consumption}{Sub-list (\code{estimate}, \code{se},
+      \code{ci_lower}, \code{ci_upper}) for the daily consumption rate
+      (g/day).}
+    \item{specific_consumption}{Sub-list (same four slots) for the
+      specific consumption rate (g consumption / g fish / day).}
+    \item{p_value}{Structure depends on method: for hierarchical it contains
+      \code{population_mean}, \code{population_se}, \code{population_sd}, and
+      \code{n_individuals}; for single-individual methods it contains
+      \code{estimate}, \code{se}, \code{ci_lower}, and \code{ci_upper}.}
+    \item{feeding_efficiency}{Sub-list (\code{estimate}, \code{se},
+      \code{ci_lower}, \code{ci_upper}) for the ratio of total growth to
+      total consumption (dimensionless).}
+  }
 }
 \description{
 Analyzes feeding-related metrics including consumption rates,
 feeding efficiency, and p_value estimates with uncertainty.
+}
+\examples{
+\donttest{
+data(fish4_parameters)
+sp   <- fish4_parameters[["Oncorhynchus tshawytscha"]]$life_stages$adult
+info <- fish4_parameters[["Oncorhynchus tshawytscha"]]$species_info
+bio  <- Bioenergetic(
+  species_params     = sp,
+  species_info       = info,
+  environmental_data = list(
+    temperature = data.frame(Day = 1:30, Temperature = rep(12, 30))
+  ),
+  diet_data = list(
+    proportions = data.frame(Day = 1:30, Prey1 = 1.0),
+    energies    = data.frame(Day = 1:30, Prey1 = 5000),
+    prey_names  = "Prey1"
+  ),
+  simulation_settings = list(initial_weight = 100, duration = 30)
+)
+bio$species_params$predator$ED_ini <- 5000
+bio$species_params$predator$ED_end <- 5500
+result <- run_fb4(bio, strategy = "direct", p_value = 0.5, verbose = FALSE)
+feeding <- analyze_feeding_performance(result)
+}
 }

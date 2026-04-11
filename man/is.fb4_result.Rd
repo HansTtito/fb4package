@@ -10,8 +10,12 @@ is.fb4_result(x)
 \item{x}{Object to test}
 }
 \value{
-Logical indicating whether object is of class fb4_result
+A length-1 logical: \code{TRUE} if \code{x} inherits from class
+  \code{"fb4_result"}, \code{FALSE} otherwise.
 }
 \description{
 Tests whether an object inherits from the fb4_result class.
+}
+\examples{
+is.fb4_result(list())
 }

@@ -18,8 +18,20 @@ process_respiration_params(
 \item{sda_params}{SDA parameters}
 }
 \value{
-Processed respiration parameters with derived values
+A list containing all elements of \code{respiration_params},
+  the activity parameters (merged from \code{activity_params}), the SDA
+  coefficient (\code{SDA}), and — for REQ 2 — the derived values
+  \code{RX}, \code{RY}, \code{RZ} (Kitchell et al. 1977). For REQ 1 no
+  additional derived values are added.
 }
 \description{
 Process respiration parameters
+}
+\examples{
+process_respiration_params(
+  respiration_params = list(REQ = 2, RA = 0.0033, RB = -0.227,
+                            RQ = 0.025, RTM = 30, RTO = 18),
+  activity_params = list(ACT = 1.5),
+  sda_params = list(SDA = 0.15)
+)
 }

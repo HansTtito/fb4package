@@ -3,6 +3,26 @@
 \name{data-processing}
 \alias{data-processing}
 \title{Data Processing Functions for FB4}
+\value{
+No return value; this page documents the data processing functions module. See individual function documentation for return values.
+}
 \description{
-Data Processing Functions for FB4
+Functions for preparing, validating, and transforming the temporal and
+parameter data required by the FB4 simulation engine. The main entry
+point is \code{\link{prepare_simulation_data}}, which orchestrates
+species-parameter processing (via \code{\link{process_species_parameters}})
+and temporal-data processing (via \code{\link{process_bioenergetic_data}}).
+Ancillary functions handle time-series interpolation
+(\code{\link{interpolate_time_series}}), diet normalisation, reproduction
+scheduling, and TMB-format transformations for statistical fitting
+strategies.
+}
+\references{
+Hanson, P.C., Johnson, T.B., Schindler, D.E. and Kitchell, J.F. (1997).
+\emph{Fish Bioenergetics 3.0}. University of Wisconsin Sea Grant Institute,
+Madison, WI.
+
+Deslauriers, D., Chipps, S.R., Breck, J.E., Rice, J.A. and Madenjian, C.P.
+(2017). Fish Bioenergetics 4.0: An R-based modeling application.
+\emph{Fisheries}, 42(11), 586–596. \doi{10.1080/03632415.2017.1377558}
 }

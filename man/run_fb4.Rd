@@ -2,19 +2,29 @@
 % Please edit documentation in R/14.0-run-fb4-orchestrator.R
 \name{run_fb4}
 \alias{run_fb4}
-\title{Default run_fb4 method}
+\alias{run_fb4.default}
+\title{Run FB4 Simulation}
 \usage{
 run_fb4(x, ...)
+
+\method{run_fb4}{default}(x, ...)
 }
 \arguments{
-\item{x}{Object to run FB4 simulation on}
+\item{x}{A \code{Bioenergetic} object (see \code{\link{Bioenergetic}}).}
 
-\item{...}{Arguments passed to methods}
+\item{...}{Arguments passed to \code{\link{run_fb4.Bioenergetic}}.}
 }
 \value{
 An object of class \code{fb4_result}. See \code{\link{run_fb4.Bioenergetic}}
   for full details of the return structure.
+
+No return value. Stops with an informative error message.
 }
 \description{
-Generic function that dispatches to appropriate S3 method.
+Generic function that dispatches to \code{\link{run_fb4.Bioenergetic}}.
+Pass a \code{Bioenergetic} object as \code{x}; all other arguments are
+forwarded to the method.
+
+Default method — throws an informative error when \code{x} is not a
+\code{Bioenergetic} object.
 }

@@ -35,7 +35,7 @@ fit_fb4_binary_search(
 List with fitting results and final simulation
 }
 \description{
-Coordinates binary search fitting process for weight or consumption targets.
-Now uses shared commons functions to eliminate code duplication.
+Coordinates the binary search fitting process for weight or consumption
+targets, then runs a final detailed simulation with the optimal p_value.
 }
 \keyword{internal}

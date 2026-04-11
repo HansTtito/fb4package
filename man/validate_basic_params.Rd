@@ -30,4 +30,3 @@ Checks that:
 isTRUE(validate_basic_params(10.5, 365))
 try(validate_basic_params(-5, 100))
 }
-\keyword{internal}

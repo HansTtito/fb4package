@@ -3,6 +3,9 @@
 \name{egestion-excretion}
 \alias{egestion-excretion}
 \title{Egestion and Excretion Functions for FB4 Model}
+\value{
+No return value; this page documents the egestion and excretion functions module. See individual function documentation for return values.
+}
 \description{
 Functions implementing four egestion models (EGEQ 1–4) and four excretion
 models (EXEQ 1–4). These represent losses of consumed energy as feces (F)

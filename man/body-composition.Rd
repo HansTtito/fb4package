@@ -3,6 +3,21 @@
 \name{body-composition}
 \alias{body-composition}
 \title{Body Composition Functions for FB4 Model}
+\value{
+No return value; this page documents the body composition functions module. See individual function documentation for return values.
+}
 \description{
-Body Composition Functions for FB4 Model
+Functions for estimating and updating fish body composition (water, protein,
+ash, fat) and energy density from total wet weight. Composition is estimated
+via the allometric regressions of Breck (2014):
+
+\deqn{\log_{10}(\text{Component}) = \alpha + \beta \cdot \log_{10}(H_2O)}
+
+Fat is obtained by subtraction and bounded to biologically plausible limits.
+Energy density is computed as a weighted sum of fat and protein energy
+contents (J/g).
+}
+\references{
+Breck, J.E. (2014). Body composition in fishes: body size matters.
+\emph{Aquaculture}, 433, 40–49. \doi{10.1016/j.aquaculture.2014.05.049}
 }

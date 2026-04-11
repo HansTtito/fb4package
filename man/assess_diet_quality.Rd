@@ -14,9 +14,26 @@ assess_diet_quality(diet_data, prey_energies, prey_digestibility = NULL)
 \item{prey_digestibility}{Digestibility coefficients of prey items}
 }
 \value{
-List with nutritional quality metrics
+A named list whose elements depend on whether the diet is
+  time-varying or static. Always present: \code{mean_energy_density}
+  (numeric, J/g), \code{energy_density_sd} (numeric), and
+  \code{energy_density_range} (numeric vector of length 2). For
+  time-varying diets, \code{daily_energy_density} (numeric vector) is
+  also included. When \code{prey_digestibility} is supplied, the list
+  additionally contains \code{mean_digestibility}, \code{digestibility_sd},
+  and (for time-varying diets) \code{daily_digestibility}. A
+  \code{diversity} sub-list with \code{mean_shannon} and
+  \code{shannon_sd} (and \code{daily_shannon} for time-varying diets) is
+  always appended.
 }
 \description{
 Assesses the nutritional quality of the diet based on energy density,
 macronutrient composition, and digestibility of prey items.
+}
+\examples{
+diet  <- list(proportions = data.frame(Day = 1:5,
+                                       Prey1 = c(0.6, 0.6, 0.7, 0.5, 0.5),
+                                       Prey2 = c(0.4, 0.4, 0.3, 0.5, 0.5)))
+prey_e <- data.frame(Day = 1:5, Prey1 = 5000, Prey2 = 4500)
+assess_diet_quality(diet, prey_e)
 }

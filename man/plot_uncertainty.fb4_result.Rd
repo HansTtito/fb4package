@@ -21,7 +21,7 @@ plot_uncertainty.fb4_result(
 \item{add_ci_text}{Add confidence interval text, default TRUE}
 }
 \value{
-NULL (creates plot)
+Called for its plotting side-effect. Invisibly returns \code{NULL}.
 }
 \description{
 Creates plots showing parameter estimates with confidence intervals.

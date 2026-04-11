@@ -12,9 +12,17 @@ get_parameter_value(params, param)
 \item{param}{Parameter name to retrieve}
 }
 \value{
-Parameter value or NULL if not found
+The value associated with \code{param} in the first category of
+  \code{params} where it is found, or \code{NULL} if \code{param} is not
+  present in any category. The type of the returned value matches the
+  stored parameter (typically a numeric scalar).
 }
 \description{
 Retrieves a specific parameter value from species parameter lists,
 searching across all parameter categories.
+}
+\examples{
+sp <- list(consumption = list(CA = 0.303, CB = -0.275))
+get_parameter_value(sp, "CA")
+get_parameter_value(sp, "nonexistent")
 }

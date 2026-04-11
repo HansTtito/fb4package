@@ -3,8 +3,21 @@
 \name{basic-validators}
 \alias{basic-validators}
 \title{Basic Validation Functions for FB4}
+\value{
+No return value; this page documents the basic validation functions module. See individual function documentation for return values.
+}
 \description{
-Optimized versions of basic validation and mathematical functions.
-These functions maintain their original interfaces while using
-core validators internally to eliminate code duplication.
+Basic validation and utility functions built on top of the core
+validators in \code{\link{core-validators}}. They cover four
+common needs: scalar numeric validation
+(\code{\link{check_numeric_value}}), fundamental model-parameter
+feasibility (\code{\link{validate_basic_params}}), a safe fallback
+empty-composition constructor (\code{\link{create_empty_composition}}),
+and time-series structural checks
+(\code{\link{validate_time_series_data}}).
+}
+\references{
+Deslauriers, D., Chipps, S.R., Breck, J.E., Rice, J.A. and Madenjian, C.P.
+(2017). Fish Bioenergetics 4.0: An R-based modeling application.
+\emph{Fisheries}, 42(11), 586–596. \doi{10.1080/03632415.2017.1377558}
 }

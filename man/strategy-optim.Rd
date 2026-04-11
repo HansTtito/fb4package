@@ -2,7 +2,21 @@
 % Please edit documentation in R/14.2.3-strategy-optim.R
 \name{strategy-optim}
 \alias{strategy-optim}
-\title{Strategy-Optim for FB4 Model}
+\title{Optimisation Strategy for FB4 Model}
+\value{
+No return value; this page documents the optimisation-based strategy functions. See individual function documentation for return values.
+}
 \description{
-Strategy-Optim for FB4 Model
+Implements the \code{"optim"} FB4 fitting strategy, which uses R's
+\code{\link[stats]{optim}} function to find the proportion of maximum
+consumption (\emph{p}-value) that minimises the difference between a
+simulated metric and a user-supplied target. Supported fitting targets
+are \code{"Weight"} and \code{"Consumption"}. The strategy is instantiated
+by \code{create_optim_strategy}; the optimisation algorithm is in
+\code{optim_search_p_value}, coordinated by \code{fit_fb4_optim}.
+}
+\references{
+Deslauriers, D., Chipps, S.R., Breck, J.E., Rice, J.A. and Madenjian, C.P.
+(2017). Fish Bioenergetics 4.0: An R-based modeling application.
+\emph{Fisheries}, 42(11), 586–596. \doi{10.1080/03632415.2017.1377558}
 }

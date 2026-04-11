@@ -42,9 +42,24 @@ prepare_simulation_data(
 \item{covariates}{Optional covariate matrix or data frame or choose a column of individual_data}
 }
 \value{
-List with complete processed data ready for simulation
+For \code{output_format = "simulation"} (default), a named list
+  with seven elements: \code{species_params} (processed species parameter
+  sub-lists), \code{temporal_data} (processed temporal arrays),
+  \code{simulation_settings} (processed settings), \code{metadata}
+  (processing timestamp, duration, prey species, data sources),
+  \code{n_days} (integer), \code{temperatures} (numeric vector), and
+  \code{initial_weight} (numeric scalar). For
+  \code{output_format = "tmb_basic"} or \code{"tmb_hierarchical"},
+  returns a list formatted for TMB model fitting (structure differs).
 }
 \description{
 Master function that processes and validates ALL data required for FB4 simulation.
 Combines species parameter processing with temporal data processing.
+}
+\examples{
+\donttest{
+# Requires a fully-configured Bioenergetic object; see ?Bioenergetic
+# bio <- Bioenergetic(...)
+# sim_data <- prepare_simulation_data(bio, strategy = "direct")
+}
 }

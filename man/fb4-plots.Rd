@@ -3,7 +3,18 @@
 \name{fb4-plots}
 \alias{fb4-plots}
 \title{FB4 Plotting Functions}
+\value{
+No return value, called for side effects (plots). See individual function documentation for details.
+}
 \description{
 Main plotting functions for FB4 bioenergetic model results.
-Provides S3 methods and plot types for fb4_result and Bioenergetic objects.
+Provides S3 methods (\code{plot.fb4_result}, \code{plot.Bioenergetic}) that
+dispatch to specialised plot types (\code{"dashboard"}, \code{"growth"},
+\code{"consumption"}, \code{"temperature"}, \code{"energy"},
+\code{"uncertainty"}, \code{"sensitivity"}).
+}
+\references{
+Deslauriers, D., Chipps, S.R., Breck, J.E., Rice, J.A. and Madenjian, C.P.
+(2017). Fish Bioenergetics 4.0: An R-based modeling application.
+\emph{Fisheries}, 42(11), 586–596. \doi{10.1080/03632415.2017.1377558}
 }

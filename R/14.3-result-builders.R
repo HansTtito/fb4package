@@ -1,5 +1,22 @@
-#' Result Builders for FB4 Model (UNIFIED)
+#' Result Builders for FB4 Model
 #'
+#' @description
+#' Provides a unified system for assembling \code{fb4_result} objects from the
+#' raw output of any fitting strategy. The main entry point is
+#' \code{build_fb4_result_unified}, which delegates to
+#' \code{create_unified_summary}, \code{create_method_specific_data}, and
+#' \code{create_unified_fit_info} to populate the three core slots of the
+#' result object. Large uncertainty tables for TMB-based strategies are
+#' handled by dedicated helpers: \code{build_tmb_uncertainty},
+#' \code{build_individual_uncertainty}, and
+#' \code{build_population_uncertainty}.
+#'
+#' @references
+#' Deslauriers, D., Chipps, S.R., Breck, J.E., Rice, J.A. and Madenjian, C.P.
+#' (2017). Fish Bioenergetics 4.0: An R-based modeling application.
+#' \emph{Fisheries}, 42(11), 586–596. \doi{10.1080/03632415.2017.1377558}
+#'
+#' @return No return value; this page documents the result builder functions. See individual function documentation for return values.
 #' @name result-builders-unified
 #' @aliases result-builders-unified
 NULL
@@ -8,7 +25,7 @@ NULL
 # UNIFIED RESULT BUILDER SYSTEM
 # ============================================================================
 
-#' Build FB4 result object (UNIFIED APPROACH)
+#' Build FB4 result object
 #'
 #' @description
 #' Unified result builder that creates a single fb4_result class with method-specific
@@ -554,7 +571,7 @@ validate_fb4_result <- function(result) {
 # EXECUTION SUMMARY FOR VERBOSE OUTPUT
 # ============================================================================
 
-#' Create execution summary for verbose output (UNIFIED)
+#' Create execution summary for verbose output
 #'
 #' @description
 #' Creates a summary of the execution for logging purposes.

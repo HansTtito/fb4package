@@ -17,7 +17,8 @@
 \item{...}{Additional arguments passed to specific plot functions}
 }
 \value{
-Invisibly returns the input object
+Invisibly returns the input object \code{x}, called for its
+  plotting side-effect.
 }
 \description{
 Main plotting method for fb4_result objects. Automatically detects

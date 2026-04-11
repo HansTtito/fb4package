@@ -1,5 +1,22 @@
 #' Strategy Interface and Factory for FB4 Model
 #'
+#' @description
+#' Defines the common interface that all FB4 execution strategies must implement
+#' (\code{FB4Strategy}) and provides the factory function
+#' (\code{create_fb4_strategy}) that instantiates the correct strategy object
+#' based on the requested method. An execution plan is first assembled by
+#' \code{create_execution_plan}, validated for fit_to/strategy concordance by
+#' \code{validate_fit_to_strategy_concordance}, and then passed to the
+#' strategy's \code{execute()} method. Supported strategies are
+#' \code{"binary_search"}, \code{"optim"}, \code{"mle"}, \code{"bootstrap"},
+#' \code{"hierarchical"}, and \code{"direct"} (with its ration variants).
+#'
+#' @references
+#' Deslauriers, D., Chipps, S.R., Breck, J.E., Rice, J.A. and Madenjian, C.P.
+#' (2017). Fish Bioenergetics 4.0: An R-based modeling application.
+#' \emph{Fisheries}, 42(11), 586–596. \doi{10.1080/03632415.2017.1377558}
+#'
+#' @return No return value; this page documents the strategy interface functions. See individual function documentation for return values.
 #' @name strategy-interface
 #' @aliases strategy-interface
 NULL

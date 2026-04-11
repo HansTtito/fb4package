@@ -10,8 +10,13 @@ process_egestion_params(egestion_params)
 \item{egestion_params}{Raw egestion parameters}
 }
 \value{
-Processed egestion parameters
+A list identical to \code{egestion_params} after validation. No
+  additional derived values are computed; the function ensures the
+  required parameters for the selected EGEQ are present and valid.
 }
 \description{
 Process egestion parameters
+}
+\examples{
+process_egestion_params(list(EGEQ = 1, FA = 0.16))
 }

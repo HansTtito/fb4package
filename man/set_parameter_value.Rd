@@ -14,9 +14,17 @@ set_parameter_value(params, param, value)
 \item{value}{New parameter value}
 }
 \value{
-Updated parameters list
+The \code{params} list with \code{params[[category]][[param]]}
+  replaced by \code{value}, where \code{category} is the first category
+  in which \code{param} is found. Throws an error if \code{param} is not
+  found in any category.
 }
 \description{
 Sets a specific parameter value in species parameter lists,
 automatically finding the correct category.
+}
+\examples{
+sp <- list(consumption = list(CA = 0.303, CB = -0.275))
+updated <- set_parameter_value(sp, "CA", 0.350)
+updated$consumption$CA
 }

@@ -12,9 +12,33 @@ analyze_population_variation(result, include_covariates = TRUE)
 \item{include_covariates}{Include covariate effects in analysis}
 }
 \value{
-List with population variation analysis
+A named list with at minimum three elements:
+  \describe{
+    \item{n_individuals}{Integer. Number of individuals in the analysis.}
+    \item{population_parameters}{Named list with sub-lists \code{mu_p},
+      \code{sigma_p}, and \code{sigma_obs}, each containing
+      \code{estimate}, \code{se}, \code{ci_lower}, and \code{ci_upper}.}
+    \item{variance_decomposition}{Named list (present when total variance
+      is positive) with \code{between_individual_variance},
+      \code{within_individual_variance}, \code{total_variance},
+      \code{between_individual_prop}, \code{within_individual_prop}, and
+      \code{intraclass_correlation}.}
+  }
+  When individual outcome data are available, \code{outcome_variation} is
+  appended (sub-lists \code{consumption} and optionally \code{growth},
+  each with \code{variance}, \code{cv}, and \code{range}). When covariate
+  effects are present and \code{include_covariates = TRUE},
+  \code{covariate_effects} is also appended. Stops with an error if
+  \code{result} was not produced by the hierarchical method.
 }
 \description{
 Analyzes the magnitude and sources of variation in hierarchical models.
 Decomposes total variation into between-individual and within-individual components.
+}
+\examples{
+\donttest{
+# Population variation requires a hierarchical run; shown here for illustration
+# result <- run_fb4(bio, strategy = "hierarchical", ...)
+# pv <- analyze_population_variation(result)
+}
 }

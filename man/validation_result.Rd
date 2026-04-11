@@ -30,9 +30,20 @@ validation_result(
 \item{checked_items}{List of items that were checked}
 }
 \value{
-Standardized validation result list
+An object of class \code{fb4_validation}: a named list with eight
+  elements: \code{valid} (logical), \code{errors} (character vector of
+  error messages), \code{warnings} (character vector of warning messages),
+  \code{info} (character vector of informational messages), \code{level}
+  (character, validation tier), \code{category} (character or \code{NULL}),
+  \code{checked_items} (list of items examined), and \code{timestamp}
+  (POSIXct).
 }
 \description{
 Constructor for standardized validation result objects used throughout
 the FB4 validation system.
+}
+\examples{
+validation_result(valid = TRUE)
+validation_result(valid = FALSE, errors = "weight must be positive",
+                  level = "parameter")
 }

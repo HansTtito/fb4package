@@ -77,14 +77,10 @@ bio  <- Bioenergetic(
 )
 bio$species_params$predator$ED_ini <- 5000
 bio$species_params$predator$ED_end <- 5500
-set.seed(42)
-obs_weights <- rnorm(10, mean = 90, sd = 5)
-mle_result <- run_fb4(bio, strategy = "mle", fit_to = "Weight",
-                      observed_weights = obs_weights, verbose = FALSE)
 uncertainty_result <- predict_consumption_delta(
-  p_est   = mle_result$summary$p_value,
-  p_se    = mle_result$summary$p_se,
-  bio_obj = bio,
+  p_est    = 0.5,
+  p_se     = 0.05,
+  bio_obj  = bio,
   last_day = 30
 )
 }

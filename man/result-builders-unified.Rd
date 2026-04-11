@@ -2,7 +2,23 @@
 % Please edit documentation in R/14.3-result-builders.R
 \name{result-builders-unified}
 \alias{result-builders-unified}
-\title{Result Builders for FB4 Model (UNIFIED)}
+\title{Result Builders for FB4 Model}
+\value{
+No return value; this page documents the result builder functions. See individual function documentation for return values.
+}
 \description{
-Result Builders for FB4 Model (UNIFIED)
+Provides a unified system for assembling \code{fb4_result} objects from the
+raw output of any fitting strategy. The main entry point is
+\code{build_fb4_result_unified}, which delegates to
+\code{create_unified_summary}, \code{create_method_specific_data}, and
+\code{create_unified_fit_info} to populate the three core slots of the
+result object. Large uncertainty tables for TMB-based strategies are
+handled by dedicated helpers: \code{build_tmb_uncertainty},
+\code{build_individual_uncertainty}, and
+\code{build_population_uncertainty}.
+}
+\references{
+Deslauriers, D., Chipps, S.R., Breck, J.E., Rice, J.A. and Madenjian, C.P.
+(2017). Fish Bioenergetics 4.0: An R-based modeling application.
+\emph{Fisheries}, 42(11), 586–596. \doi{10.1080/03632415.2017.1377558}
 }

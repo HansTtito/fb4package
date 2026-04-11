@@ -3,6 +3,26 @@
 \name{simulation-engine}
 \alias{simulation-engine}
 \title{Simulation Engine for FB4 Model}
+\value{
+No return value; this page documents the simulation engine functions module. See individual function documentation for return values.
+}
 \description{
-Simulation Engine for FB4 Model
+Core daily simulation loop for the Fish Bioenergetics 4.0 model.
+The main entry point is \code{\link{run_fb4_simulation}}, which iterates
+over each simulated day calling low-level helpers for consumption
+(\code{calculate_daily_consumption}), metabolic losses
+(\code{calculate_daily_metabolism}), spawning costs
+(\code{calculate_daily_spawn_energy}), and weight change
+(\code{calculate_daily_weight_change}). Consumption can be specified
+as a proportion of maximum (\code{p_value}), a percentage of body weight
+(\code{ration_percent}), or absolute grams per day (\code{ration_grams}).
+}
+\references{
+Hanson, P.C., Johnson, T.B., Schindler, D.E. and Kitchell, J.F. (1997).
+\emph{Fish Bioenergetics 3.0}. University of Wisconsin Sea Grant Institute,
+Madison, WI.
+
+Deslauriers, D., Chipps, S.R., Breck, J.E., Rice, J.A. and Madenjian, C.P.
+(2017). Fish Bioenergetics 4.0: An R-based modeling application.
+\emph{Fisheries}, 42(11), 586–596. \doi{10.1080/03632415.2017.1377558}
 }

@@ -2,7 +2,7 @@
 % Please edit documentation in R/14.0-run-fb4-orchestrator.R
 \name{run_fb4.Bioenergetic}
 \alias{run_fb4.Bioenergetic}
-\title{Run FB4 simulation on Bioenergetic object (REFACTORED)}
+\title{Run FB4 simulation on Bioenergetic object}
 \usage{
 \method{run_fb4}{Bioenergetic}(
   x,
@@ -94,16 +94,23 @@ bootstrap, 5.0 for binary_search.}
 (e.g., \code{store_predicted_weights_boot} for bootstrap)}
 }
 \value{
-An object of class \code{fb4_result} containing:
+An object of class \code{fb4_result}, a named list with four
+  elements:
   \describe{
-    \item{\code{summary}}{Named list with \code{method}, \code{p_estimate},
-      \code{final_weight}, \code{total_consumption}, and method-specific fields
-      (\code{p_mean}, \code{p_sd}, confidence intervals, etc.)}
-    \item{\code{daily_output}}{Data frame with one row per simulation day:
-      \code{Day}, \code{Weight}, \code{Consumption_energy}, \code{Respiration},
-      \code{Egestion}, \code{Excretion}, \code{SDA}, \code{Net_energy}, etc.}
-    \item{\code{method_data}}{Method-specific data (bootstrap distributions,
-      MLE likelihood profile, etc.)}
+    \item{summary}{Named list with \code{method}, \code{p_estimate},
+      \code{final_weight}, \code{total_consumption}, and method-specific
+      fields (\code{p_mean}, \code{p_sd}, confidence intervals for MLE
+      and bootstrap, etc.).}
+    \item{daily_output}{A \code{data.frame} with one row per simulation
+      day containing \code{Day}, \code{Weight}, \code{Consumption_energy},
+      \code{Respiration}, \code{Egestion}, \code{Excretion}, \code{SDA},
+      \code{Net_energy}, \code{Energy_density}, and related columns.}
+    \item{method_data}{Method-specific auxiliary data: bootstrap
+      p-value distributions and percentiles, MLE likelihood profile,
+      or hierarchical population parameters, depending on
+      \code{strategy}.}
+    \item{bioenergetic_object}{The original \code{Bioenergetic} object
+      \code{x} supplied by the caller.}
   }
 }
 \description{
@@ -111,4 +118,28 @@ S3 method with automatic backend selection and bootstrap estimation.
 Supports traditional optimization methods, MLE approaches, and new bootstrap
 estimation for final weight data. This is the main entry point that coordinates
 all FB4 execution strategies.
+}
+\examples{
+\donttest{
+data(fish4_parameters)
+sp   <- fish4_parameters[["Oncorhynchus tshawytscha"]]$life_stages$adult
+info <- fish4_parameters[["Oncorhynchus tshawytscha"]]$species_info
+bio  <- Bioenergetic(
+  species_params     = sp,
+  species_info       = info,
+  environmental_data = list(
+    temperature = data.frame(Day = 1:30, Temperature = rep(12, 30))
+  ),
+  diet_data = list(
+    proportions = data.frame(Day = 1:30, Prey1 = 1.0),
+    energies    = data.frame(Day = 1:30, Prey1 = 5000),
+    prey_names  = "Prey1"
+  ),
+  simulation_settings = list(initial_weight = 100, duration = 30)
+)
+bio$species_params$predator$ED_ini <- 5000
+bio$species_params$predator$ED_end <- 5500
+result <- run_fb4(bio, strategy = "direct", p_value = 0.5, verbose = FALSE)
+result$summary$final_weight
+}
 }

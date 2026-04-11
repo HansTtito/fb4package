@@ -36,7 +36,7 @@ evaluate. Must be in (0, 1]. Default \code{seq(0.3, 1.0, by = 0.1)}.}
 \item{...}{Additional arguments passed to \code{plot_growth_temperature_sensitivity()}.}
 }
 \value{
-NULL (creates plot)
+Called for its plotting side-effect. Invisibly returns \code{NULL}.
 }
 \description{
 Runs \code{analyze_growth_temperature_sensitivity} and plots the result.

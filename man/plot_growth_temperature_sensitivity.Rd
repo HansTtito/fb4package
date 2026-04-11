@@ -36,8 +36,38 @@ plot_growth_temperature_sensitivity(
 \item{...}{Additional arguments}
 }
 \value{
-NULL (creates plot)
+Called for its plotting side-effect. Invisibly returns \code{NULL}.
 }
 \description{
 Creates sensitivity analysis plots for temperature and feeding effects.
+}
+\examples{
+\donttest{
+data(fish4_parameters)
+sp   <- fish4_parameters[["Oncorhynchus tshawytscha"]]$life_stages$adult
+info <- fish4_parameters[["Oncorhynchus tshawytscha"]]$species_info
+bio  <- Bioenergetic(
+  species_params     = sp,
+  species_info       = info,
+  environmental_data = list(
+    temperature = data.frame(Day = 1:30, Temperature = rep(12, 30))
+  ),
+  diet_data = list(
+    proportions = data.frame(Day = 1:30, Prey1 = 1.0),
+    energies    = data.frame(Day = 1:30, Prey1 = 5000),
+    prey_names  = "Prey1"
+  ),
+  simulation_settings = list(initial_weight = 100, duration = 30)
+)
+bio$species_params$predator$ED_ini <- 5000
+bio$species_params$predator$ED_end <- 5500
+sens_data <- analyze_growth_temperature_sensitivity(
+  bio_obj         = bio,
+  temperatures    = c(10, 14),
+  p_values        = c(0.4, 0.7),
+  simulation_days = 30,
+  verbose         = FALSE
+)
+plot_growth_temperature_sensitivity(sens_data, species = "Chinook")
+}
 }

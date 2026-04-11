@@ -16,8 +16,16 @@ validate_positive(value, param_name, strategy = "strict", min_val = 0.001)
 \item{min_val}{Minimum positive value (default 0.001)}
 }
 \value{
-Validation result
+An object of class \code{fb4_validation} (see
+  \code{\link{validation_result}}). \code{valid} is \code{TRUE} when all
+  values are \eqn{\ge} \code{min_val}. Violations are recorded in
+  \code{errors} (\code{strategy = "strict"}) or \code{warnings}
+  (\code{strategy = "warn"}).
 }
 \description{
 Specialized validator for positive numeric values.
+}
+\examples{
+validate_positive(5, "weight")
+validate_positive(0, "weight")$valid
 }

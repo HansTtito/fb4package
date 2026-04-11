@@ -14,8 +14,16 @@ calculate_predator_energy_density(weight, day = 1, processed_predator_params)
 \item{processed_predator_params}{List with processed predator parameters}
 }
 \value{
-Energy density (J/g)
+A numeric scalar giving the predator energy density in J per g fish,
+  calculated according to \code{processed_predator_params$PREDEDEQ}
+  (1 = interpolated daily data; 2 = piecewise linear by weight;
+  3 = power function of weight).
 }
 \description{
 Main energy density calculation function called from simulation loop
+}
+\examples{
+# PREDEDEQ 3: power function of weight
+params <- list(PREDEDEQ = 3, Alpha1 = 4800, Beta1 = 0.1)
+calculate_predator_energy_density(weight = 100, processed_predator_params = params)
 }

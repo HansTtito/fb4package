@@ -10,9 +10,21 @@ validate_bioenergetic_for_simulation(bio_obj)
 \item{bio_obj}{Bioenergetic object}
 }
 \value{
-List with validation results
+A named list with four elements: \code{valid} (logical),
+  \code{errors} (character vector), \code{warnings} (character vector),
+  and \code{ready_to_run} (logical, \code{TRUE} only when \code{valid} is
+  \code{TRUE}). Errors are accumulated across all sub-checks (structure,
+  species equations, temperature data, diet data, initial weight) rather
+  than stopping at the first failure.
 }
 \description{
 Validates a Bioenergetic object before simulation, checking all required
 components with comprehensive error accumulation.
+}
+\examples{
+\donttest{
+# Requires a fully-configured Bioenergetic object; see ?Bioenergetic
+# result <- validate_bioenergetic_for_simulation(bio)
+# result$valid
+}
 }

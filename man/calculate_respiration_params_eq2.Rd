@@ -19,3 +19,4 @@ List with RY, RZ, RX
 \description{
 Calculates derived parameters needed for temperature equation 2
 }
+\keyword{internal}

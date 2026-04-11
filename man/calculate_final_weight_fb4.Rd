@@ -24,8 +24,24 @@ calculate_final_weight_fb4(
 \item{day}{Current day}
 }
 \value{
-List with final weight and change
+A named list with three elements:
+  \describe{
+    \item{final_weight}{Numeric scalar. Fish weight (g) at end of day,
+      after accounting for net energy and reproductive losses. Minimum
+      value is \code{0.01} g.}
+    \item{final_energy_density}{Numeric scalar. Energy density (J/g)
+      corresponding to \code{final_weight}.}
+    \item{weight_change}{Numeric scalar. Change in weight (g) during the
+      day (\code{final_weight - initial_weight}); negative values indicate
+      weight loss.}
+  }
 }
 \description{
 Main function for calculating final weight from energy balance
+}
+\examples{
+# PREDEDEQ 3: power function, positive net energy (weight gain)
+params <- list(PREDEDEQ = 3, Alpha1 = 4800, Beta1 = 0.1)
+calculate_final_weight_fb4(initial_weight = 100, net_energy = 500,
+                           processed_predator_params = params)
 }

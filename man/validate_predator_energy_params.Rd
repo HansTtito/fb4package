@@ -12,8 +12,18 @@ validate_predator_energy_params(predator_params, weight_range = c(1, 1000))
 \item{weight_range}{Weight range for testing}
 }
 \value{
-List with validation results
+A named list with three elements: \code{valid} (logical),
+  \code{errors} (character vector), and \code{warnings} (character
+  vector). \code{valid} is \code{FALSE} if \code{PREDEDEQ} is not 1--3,
+  if parameter calculations fail, or if required parameters are missing.
+  \code{warnings} may flag energy densities outside the typical
+  1000--15000 J/g range.
 }
 \description{
 Validate predator energy density parameters
+}
+\examples{
+validate_predator_energy_params(
+  list(PREDEDEQ = 3, Alpha1 = 4800, Beta1 = 0.1)
+)
 }

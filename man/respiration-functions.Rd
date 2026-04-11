@@ -3,6 +3,9 @@
 \name{respiration-functions}
 \alias{respiration-functions}
 \title{Respiration Functions for FB4 Model}
+\value{
+No return value; this page documents the respiration functions module. See individual function documentation for return values.
+}
 \description{
 Functions implementing the two respiration temperature-dependence equations
 (REQ 1–2), activity correction, and conversion of oxygen consumption to
@@ -27,10 +30,12 @@ Oxygen consumption is converted to energy using the oxycalorific coefficient
 Kitchell, J.F., Stewart, D.J. and Weininger, D. (1977). Applications of a
 bioenergetics model to yellow perch and walleye.
 \emph{Journal of the Fisheries Research Board of Canada}, 34(10), 1922–1935.
+\doi{10.1139/f77-258}
 
 Elliott, J.M. and Davison, W. (1975). Energy equivalents of oxygen consumption
 in animal energetics.
 \emph{Oecologia}, 19(3), 195–201.
+\doi{10.1007/BF00345305}
 
 Hanson, P.C., Johnson, T.B., Schindler, D.E. and Kitchell, J.F. (1997).
 \emph{Fish Bioenergetics 3.0}. University of Wisconsin Sea Grant Institute,

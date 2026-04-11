@@ -16,8 +16,19 @@ process_simulation_settings(settings, first_day, last_day, oxycal = 13560)
 \item{oxycal}{Oxycalorific coefficient (J/g O2), default 13560}
 }
 \value{
-Processed simulation settings
+A named list with ten elements: \code{initial_weight} (numeric,
+  g), \code{duration} (integer, days), \code{first_day}, \code{last_day},
+  \code{oxycal} (numeric, J/g O2), \code{output_frequency} (integer),
+  \code{save_daily_details} (logical), \code{tolerance} (numeric),
+  \code{max_iterations} (integer), \code{step_size} (numeric), and four
+  logical flags: \code{calculate_composition}, \code{calculate_contaminants},
+  \code{calculate_nutrients}, \code{track_mortality}.
 }
 \description{
 Process simulation settings
+}
+\examples{
+settings <- list(initial_weight = 100, p_value = 0.5,
+                 fit_to = "Weight", fit_value = 200)
+process_simulation_settings(settings, first_day = 1, last_day = 365)
 }

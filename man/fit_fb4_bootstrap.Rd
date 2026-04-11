@@ -46,7 +46,8 @@ fit_fb4_bootstrap(
 List with bootstrap fitting results including consumption and predicted weights
 }
 \description{
-Coordinates bootstrap fitting process for final weight data.
-Now uses shared commons functions and run_final_simulation for consistency.
+Coordinates the bootstrap fitting process: runs the resampling loop via
+\code{bootstrap_p_values}, computes summary statistics and confidence
+intervals, and runs a final detailed simulation with the mean p_value.
 }
 \keyword{internal}

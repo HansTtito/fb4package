@@ -1,5 +1,26 @@
 #' Simulation Engine for FB4 Model
 #'
+#' @description
+#' Core daily simulation loop for the Fish Bioenergetics 4.0 model.
+#' The main entry point is \code{\link{run_fb4_simulation}}, which iterates
+#' over each simulated day calling low-level helpers for consumption
+#' (\code{calculate_daily_consumption}), metabolic losses
+#' (\code{calculate_daily_metabolism}), spawning costs
+#' (\code{calculate_daily_spawn_energy}), and weight change
+#' (\code{calculate_daily_weight_change}). Consumption can be specified
+#' as a proportion of maximum (\code{p_value}), a percentage of body weight
+#' (\code{ration_percent}), or absolute grams per day (\code{ration_grams}).
+#'
+#' @references
+#' Hanson, P.C., Johnson, T.B., Schindler, D.E. and Kitchell, J.F. (1997).
+#' \emph{Fish Bioenergetics 3.0}. University of Wisconsin Sea Grant Institute,
+#' Madison, WI.
+#'
+#' Deslauriers, D., Chipps, S.R., Breck, J.E., Rice, J.A. and Madenjian, C.P.
+#' (2017). Fish Bioenergetics 4.0: An R-based modeling application.
+#' \emph{Fisheries}, 42(11), 586–596. \doi{10.1080/03632415.2017.1377558}
+#'
+#' @return No return value; this page documents the simulation engine functions module. See individual function documentation for return values.
 #' @name simulation-engine
 #' @aliases simulation-engine
 NULL
@@ -337,7 +358,40 @@ execute_daily_simulation <- function(day, current_weight, consumption_method,
 #' @param oxycal Oxycalorific coefficient (J/g O2), default 13560
 #' @param output_daily Whether to save daily outputs, default TRUE
 #' @param verbose Whether to show progress messages, default FALSE
-#' @return List with simulation results
+#' @return A named list with up to eleven elements:
+#'   \describe{
+#'     \item{initial_weight}{Numeric. Starting fish weight (g).}
+#'     \item{final_weight}{Numeric. Fish weight at end of simulation (g);
+#'       minimum 0.01 g.}
+#'     \item{weight_change}{Numeric. Net change in weight (g).}
+#'     \item{relative_growth}{Numeric. Relative growth as percentage of
+#'       initial weight.}
+#'     \item{total_consumption_g}{Numeric. Cumulative consumption over all
+#'       simulated days (g prey).}
+#'     \item{total_consumption}{Numeric. Alias for \code{total_consumption_g}
+#'       (retained for backward compatibility).}
+#'     \item{simulation_days}{Integer. Number of days actually simulated;
+#'       may be less than the full duration if mortality occurs.}
+#'     \item{method}{List. The \code{consumption_method} supplied by the
+#'       caller.}
+#'     \item{simulation_completed}{Logical. \code{TRUE} if the simulation ran
+#'       for all requested days without early termination.}
+#'     \item{mortality_occurred}{Logical. \code{TRUE} if fish weight fell to
+#'       or below 0.01 g during the simulation.}
+#'     \item{daily_output}{A \code{data.frame} with one row per simulated day
+#'       containing temperature, consumption, respiration, egestion, excretion,
+#'       net energy, weight, and energy density. Only present when
+#'       \code{output_daily = TRUE}.}
+#'   }
+#' @examples
+#' \donttest{
+#' # Requires processed simulation data; see ?prepare_simulation_data
+#' # sim <- run_fb4_simulation(
+#' #   consumption_method = list(type = "p_value", value = 0.5),
+#' #   processed_simulation_data = sim_data
+#' # )
+#' # sim$final_weight
+#' }
 #' @export
 run_fb4_simulation <- function(consumption_method, processed_simulation_data, 
                                oxycal = 13560, output_daily = TRUE, verbose = FALSE) {
@@ -492,7 +546,7 @@ report_simulation_summary <- function(final_weight, initial_weight, total_consum
 convert_daily_results_to_dataframe <- function(daily_results) {
   
   # Extract vectors from daily results
-  n_days <- length(daily_results)
+  # n_days <- length(daily_results)
   
   data.frame(
     Day = vapply(daily_results, `[[`, numeric(1), "day"),

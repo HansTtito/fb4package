@@ -1,10 +1,26 @@
 #' Parameter Validation Functions for FB4
 #'
 #' @description
-#' Reorganized and optimized versions of your parameter validation functions.
-#' Maintains original interfaces while using core validators internally
-#' to eliminate code duplication.
+#' Parameter validation functions built on top of the core validators in
+#' \code{\link{core-validators}}. Covers species-equation validation
+#' (\code{\link{validate_species_equations}}), predator energy density
+#' (\code{\link{validate_predator_energy_params}}), contaminant parameters
+#' (\code{\link{validate_contaminant_params}}), nutrient concentrations
+#' (\code{\link{validate_nutrient_concentrations}}), and body composition
+#' (\code{\link{validate_body_composition}}). A central
+#' \code{EQUATION_REQUIREMENTS} registry stores the required parameters and
+#' valid ranges for each bioenergetic equation.
 #'
+#' @references
+#' Hanson, P.C., Johnson, T.B., Schindler, D.E. and Kitchell, J.F. (1997).
+#' \emph{Fish Bioenergetics 3.0}. University of Wisconsin Sea Grant Institute,
+#' Madison, WI.
+#'
+#' Deslauriers, D., Chipps, S.R., Breck, J.E., Rice, J.A. and Madenjian, C.P.
+#' (2017). Fish Bioenergetics 4.0: An R-based modeling application.
+#' \emph{Fisheries}, 42(11), 586–596. \doi{10.1080/03632415.2017.1377558}
+#'
+#' @return No return value; this page documents the parameter validation functions module. See individual function documentation for return values.
 #' @name parameter-validators
 #' @aliases parameter-validators
 NULL
@@ -262,7 +278,20 @@ EQUATION_REQUIREMENTS <- list(
 #' Main function to validate all species equations
 #'
 #' @param species_params List with all species parameters
-#' @return List with comprehensive validation results
+#' @return A named list with four elements: \code{valid} (logical),
+#'   \code{errors} (character vector), \code{warnings} (character vector),
+#'   and \code{category_results} (named list with one validation result per
+#'   bioenergetic category checked).
+#' @examples
+#' sp <- list(
+#'   consumption = list(CEQ = 1, CA = 0.303, CB = -0.275, CQ = 0.06),
+#'   respiration = list(REQ = 2, RA = 0.0033, RB = -0.227,
+#'                      RQ = 0.025, RTM = 30, RTO = 18),
+#'   egestion    = list(EGEQ = 1, FA = 0.16),
+#'   excretion   = list(EXEQ = 1, UA = 0.10),
+#'   predator    = list(PREDEDEQ = 3, Alpha1 = 4800, Beta1 = 0.1)
+#' )
+#' validate_species_equations(sp)$valid
 #' @export
 validate_species_equations <- function(species_params) {
   
@@ -559,7 +588,16 @@ validate_parameter_ranges <- function(params, validations, category) {
 #'
 #' @param predator_params List with parameters
 #' @param weight_range Weight range for testing
-#' @return List with validation results
+#' @return A named list with three elements: \code{valid} (logical),
+#'   \code{errors} (character vector), and \code{warnings} (character
+#'   vector). \code{valid} is \code{FALSE} if \code{PREDEDEQ} is not 1--3,
+#'   if parameter calculations fail, or if required parameters are missing.
+#'   \code{warnings} may flag energy densities outside the typical
+#'   1000--15000 J/g range.
+#' @examples
+#' validate_predator_energy_params(
+#'   list(PREDEDEQ = 3, Alpha1 = 4800, Beta1 = 0.1)
+#' )
 #' @export
 validate_predator_energy_params <- function(predator_params, weight_range = c(1, 1000)) {
   
@@ -633,7 +671,16 @@ validate_predator_energy_params <- function(predator_params, weight_range = c(1,
 #' Validate contaminant parameters
 #'
 #' @param contaminant_params List with parameters
-#' @return List with validation results
+#' @return A named list with three elements: \code{valid} (logical),
+#'   \code{errors} (character vector), and \code{warnings} (character
+#'   vector). \code{valid} is \code{FALSE} if \code{CONTEQ} is not 1--3 or
+#'   if prey concentrations or efficiency values fail range checks.
+#' @examples
+#' validate_contaminant_params(list(
+#'   CONTEQ = 1,
+#'   prey_concentrations = c(0.05, 0.08),
+#'   transfer_efficiency = c(0.8, 0.8)
+#' ))$valid
 #' @export
 validate_contaminant_params <- function(contaminant_params) {
   
@@ -712,7 +759,16 @@ validate_contaminant_params <- function(contaminant_params) {
 #'
 #' @param nutrient_concentrations List with N and P concentrations
 #' @param organism_type Organism type for validation
-#' @return List with validation results
+#' @return A named list with three elements: \code{valid} (logical),
+#'   \code{errors} (character vector), and \code{warnings} (character
+#'   vector). \code{warnings} are issued when N or P concentrations fall
+#'   outside the typical range for the specified \code{organism_type} or when
+#'   the N:P mass ratio is outside 2--20.
+#' @examples
+#' validate_nutrient_concentrations(list(
+#'   nitrogen   = 0.030,
+#'   phosphorus = 0.004
+#' ))$valid
 #' @export
 validate_nutrient_concentrations <- function(nutrient_concentrations, organism_type = "fish") {
   
@@ -807,7 +863,19 @@ validate_nutrient_concentrations <- function(nutrient_concentrations, organism_t
 #' Validate body composition
 #'
 #' @param composition Body composition list
-#' @return List with validation results
+#' @return A named list with three elements: \code{valid} (logical),
+#'   \code{errors} (character vector), and \code{warnings} (character
+#'   vector). \code{valid} is \code{FALSE} if required composition fields are
+#'   missing or if fractions do not sum to approximately 1. \code{warnings}
+#'   are issued when individual fractions fall outside typical biological
+#'   ranges for fish.
+#' @examples
+#' comp <- calculate_body_composition(
+#'   weight = 100,
+#'   processed_composition_params = list(water_fraction = 0.72,
+#'     fat_energy = 36450, protein_energy = 17990, max_fat_fraction = 0.30)
+#' )
+#' validate_body_composition(comp)$valid
 #' @export
 validate_body_composition <- function(composition) {
   

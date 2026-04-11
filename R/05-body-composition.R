@@ -1,5 +1,21 @@
 #' Body Composition Functions for FB4 Model
 #'
+#' @description
+#' Functions for estimating and updating fish body composition (water, protein,
+#' ash, fat) and energy density from total wet weight. Composition is estimated
+#' via the allometric regressions of Breck (2014):
+#'
+#' \deqn{\log_{10}(\text{Component}) = \alpha + \beta \cdot \log_{10}(H_2O)}
+#'
+#' Fat is obtained by subtraction and bounded to biologically plausible limits.
+#' Energy density is computed as a weighted sum of fat and protein energy
+#' contents (J/g).
+#'
+#' @references
+#' Breck, J.E. (2014). Body composition in fishes: body size matters.
+#' \emph{Aquaculture}, 433, 40–49. \doi{10.1016/j.aquaculture.2014.05.049}
+#'
+#' @return No return value; this page documents the body composition functions module. See individual function documentation for return values.
 #' @name body-composition
 #' @aliases body-composition
 NULL
@@ -29,6 +45,9 @@ calculate_component_from_water <- function(water_content, component_type) {
     # N = 101, r² = 0.9932
     intercept <- -1.6765
     slope <- 1.0384
+  } else {
+    stop("calculate_component_from_water: unknown component_type '", component_type,
+         "'. Must be \"protein\" or \"ash\".", call. = FALSE)
   }
   
   # log10(Component) = intercept + slope * log10(H2O)
@@ -79,7 +98,33 @@ calculate_energy_density <- function(fat_content, protein_content, total_weight,
 #'
 #' @param weight Total wet weight (g)
 #' @param processed_composition_params List with processed composition parameters
-#' @return List with complete body composition
+#' @return A named list with 13 elements describing the body composition:
+#'   \describe{
+#'     \item{total_weight}{Numeric. Total wet weight (g), equal to \code{weight}.}
+#'     \item{water_g}{Numeric. Water content (g).}
+#'     \item{protein_g}{Numeric. Protein content (g), estimated from water via
+#'       Breck (2014) regression.}
+#'     \item{ash_g}{Numeric. Ash content (g), estimated from water via Breck
+#'       (2014) regression.}
+#'     \item{fat_g}{Numeric. Fat content (g), calculated by subtraction and
+#'       bounded to \code{[0, max_fat_fraction * weight]}.}
+#'     \item{water_fraction}{Numeric. Water as a fraction of total weight.}
+#'     \item{protein_fraction}{Numeric. Protein as a fraction of total weight.}
+#'     \item{ash_fraction}{Numeric. Ash as a fraction of total weight.}
+#'     \item{fat_fraction}{Numeric. Fat as a fraction of total weight.}
+#'     \item{energy_density}{Numeric. Energy density (J/g wet weight).}
+#'     \item{total_energy}{Numeric. Total body energy (J).}
+#'     \item{total_fraction}{Numeric. Sum of all four fractions; should be
+#'       close to 1.}
+#'     \item{balanced}{Logical. \code{TRUE} if \code{total_fraction} is within
+#'       0.05 of 1.}
+#'   }
+#'   Returns \code{\link{create_empty_composition}()} when \code{weight <= 0}.
+#' @examples
+#' params <- list(water_fraction = 0.72, fat_energy = 36450,
+#'                protein_energy = 17990, max_fat_fraction = 0.30)
+#' calculate_body_composition(weight = 100,
+#'                            processed_composition_params = params)
 #' @export
 calculate_body_composition <- function(weight, processed_composition_params) {
   
@@ -171,7 +216,21 @@ calculate_body_composition <- function(weight, processed_composition_params) {
 #' @param new_weight New weight (g)
 #' @param old_composition Previous composition (optional)
 #' @param processed_composition_params List with processed composition parameters
-#' @return New body composition
+#' @return A named list with the same 13 elements as
+#'   \code{\link{calculate_body_composition}}, describing the body composition
+#'   at \code{new_weight}. If \code{old_composition} is supplied, an additional
+#'   element \code{changes} is appended — a named list with five numeric
+#'   scalars: \code{weight_change}, \code{water_change}, \code{protein_change},
+#'   \code{fat_change}, and \code{energy_density_change} (all in the same units
+#'   as the corresponding composition elements).
+#' @examples
+#' params <- list(water_fraction = 0.72, fat_energy = 36450,
+#'                protein_energy = 17990, max_fat_fraction = 0.30)
+#' old <- calculate_body_composition(weight = 100,
+#'                                   processed_composition_params = params)
+#' update_body_composition(old_weight = 100, new_weight = 110,
+#'                         old_composition = old,
+#'                         processed_composition_params = params)
 #' @export
 update_body_composition <- function(old_weight, new_weight, old_composition = NULL,
                                     processed_composition_params) {
@@ -193,4 +252,3 @@ update_body_composition <- function(old_weight, new_weight, old_composition = NU
   
   return(new_composition)
 }
-

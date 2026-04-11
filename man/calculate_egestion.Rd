@@ -21,8 +21,19 @@ calculate_egestion(
 \item{processed_egestion_params}{List with processed egestion parameters}
 }
 \value{
-Egestion (J/g)
+A non-negative numeric scalar giving the daily egestion rate in
+  J per g fish per day. Returns \code{0} when \code{consumption} is zero.
+  The equation used depends on \code{processed_egestion_params$EGEQ}
+  (1 = constant fraction; 2-3 = temperature- and ration-dependent;
+  4 = temperature-dependent only). The result is always capped at
+  \code{consumption} (egestion cannot exceed intake).
 }
 \description{
 Main egestion calculation function called from simulation loop
+}
+\examples{
+# EGEQ 1: constant fraction of consumption
+params <- list(EGEQ = 1, FA = 0.16)
+calculate_egestion(consumption = 5.0, temperature = 15, p_value = 0.5,
+                   processed_egestion_params = params)
 }

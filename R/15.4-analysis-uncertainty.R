@@ -1,9 +1,22 @@
 #' FB4 Uncertainty Propagation Functions
 #'
 #' @description
-#' Functions for propagating parameter uncertainty to consumption predictions
-#' using both delta method (analytical) and bootstrap (simulation-based) approaches.
+#' Functions for propagating \emph{p}-value uncertainty to consumption
+#' predictions using two approaches: the delta method
+#' (\code{predict_consumption_delta}), which applies a first-order Taylor
+#' series approximation and is efficient when the consumption-p relationship
+#' is approximately linear; and a parametric bootstrap
+#' (\code{predict_consumption_bootstrap}), which samples from the estimated
+#' p-value distribution, runs a full FB4 simulation for each sample, and
+#' derives the full consumption uncertainty distribution without linearity
+#' assumptions.
 #'
+#' @references
+#' Deslauriers, D., Chipps, S.R., Breck, J.E., Rice, J.A. and Madenjian, C.P.
+#' (2017). Fish Bioenergetics 4.0: An R-based modeling application.
+#' \emph{Fisheries}, 42(11), 586–596. \doi{10.1080/03632415.2017.1377558}
+#'
+#' @return No return value; this page documents the uncertainty and prediction functions. See individual function documentation for return values.
 #' @name uncertainty-prediction
 #' @aliases uncertainty-prediction
 NULL
@@ -55,14 +68,10 @@ NULL
 #' )
 #' bio$species_params$predator$ED_ini <- 5000
 #' bio$species_params$predator$ED_end <- 5500
-#' set.seed(42)
-#' obs_weights <- rnorm(10, mean = 90, sd = 5)
-#' mle_result <- run_fb4(bio, strategy = "mle", fit_to = "Weight",
-#'                       observed_weights = obs_weights, verbose = FALSE)
 #' uncertainty_result <- predict_consumption_delta(
-#'   p_est   = mle_result$summary$p_value,
-#'   p_se    = mle_result$summary$p_se,
-#'   bio_obj = bio,
+#'   p_est    = 0.5,
+#'   p_se     = 0.05,
+#'   bio_obj  = bio,
 #'   last_day = 30
 #' )
 #' }
@@ -91,12 +100,14 @@ predict_consumption_delta <- function(p_est, p_se, bio_obj, delta_size = 0.001,
   }
   
   # Validation
-  if (p_est <= 0 || p_est > 5) {
-    stop("p_est must be between 0 and 5")
+  if (is.na(p_est) || p_est <= 0 || p_est > 5) {
+    stop("p_est must be a finite value between 0 and 5")
   }
   
-  if (p_se <= 0) {
-    stop("p_se must be positive")
+  if (is.na(p_se) || p_se <= 0) {
+    stop("p_se must be a positive finite value. ",
+         "The fitted result may not provide a standard error (e.g. R-backend MLE ",
+         "without a converged Hessian). Use predict_consumption_bootstrap() instead.")
   }
   
   if (delta_size <= 0 || delta_size >= 0.1) {

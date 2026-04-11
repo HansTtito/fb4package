@@ -1,5 +1,20 @@
 #' Direct Strategies for FB4 Model
 #'
+#' @description
+#' Implements the \code{"direct"} FB4 execution strategy, which runs a single
+#' simulation with a user-supplied value instead of searching for an optimal
+#' parameter. Three input modes are supported: \code{"p_value"} (proportion of
+#' maximum consumption, 0–5), \code{"ration_percent"} (percentage of body
+#' weight per day, 0–100), and \code{"ration_grams"} (absolute daily ration
+#' in grams). The strategy is instantiated by \code{create_direct_strategy}
+#' and executed by \code{run_fb4_direct_method}.
+#'
+#' @references
+#' Deslauriers, D., Chipps, S.R., Breck, J.E., Rice, J.A. and Madenjian, C.P.
+#' (2017). Fish Bioenergetics 4.0: An R-based modeling application.
+#' \emph{Fisheries}, 42(11), 586–596. \doi{10.1080/03632415.2017.1377558}
+#'
+#' @return No return value; this page documents the direct p-value strategy functions. See individual function documentation for return values.
 #' @name strategy-direct
 #' @aliases strategy-direct
 NULL
@@ -121,8 +136,8 @@ create_direct_strategy <- function(execution_plan, direct_type) {
 #' Run FB4 with direct method
 #' 
 #' @description
-#' Execute FB4 simulation directly with specified method and value.
-#' Now uses shared commons functions for consistency.
+#' Execute FB4 simulation directly with a specified method and value,
+#' returning the full daily output.
 #'
 #' @param method_type Method type ("p_value", "ration_percent", "ration_grams")
 #' @param method_value Method-specific value

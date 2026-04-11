@@ -1,10 +1,28 @@
 #' FB4 TMB Shared Functions
 #'
 #' @description
-#' Core TMB functions shared between basic and hierarchical models.
-#' Includes optimization, result extraction, profiling, and utility functions.
+#' Internal helper functions shared by the TMB-based MLE and hierarchical
+#' fitting strategies. Covers TMB objective validation
+#' (\code{validate_tmb_objective}), DLL availability checks
+#' (\code{check_tmb_compilation}), robust multi-start optimization
+#' (\code{run_robust_optimization}), parameter extraction from sdreport
+#' summaries (\code{sdr_pull_est}, \code{sdr_pull_se}, \code{sdr_pull_vec},
+#' \code{sdr_assign_scalars}), and result assembly for basic and hierarchical
+#' models (\code{extract_tmb_results}).
 #'
+#' @references
+#' Kristensen, K., Nielsen, A., Berg, C.W., Skaug, H. and Bell, B.M. (2016).
+#' TMB: Automatic differentiation and Laplace approximation.
+#' \emph{Journal of Statistical Software}, 70(5), 1–21.
+#' \doi{10.18637/jss.v070.i05}
+#'
+#' Deslauriers, D., Chipps, S.R., Breck, J.E., Rice, J.A. and Madenjian, C.P.
+#' (2017). Fish Bioenergetics 4.0: An R-based modeling application.
+#' \emph{Fisheries}, 42(11), 586–596. \doi{10.1080/03632415.2017.1377558}
+#'
+#' @return No return value; this page documents shared TMB backend functions. See individual function documentation for return values.
 #' @name FB4-TMB-Shared
+#' @aliases FB4-TMB-Shared
 NULL
 
 # ============================================================================
@@ -23,7 +41,7 @@ NULL
 #' @keywords internal
 sdr_pull_est <- function(sdr_summary, name) {
   idx <- which(rownames(sdr_summary) == name)
-  if (length(idx) > 0L) sdr_summary[idx[[1L]], "Estimate"] else NA_real_
+  return(if (length(idx) > 0L) sdr_summary[idx[[1L]], "Estimate"] else NA_real_)
 }
 
 #' Pull a scalar standard error from an sdreport summary
@@ -33,7 +51,7 @@ sdr_pull_est <- function(sdr_summary, name) {
 #' @keywords internal
 sdr_pull_se <- function(sdr_summary, name) {
   idx <- which(rownames(sdr_summary) == name)
-  if (length(idx) > 0L) sdr_summary[idx[[1L]], "Std. Error"] else NA_real_
+  return(if (length(idx) > 0L) sdr_summary[idx[[1L]], "Std. Error"] else NA_real_)
 }
 
 #' Pull a vector of estimates and SEs from an sdreport summary
@@ -79,7 +97,7 @@ sdr_assign_scalars <- function(results, sdr_summary, fields) {
     results[[paste0(nm, "_est")]] <- sdr_pull_est(sdr_summary, nm)
     results[[paste0(nm, "_se")]]  <- sdr_pull_se(sdr_summary, nm)
   }
-  results
+  return(results)
 }
 
 # ============================================================================
@@ -535,7 +553,7 @@ extract_basic_parameters <- function(results, params, obj, confidence_level, ver
   })
 
   # Extract ADREPORT values for basic model
-  adreport_vals <- extract_adreport_values(obj$report(), "basic")
+  # adreport_vals <- extract_adreport_values(obj$report(), "basic")
 
   # Extract ADREPORT values with uncertainty propagation
   tryCatch({
@@ -670,7 +688,7 @@ extract_hierarchical_parameters <- function(results, params, obj, confidence_lev
   })
   
   # Extract ADREPORT values for hierarchical model
-  adreport_vals <- extract_adreport_values(final_report, "hierarchical")
+  # adreport_vals <- extract_adreport_values(final_report, "hierarchical")
   
   # Extract ADREPORT values with uncertainty propagation for hierarchical model
   tryCatch({

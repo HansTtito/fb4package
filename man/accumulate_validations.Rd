@@ -12,9 +12,18 @@ accumulate_validations(..., level = "combined")
 \item{level}{Overall validation level for the combined result}
 }
 \value{
-Combined validation result
+An object of class \code{fb4_validation} (see
+  \code{\link{validation_result}}) representing the combined state of all
+  inputs. \code{valid} is \code{TRUE} only if all supplied results are
+  valid. \code{errors} and \code{warnings} are the concatenation of those
+  fields across all inputs.
 }
 \description{
 Combines multiple validation results into a single result,
 aggregating errors, warnings, and info messages.
+}
+\examples{
+r1 <- validation_result(valid = TRUE)
+r2 <- validation_result(valid = FALSE, errors = "value out of range")
+accumulate_validations(r1, r2)
 }

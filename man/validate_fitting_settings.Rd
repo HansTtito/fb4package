@@ -7,7 +7,17 @@
 validate_fitting_settings(settings)
 }
 \arguments{
-\item{settings}{Processed simulation settings}
+\item{settings}{Processed simulation settings. Must be a list containing at
+least the elements \code{fit_to} (character) and \code{fit_value}
+(positive numeric).}
+}
+\value{
+Invisibly returns \code{TRUE} if the settings are valid. Throws an
+  error with a descriptive message if \code{fit_to} is not one of the
+  accepted options (\code{"Weight"}, \code{"Consumption"}, \code{"Ration"},
+  \code{"Ration_prey"}, \code{"p_value"}) or if \code{fit_value} is not a
+  positive number. May also emit warnings for biologically unusual values
+  (e.g. very low target weight, or a \code{p_value} greater than 5).
 }
 \description{
 Validates processed simulation settings before execution.

@@ -1,10 +1,21 @@
 #' Basic Validation Functions for FB4
 #'
 #' @description
-#' Optimized versions of basic validation and mathematical functions.
-#' These functions maintain their original interfaces while using
-#' core validators internally to eliminate code duplication.
+#' Basic validation and utility functions built on top of the core
+#' validators in \code{\link{core-validators}}. They cover four
+#' common needs: scalar numeric validation
+#' (\code{\link{check_numeric_value}}), fundamental model-parameter
+#' feasibility (\code{\link{validate_basic_params}}), a safe fallback
+#' empty-composition constructor (\code{\link{create_empty_composition}}),
+#' and time-series structural checks
+#' (\code{\link{validate_time_series_data}}).
 #'
+#' @references
+#' Deslauriers, D., Chipps, S.R., Breck, J.E., Rice, J.A. and Madenjian, C.P.
+#' (2017). Fish Bioenergetics 4.0: An R-based modeling application.
+#' \emph{Fisheries}, 42(11), 586–596. \doi{10.1080/03632415.2017.1377558}
+#'
+#' @return No return value; this page documents the basic validation functions module. See individual function documentation for return values.
 #' @name basic-validators
 #' @aliases basic-validators
 NULL
@@ -23,8 +34,11 @@ NULL
 #' @param name Parameter name for error messages
 #' @param min_val Minimum allowed value (default -Inf)
 #' @param max_val Maximum allowed value (default Inf)
-#' @return Validated numeric value(s)
-#' 
+#' @return The original \code{value} (numeric, same length as input),
+#'   returned unchanged when all checks pass. Throws an error if \code{value}
+#'   is \code{NULL}, non-numeric, contains non-finite elements (\code{NA},
+#'   \code{NaN}, \code{Inf}), or falls outside \code{[min_val, max_val]}.
+#'
 #' @details
 #' Performs essential validations:
 #' \itemize{
@@ -33,9 +47,7 @@ NULL
 #'   \item{Finite values (no NA, NaN, Inf)}
 #'   \item{Within specified range}
 #' }
-#' 
-#' @keywords internal
-#' 
+#'
 #' @examples
 #' check_numeric_value(5, "weight")
 #' try(check_numeric_value(-1, "weight", min_val = 0))
@@ -89,8 +101,6 @@ check_numeric_value <- function(value, name, min_val = -Inf, max_val = Inf) {
 #'   \item{Duration is not excessively long (performance warning)}
 #' }
 #'
-#' @keywords internal
-#'
 #' @examples
 #' isTRUE(validate_basic_params(10.5, 365))
 #' try(validate_basic_params(-5, 100))
@@ -120,8 +130,15 @@ validate_basic_params <- function(initial_weight, duration) {
 
 #' Create empty composition for invalid inputs (Utility)
 #'
-#' @return Empty composition list
-#' @keywords internal
+#' @return A named list with 13 numeric/logical elements, all set to zero or
+#'   \code{FALSE}: \code{total_weight}, \code{water_g}, \code{protein_g},
+#'   \code{ash_g}, \code{fat_g}, \code{water_fraction}, \code{protein_fraction},
+#'   \code{ash_fraction}, \code{fat_fraction}, \code{energy_density},
+#'   \code{total_energy}, \code{total_fraction} (all \code{0}), and
+#'   \code{balanced} (\code{FALSE}). Used as a safe fallback when fish weight
+#'   is zero or negative.
+#' @examples
+#' create_empty_composition()
 #' @export
 create_empty_composition <- function() {
   return(list(
@@ -134,7 +151,7 @@ create_empty_composition <- function() {
 }
 
 # ============================================================================
-# SPECIALIZED BASIC VALIDATORS (using your patterns)
+# SPECIALIZED BASIC VALIDATORS
 # ============================================================================
 
 #' Validate Time Series Data Structure (Basic Level)
@@ -157,8 +174,6 @@ create_empty_composition <- function() {
 #'   \item{Day column validation (numeric, finite, ascending)}
 #'   \item{Duplicate detection}
 #' }
-#'
-#' @keywords internal
 #'
 #' @examples
 #' temp_data <- data.frame(Day = 1:10, Temperature = 15:24)

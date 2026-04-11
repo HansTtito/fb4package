@@ -10,8 +10,13 @@ process_excretion_params(excretion_params)
 \item{excretion_params}{Raw excretion parameters}
 }
 \value{
-Processed excretion parameters
+A list identical to \code{excretion_params} after validation. No
+  additional derived values are computed; the function ensures the
+  required parameters for the selected EXEQ are present and valid.
 }
 \description{
 Process excretion parameters
+}
+\examples{
+process_excretion_params(list(EXEQ = 1, UA = 0.10))
 }

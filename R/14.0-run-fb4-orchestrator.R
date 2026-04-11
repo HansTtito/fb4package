@@ -1,5 +1,24 @@
 #' FB4 Main Orchestrator
 #'
+#' @description
+#' Top-level entry point for running Fish Bioenergetics 4.0 simulations.
+#' \code{\link{run_fb4}} is an S3 generic that dispatches to
+#' \code{run_fb4.Bioenergetic}, which orchestrates input validation, backend
+#' selection (pure R or TMB), execution-plan construction, strategy dispatch,
+#' and result assembly. Supported strategies are \code{"direct"},
+#' \code{"binary_search"}, \code{"optim"}, \code{"mle"} (maximum likelihood),
+#' \code{"bootstrap"}, and \code{"hierarchical"}.
+#'
+#' @references
+#' Hanson, P.C., Johnson, T.B., Schindler, D.E. and Kitchell, J.F. (1997).
+#' \emph{Fish Bioenergetics 3.0}. University of Wisconsin Sea Grant Institute,
+#' Madison, WI.
+#'
+#' Deslauriers, D., Chipps, S.R., Breck, J.E., Rice, J.A. and Madenjian, C.P.
+#' (2017). Fish Bioenergetics 4.0: An R-based modeling application.
+#' \emph{Fisheries}, 42(11), 586–596. \doi{10.1080/03632415.2017.1377558}
+#'
+#' @return No return value; this page documents the simulation orchestration functions. See individual function documentation for return values.
 #' @name run-fb4-orchestrator
 #' @aliases run-fb4-orchestrator
 NULL
@@ -9,7 +28,7 @@ NULL
 # ============================================================================
 
 
-#' Run FB4 simulation on Bioenergetic object (REFACTORED)
+#' Run FB4 simulation on Bioenergetic object
 #'
 #' @description
 #' S3 method with automatic backend selection and bootstrap estimation.
@@ -49,17 +68,47 @@ NULL
 #' @param ... Additional arguments passed to strategy-specific functions
 #'   (e.g., \code{store_predicted_weights_boot} for bootstrap)
 #'
-#' @return An object of class \code{fb4_result} containing:
+#' @return An object of class \code{fb4_result}, a named list with four
+#'   elements:
 #'   \describe{
-#'     \item{\code{summary}}{Named list with \code{method}, \code{p_estimate},
-#'       \code{final_weight}, \code{total_consumption}, and method-specific fields
-#'       (\code{p_mean}, \code{p_sd}, confidence intervals, etc.)}
-#'     \item{\code{daily_output}}{Data frame with one row per simulation day:
-#'       \code{Day}, \code{Weight}, \code{Consumption_energy}, \code{Respiration},
-#'       \code{Egestion}, \code{Excretion}, \code{SDA}, \code{Net_energy}, etc.}
-#'     \item{\code{method_data}}{Method-specific data (bootstrap distributions,
-#'       MLE likelihood profile, etc.)}
+#'     \item{summary}{Named list with \code{method}, \code{p_estimate},
+#'       \code{final_weight}, \code{total_consumption}, and method-specific
+#'       fields (\code{p_mean}, \code{p_sd}, confidence intervals for MLE
+#'       and bootstrap, etc.).}
+#'     \item{daily_output}{A \code{data.frame} with one row per simulation
+#'       day containing \code{Day}, \code{Weight}, \code{Consumption_energy},
+#'       \code{Respiration}, \code{Egestion}, \code{Excretion}, \code{SDA},
+#'       \code{Net_energy}, \code{Energy_density}, and related columns.}
+#'     \item{method_data}{Method-specific auxiliary data: bootstrap
+#'       p-value distributions and percentiles, MLE likelihood profile,
+#'       or hierarchical population parameters, depending on
+#'       \code{strategy}.}
+#'     \item{bioenergetic_object}{The original \code{Bioenergetic} object
+#'       \code{x} supplied by the caller.}
 #'   }
+#' @examples
+#' \donttest{
+#' data(fish4_parameters)
+#' sp   <- fish4_parameters[["Oncorhynchus tshawytscha"]]$life_stages$adult
+#' info <- fish4_parameters[["Oncorhynchus tshawytscha"]]$species_info
+#' bio  <- Bioenergetic(
+#'   species_params     = sp,
+#'   species_info       = info,
+#'   environmental_data = list(
+#'     temperature = data.frame(Day = 1:30, Temperature = rep(12, 30))
+#'   ),
+#'   diet_data = list(
+#'     proportions = data.frame(Day = 1:30, Prey1 = 1.0),
+#'     energies    = data.frame(Day = 1:30, Prey1 = 5000),
+#'     prey_names  = "Prey1"
+#'   ),
+#'   simulation_settings = list(initial_weight = 100, duration = 30)
+#' )
+#' bio$species_params$predator$ED_ini <- 5000
+#' bio$species_params$predator$ED_end <- 5500
+#' result <- run_fb4(bio, strategy = "direct", p_value = 0.5, verbose = FALSE)
+#' result$summary$final_weight
+#' }
 #' @export
 run_fb4.Bioenergetic <- function(x, 
                                  fit_to = NULL, 
@@ -96,10 +145,6 @@ run_fb4.Bioenergetic <- function(x,
   if (!is.Bioenergetic(x)) {
     stop("x must be an object of class 'Bioenergetic'")
   }
-
-  # ============================================================================
-  # BASIC VALIDATION
-  # ============================================================================
   
   if (is.null(last_day)) {
     # Infer last_day from the bio object: use simulation duration if set,
@@ -216,13 +261,15 @@ run_fb4.Bioenergetic <- function(x,
 # ============================================================================
 
 
-#' Default run_fb4 method
+#' Run FB4 Simulation
 #'
 #' @description
-#' Generic function that dispatches to appropriate S3 method.
+#' Generic function that dispatches to \code{\link{run_fb4.Bioenergetic}}.
+#' Pass a \code{Bioenergetic} object as \code{x}; all other arguments are
+#' forwarded to the method.
 #'
-#' @param x Object to run FB4 simulation on
-#' @param ... Arguments passed to methods
+#' @param x A \code{Bioenergetic} object (see \code{\link{Bioenergetic}}).
+#' @param ... Arguments passed to \code{\link{run_fb4.Bioenergetic}}.
 #'
 #' @return An object of class \code{fb4_result}. See \code{\link{run_fb4.Bioenergetic}}
 #'   for full details of the return structure.
@@ -231,21 +278,14 @@ run_fb4 <- function(x, ...) {
   UseMethod("run_fb4")
 }
 
-#' Default method for run_fb4 (error)
-#'
 #' @description
-#' Default method that provides helpful error message.
+#' Default method — throws an informative error when \code{x} is not a
+#' \code{Bioenergetic} object.
 #'
-#' @param x Object of unsupported class
-#' @param ... Additional arguments
-#'
-#' @return No return value. Called for its side effect of stopping execution
-#'   with an informative error message when \code{x} is not a
-#'   \code{Bioenergetic} object.
+#' @return No return value. Stops with an informative error message.
+#' @rdname run_fb4
 #' @export
 run_fb4.default <- function(x, ...) {
   stop("run_fb4() is only supported for objects of class 'Bioenergetic'. ",
        "Use Bioenergetic() to create a proper Bioenergetic object.")
 }
-
-

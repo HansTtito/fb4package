@@ -3,7 +3,20 @@
 \name{strategy-commons}
 \alias{strategy-commons}
 \title{Strategy Commons for FB4 Model}
+\value{
+No return value; this page documents the common strategy utility functions. See individual function documentation for return values.
+}
 \description{
-Shared functions used across multiple FB4 strategies to eliminate code duplication.
-Consolidates execution, data preparation, and parameter extraction logic.
+Internal helper functions shared across all FB4 fitting strategies.
+Provides a unified simulation executor (\code{execute_simulation_with_method}),
+a common parameter extractor (\code{extract_strategy_parameters}),
+metadata helpers (\code{add_strategy_metadata}), a final-simulation runner
+(\code{run_final_simulation}), input validation
+(\code{validate_common_strategy_inputs}), and a standardised error-result
+constructor (\code{create_error_result}).
+}
+\references{
+Deslauriers, D., Chipps, S.R., Breck, J.E., Rice, J.A. and Madenjian, C.P.
+(2017). Fish Bioenergetics 4.0: An R-based modeling application.
+\emph{Fisheries}, 42(11), 586–596. \doi{10.1080/03632415.2017.1377558}
 }

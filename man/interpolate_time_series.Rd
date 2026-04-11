@@ -27,8 +27,20 @@ interpolate_time_series(
 \item{validate_input}{Validate input structure, default TRUE}
 }
 \value{
-Data frame with interpolated data
+A \code{data.frame} with one row per element of \code{target_days}.
+  The first column is \code{Day} (integer). Subsequent columns correspond
+  to \code{value_columns}, each containing the interpolated numeric values
+  at the requested days. \code{NA} values are resolved according to
+  \code{fill_na_method}: \code{"extend"} fills with the nearest valid
+  value, \code{"zero"} replaces with 0, and \code{"mean"} uses the
+  column mean.
 }
 \description{
 Interpolate time series with error handling
+}
+\examples{
+temp_data <- data.frame(Day = c(1, 100, 200, 365),
+                        Temperature = c(5, 15, 18, 7))
+interpolate_time_series(temp_data, value_columns = "Temperature",
+                        target_days = 1:365)
 }

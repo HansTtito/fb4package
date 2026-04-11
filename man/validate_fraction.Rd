@@ -24,8 +24,17 @@ validate_fraction(
 \item{allow_one}{Whether one is allowed}
 }
 \value{
-Validation result
+An object of class \code{fb4_validation} (see
+  \code{\link{validation_result}}). \code{valid} is \code{TRUE} when all
+  values lie within \eqn{[0, 1]} (or the bounds set by \code{allow_zero}
+  and \code{allow_one}). Out-of-range values are recorded in
+  \code{errors} (strategy \code{"strict"}) or \code{warnings}
+  (strategy \code{"warn"}).
 }
 \description{
 Specialized validator for fraction/proportion values.
+}
+\examples{
+validate_fraction(0.5, "diet_proportion")
+validate_fraction(c(0.3, 0.7), "fractions")
 }

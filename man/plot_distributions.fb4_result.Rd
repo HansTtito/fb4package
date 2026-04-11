@@ -18,7 +18,7 @@ plot_distributions.fb4_result(
 \item{show_individuals}{For hierarchical: show individual estimates, default TRUE}
 }
 \value{
-NULL (creates plot)
+Called for its plotting side-effect. Invisibly returns \code{NULL}.
 }
 \description{
 Shows distributions of parameters from bootstrap samples or 

@@ -10,8 +10,18 @@ validate_contaminant_params(contaminant_params)
 \item{contaminant_params}{List with parameters}
 }
 \value{
-List with validation results
+A named list with three elements: \code{valid} (logical),
+  \code{errors} (character vector), and \code{warnings} (character
+  vector). \code{valid} is \code{FALSE} if \code{CONTEQ} is not 1--3 or
+  if prey concentrations or efficiency values fail range checks.
 }
 \description{
 Validate contaminant parameters
+}
+\examples{
+validate_contaminant_params(list(
+  CONTEQ = 1,
+  prey_concentrations = c(0.05, 0.08),
+  transfer_efficiency = c(0.8, 0.8)
+))$valid
 }

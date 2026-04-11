@@ -12,7 +12,11 @@ validate_diet_consistency(diet_data, energy_data)
 \item{energy_data}{Data frame with prey energies}
 }
 \value{
-NULL (throws error if inconsistent)
+Invisibly returns \code{TRUE} if all checks pass. Throws an error
+  if prey columns differ between the two data frames, if any diet
+  proportion is negative, or if any prey energy is non-positive. Issues a
+  warning when diet row sums deviate from 1.0 by more than 0.1 or when
+  prey energies fall outside the typical 500--25000 J/g range.
 }
 \description{
 Validates consistency between diet composition and prey energy density data,

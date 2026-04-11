@@ -14,7 +14,16 @@ analyze_growth_patterns(result, individual_id = NULL, confidence_level = 0.95)
 \item{confidence_level}{Confidence level for intervals (default 0.95)}
 }
 \value{
-List with comprehensive growth analysis
+A named list with at minimum \code{method} (character),
+  \code{has_uncertainty} (logical), \code{individual_id}, and
+  \code{initial_weight} (numeric, g). The following growth metrics are
+  included as sub-lists each with \code{estimate}, \code{se}, \code{ci_lower},
+  and \code{ci_upper}: \code{final_weight} (g), \code{total_growth} (g),
+  and \code{relative_growth} (\%). When simulation duration is available,
+  \code{daily_growth_rate} (g/day) and \code{specific_growth_rate}
+  (\%/day) are appended. For fitted methods a \code{p_value} sub-list
+  (\code{estimate}, \code{se}) is also included; for hierarchical
+  population-level calls, \code{n_individuals} (integer) is added.
 }
 \description{
 Extracts and analyzes growth patterns from FB4 simulation results.

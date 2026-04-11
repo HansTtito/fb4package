@@ -33,7 +33,7 @@ binary_search_p_value(
 List with fitted p_value and convergence information
 }
 \description{
-Pure binary search algorithm for finding p_value that achieves target metric.
-Now uses shared simulation execution function.
+Pure binary search algorithm for finding the p_value that achieves
+a target metric (final weight or total consumption).
 }
 \keyword{internal}

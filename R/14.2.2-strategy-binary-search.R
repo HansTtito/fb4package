@@ -1,5 +1,24 @@
-#' Strategy-Binary-search for FB4 Model
+#' Binary Search Strategy for FB4 Model
 #'
+#' @description
+#' Implements the \code{"binary_search"} FB4 fitting strategy, which finds
+#' the proportion of maximum consumption (\emph{p}-value) that minimises the
+#' difference between a simulated metric and a user-supplied target. Supported
+#' fitting targets are \code{"Weight"} (final weight in g) and
+#' \code{"Consumption"} (total consumption in g). The strategy is instantiated
+#' by \code{create_binary_search_strategy}; the search algorithm itself is in
+#' \code{binary_search_p_value}, coordinated by \code{fit_fb4_binary_search}.
+#'
+#' @references
+#' Hanson, P.C., Johnson, T.B., Schindler, D.E. and Kitchell, J.F. (1997).
+#' \emph{Fish Bioenergetics 3.0}. University of Wisconsin Sea Grant Institute,
+#' Madison, WI.
+#'
+#' Deslauriers, D., Chipps, S.R., Breck, J.E., Rice, J.A. and Madenjian, C.P.
+#' (2017). Fish Bioenergetics 4.0: An R-based modeling application.
+#' \emph{Fisheries}, 42(11), 586–596. \doi{10.1080/03632415.2017.1377558}
+#'
+#' @return No return value; this page documents the binary search strategy functions. See individual function documentation for return values.
 #' @name strategy-binary-search
 #' @aliases strategy-binary-search
 NULL
@@ -112,8 +131,8 @@ create_binary_search_strategy <- function(execution_plan) {
 #' Binary search for optimal p_value
 #'
 #' @description
-#' Pure binary search algorithm for finding p_value that achieves target metric.
-#' Now uses shared simulation execution function.
+#' Pure binary search algorithm for finding the p_value that achieves
+#' a target metric (final weight or total consumption).
 #'
 #' @param target_value Target value (final weight or total consumption)
 #' @param fit_type Type of fitting ("weight" or "consumption")
@@ -193,8 +212,8 @@ binary_search_p_value <- function(target_value, fit_type, lower_bound, upper_bou
 #' Fit FB4 model using binary search
 #'
 #' @description
-#' Coordinates binary search fitting process for weight or consumption targets.
-#' Now uses shared commons functions to eliminate code duplication.
+#' Coordinates the binary search fitting process for weight or consumption
+#' targets, then runs a final detailed simulation with the optimal p_value.
 #'
 #' @param target_value Target value to fit
 #' @param fit_type Type of fitting ("weight" or "consumption")

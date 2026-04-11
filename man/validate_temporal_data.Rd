@@ -23,6 +23,15 @@ validate_temporal_data(
 
 \item{reproduction_data}{Reproduction vector}
 }
+\value{
+Invisibly returns \code{TRUE} if all temporal data pass validation.
+  Throws an error with a descriptive message if any input contains invalid
+  values (e.g. non-finite temperatures, diet proportions outside \eqn{[0,1]},
+  non-positive prey energies, or indigestible/reproduction fractions outside
+  \eqn{[0,1]}). May also emit warnings for values that are technically valid
+  but biologically unusual (e.g. extreme temperatures or very high annual
+  reproductive investment).
+}
 \description{
 Validates temporal data arrays for simulation readiness.
 }

@@ -3,6 +3,27 @@
 \name{parameter-processing}
 \alias{parameter-processing}
 \title{Parameter Processing Functions for FB4}
+\value{
+No return value; this page documents the parameter processing functions module. See individual function documentation for return values.
+}
 \description{
-Parameter Processing Functions for FB4
+Functions for validating, transforming, and enriching raw user-supplied
+species parameters before they are passed to the simulation engine.
+Each major bioenergetic category (consumption, respiration, egestion,
+excretion, predator energy density, contaminant, nutrient, mortality,
+body composition) has a dedicated processor that (i) checks that the
+required parameters for the chosen equation are present, (ii) computes
+derived values (e.g., \code{CX}/\code{CY}/\code{CZ} for CEQ 2, gill
+efficiency for CONTEQ 3), and (iii) fills missing optional parameters
+with documented defaults. The top-level entry point is
+\code{\link{process_species_parameters}}.
+}
+\references{
+Hanson, P.C., Johnson, T.B., Schindler, D.E. and Kitchell, J.F. (1997).
+\emph{Fish Bioenergetics 3.0}. University of Wisconsin Sea Grant Institute,
+Madison, WI.
+
+Deslauriers, D., Chipps, S.R., Breck, J.E., Rice, J.A. and Madenjian, C.P.
+(2017). Fish Bioenergetics 4.0: An R-based modeling application.
+\emph{Fisheries}, 42(11), 586–596. \doi{10.1080/03632415.2017.1377558}
 }

@@ -14,7 +14,17 @@ calculate_nutrient_balance(consumption, weight_gain, processed_nutrient_params)
 \item{processed_nutrient_params}{List with processed nutrient parameters}
 }
 \value{
-List with nutrient results (N and P ingestion, retention, excretion)
+A named list with three elements:
+  \describe{
+    \item{nitrogen}{Named list with six numeric scalars describing daily
+      nitrogen fluxes (g N/day): \code{consumed}, \code{assimilated},
+      \code{growth}, \code{excretion}, \code{egestion}, and
+      \code{assimilation_efficiency} (dimensionless fraction, 0--1).}
+    \item{phosphorus}{Same structure as \code{nitrogen} but for
+      phosphorus (g P/day).}
+    \item{weight_gain}{Numeric scalar. Predator weight gain (g/day),
+      as supplied.}
+  }
 }
 \description{
 Calculates daily nitrogen and phosphorus fluxes (ingestion, retention,
@@ -31,3 +41,16 @@ and TMB backend support) is planned for a future release. The API
 may change.
 }
 
+\examples{
+params <- list(
+  prey_n_concentrations     = c(0.025, 0.030),
+  prey_p_concentrations     = c(0.004, 0.005),
+  predator_n_concentration  = 0.030,
+  predator_p_concentration  = 0.004,
+  n_assimilation_efficiency = c(0.80, 0.80),
+  p_assimilation_efficiency = c(0.60, 0.60)
+)
+calculate_nutrient_balance(consumption = c(2.0, 1.0),
+                           weight_gain = 0.5,
+                           processed_nutrient_params = params)
+}

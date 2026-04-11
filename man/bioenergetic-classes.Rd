@@ -3,7 +3,25 @@
 \name{bioenergetic-classes}
 \alias{bioenergetic-classes}
 \title{S3 Classes for FB4 Bioenergetic Model}
+\value{
+No return value; this page documents the S3 class definitions for the bioenergetic model. See individual function documentation for return values.
+}
 \description{
 S3 class system for the Fish Bioenergetics 4.0 model, providing structured
-data containers and methods for bioenergetic simulations and results.
+data containers and configuration methods for bioenergetic simulations.
+The central class \code{"Bioenergetic"} is created by
+\code{\link{Bioenergetic}} and configured via \code{\link{set_environment}},
+\code{\link{set_diet}}, and \code{\link{set_simulation_settings}}.
+Utility functions \code{\link{is.Bioenergetic}},
+\code{\link{get_parameter_value}}, and \code{\link{set_parameter_value}}
+support inspection and modification of the object.
+}
+\references{
+Hanson, P.C., Johnson, T.B., Schindler, D.E. and Kitchell, J.F. (1997).
+\emph{Fish Bioenergetics 3.0}. University of Wisconsin Sea Grant Institute,
+Madison, WI.
+
+Deslauriers, D., Chipps, S.R., Breck, J.E., Rice, J.A. and Madenjian, C.P.
+(2017). Fish Bioenergetics 4.0: An R-based modeling application.
+\emph{Fisheries}, 42(11), 586–596. \doi{10.1080/03632415.2017.1377558}
 }

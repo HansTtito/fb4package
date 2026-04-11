@@ -49,10 +49,14 @@
 #' to create species-specific bioenergetic model objects. Parameters can be extracted 
 #' using utility functions or accessed directly by species and life stage.
 #'
-#' @source 
-#' Generated from the official Fish Bioenergetics 4.0 parameters CSV file 
-#' (Parameters_official.csv) using the \code{generate_fish4_parameters()} function.
-#' Original parameters compiled from peer-reviewed literature sources.
+#' @source
+#' Parameters extracted from \code{Parameters_official.csv}, the official
+#' species database bundled with the Fish Bioenergetics 4.0 ('FB4') Shiny
+#' application (<https://github.com/biofish/FishBioenergetics>).
+#' Converted to R list format via \code{generate_fish4_parameters()}.
+#' Original parameter values compiled from peer-reviewed literature; see
+#' the \code{source} field within each species entry for individual
+#' references.
 #'
 #' @examples
 #' data(fish4_parameters)
@@ -68,7 +72,8 @@
 #' @references
 #' Deslauriers, D., Chipps, S.R., Breck, J.E., Rice, J.A., Madenjian, C.P. (2017). 
 #' Fish Bioenergetics 4.0: An R-based modeling application. 
-#' Fisheries, 42(11), 586-596.
+#' \emph{Fisheries}, 42(11), 586–596.
+#' \doi{10.1080/03632415.2017.1377558}
 #'
 #' @keywords datasets
 "fish4_parameters"
@@ -115,8 +120,10 @@
 #'   \item{Rates: }{Proportions or model coefficients}
 #' }
 #'
-#' @source 
-#' Generated automatically during database creation from Parameters_official.csv
+#' @source
+#' Generated automatically when converting \code{Parameters_official.csv}
+#' (from the Fish Bioenergetics 4.0 Shiny application,
+#' <https://github.com/biofish/FishBioenergetics>) into an R list object.
 #'
 #' @examples
 #' data(fish4_parameters_metadata)

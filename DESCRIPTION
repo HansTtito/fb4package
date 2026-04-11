@@ -9,16 +9,16 @@ Authors@R: c(
      role = c("aut", "cre")
    )
  )
-Description: Implements the 'Fish Bioenergetics 4.0' model of
-    Deslauriers et al. (2017) <doi:10.1080/03632415.2017.1377558> for
-    fisheries research. Provides automated parameter
+Description: An implementation of the 'Fish Bioenergetics 4.0' framework
+    described in Deslauriers et al. (2017)
+    <doi:10.1080/03632415.2017.1377558>. Provides automated parameter
     optimization, multi-prey diet modeling, and comprehensive energy budget
-    simulations for fisheries research and aquaculture applications. Features
-    an optional 'TMB' (Template Model Builder) backend for 10-50x speedup in
-    maximum likelihood estimation while maintaining full backward
-    compatibility. The package includes species-specific parameter databases
-    and tools for modeling fish growth, consumption, and metabolism under
-    varying environmental conditions.
+    simulations for fisheries research and aquaculture applications. An
+    optional 'TMB' (Template Model Builder) backend delivers 10-50x speedup
+    in maximum likelihood estimation while maintaining full backward
+    compatibility. Includes species-specific parameter databases and tools
+    for modeling fish growth, consumption, and metabolism under varying
+    environmental conditions.
 URL: https://hansttito.github.io/fb4package/, https://github.com/HansTtito/fb4package
 BugReports: https://github.com/HansTtito/fb4package/issues
 License: MIT + file LICENSE

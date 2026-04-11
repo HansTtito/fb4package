@@ -1,11 +1,22 @@
 #' Core Plotting Functions for FB4 Results
 #'
 #' @description
-#' Core utilities and helper functions for FB4 visualization system.
-#' Provides consistent styling, validation, and common plotting operations
-#' shared across all plotting functions.
+#' Core utilities and helper functions for the FB4 visualization system.
+#' Provides consistent color schemes (\code{get_color_scheme}), plot layout
+#' helpers (\code{setup_plot_layout}), graphics-device management
+#' (\code{setup_save_device}, \code{close_save_device}), annotation utilities
+#' (\code{add_confidence_bands}, \code{add_plot_annotations}), and data
+#' validation helpers (\code{validate_plot_data}) shared across all plotting
+#' modules.
 #'
+#' @references
+#' Deslauriers, D., Chipps, S.R., Breck, J.E., Rice, J.A. and Madenjian, C.P.
+#' (2017). Fish Bioenergetics 4.0: An R-based modeling application.
+#' \emph{Fisheries}, 42(11), 586–596. \doi{10.1080/03632415.2017.1377558}
+#'
+#' @return No return value, called for side effects (plots). See individual function documentation for details.
 #' @name fb4-plot-core
+#' @aliases fb4-plot-core
 #' @importFrom graphics par plot hist lines abline text legend grid points polygon
 #' @importFrom grDevices rgb col2rgb png pdf dev.off
 #' @importFrom stats density
@@ -89,17 +100,18 @@ get_color_scheme <- function(scheme = "blue") {
 #' @return Previous par() settings (for restoration)
 #' @keywords internal
 setup_plot_layout <- function(layout = "single", margins = "default") {
-  
-  # Store previous settings
+
+  # Store previous settings and schedule restoration on exit
   old_par <- graphics::par(no.readonly = TRUE)
-  
+  on.exit(graphics::par(old_par))
+
   # Set layout
   if (identical(layout, "single")) {
     graphics::par(mfrow = c(1, 1))
   } else if (is.numeric(layout) && length(layout) == 2) {
     graphics::par(mfrow = layout)
   }
-  
+
   # Set margins
   if (identical(margins, "default")) {
     graphics::par(mar = c(4, 4, 3, 2))
@@ -108,7 +120,7 @@ setup_plot_layout <- function(layout = "single", margins = "default") {
   } else if (is.numeric(margins) && length(margins) == 4) {
     graphics::par(mar = margins)
   }
-  
+
   return(old_par)
 }
 

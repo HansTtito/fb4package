@@ -3,8 +3,19 @@
 \name{fb4-daily-plots}
 \alias{fb4-daily-plots}
 \title{Daily Simulation Plots for FB4 Results}
+\value{
+No return value, called for side effects (plots). See individual function documentation for details.
+}
 \description{
 Plotting functions for daily simulation output. These functions work with
-the daily_output data produced by run_fb4() and visualise growth,
-consumption, temperature, and energy patterns over time.
+the \code{daily_output} data produced by \code{run_fb4()} and visualise
+growth (\code{plot_growth}), consumption (\code{plot_consumption}),
+temperature (\code{plot_temperature}), and energy (\code{plot_energy})
+patterns over time, as well as an integrated dashboard
+(\code{plot_dashboard}).
+}
+\references{
+Deslauriers, D., Chipps, S.R., Breck, J.E., Rice, J.A. and Madenjian, C.P.
+(2017). Fish Bioenergetics 4.0: An R-based modeling application.
+\emph{Fisheries}, 42(11), 586–596. \doi{10.1080/03632415.2017.1377558}
 }

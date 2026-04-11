@@ -3,7 +3,22 @@
 \name{uncertainty-prediction}
 \alias{uncertainty-prediction}
 \title{FB4 Uncertainty Propagation Functions}
+\value{
+No return value; this page documents the uncertainty and prediction functions. See individual function documentation for return values.
+}
 \description{
-Functions for propagating parameter uncertainty to consumption predictions
-using both delta method (analytical) and bootstrap (simulation-based) approaches.
+Functions for propagating \emph{p}-value uncertainty to consumption
+predictions using two approaches: the delta method
+(\code{predict_consumption_delta}), which applies a first-order Taylor
+series approximation and is efficient when the consumption-p relationship
+is approximately linear; and a parametric bootstrap
+(\code{predict_consumption_bootstrap}), which samples from the estimated
+p-value distribution, runs a full FB4 simulation for each sample, and
+derives the full consumption uncertainty distribution without linearity
+assumptions.
+}
+\references{
+Deslauriers, D., Chipps, S.R., Breck, J.E., Rice, J.A. and Madenjian, C.P.
+(2017). Fish Bioenergetics 4.0: An R-based modeling application.
+\emph{Fisheries}, 42(11), 586–596. \doi{10.1080/03632415.2017.1377558}
 }

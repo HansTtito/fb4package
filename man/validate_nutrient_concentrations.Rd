@@ -15,8 +15,18 @@ validate_nutrient_concentrations(
 \item{organism_type}{Organism type for validation}
 }
 \value{
-List with validation results
+A named list with three elements: \code{valid} (logical),
+  \code{errors} (character vector), and \code{warnings} (character
+  vector). \code{warnings} are issued when N or P concentrations fall
+  outside the typical range for the specified \code{organism_type} or when
+  the N:P mass ratio is outside 2--20.
 }
 \description{
 Validate nutrient concentrations
+}
+\examples{
+validate_nutrient_concentrations(list(
+  nitrogen   = 0.030,
+  phosphorus = 0.004
+))$valid
 }

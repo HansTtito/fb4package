@@ -24,10 +24,44 @@ run_fb4_simulation(
 \item{verbose}{Whether to show progress messages, default FALSE}
 }
 \value{
-List with simulation results
+A named list with up to eleven elements:
+  \describe{
+    \item{initial_weight}{Numeric. Starting fish weight (g).}
+    \item{final_weight}{Numeric. Fish weight at end of simulation (g);
+      minimum 0.01 g.}
+    \item{weight_change}{Numeric. Net change in weight (g).}
+    \item{relative_growth}{Numeric. Relative growth as percentage of
+      initial weight.}
+    \item{total_consumption_g}{Numeric. Cumulative consumption over all
+      simulated days (g prey).}
+    \item{total_consumption}{Numeric. Alias for \code{total_consumption_g}
+      (retained for backward compatibility).}
+    \item{simulation_days}{Integer. Number of days actually simulated;
+      may be less than the full duration if mortality occurs.}
+    \item{method}{List. The \code{consumption_method} supplied by the
+      caller.}
+    \item{simulation_completed}{Logical. \code{TRUE} if the simulation ran
+      for all requested days without early termination.}
+    \item{mortality_occurred}{Logical. \code{TRUE} if fish weight fell to
+      or below 0.01 g during the simulation.}
+    \item{daily_output}{A \code{data.frame} with one row per simulated day
+      containing temperature, consumption, respiration, egestion, excretion,
+      net energy, weight, and energy density. Only present when
+      \code{output_daily = TRUE}.}
+  }
 }
 \description{
 Main simulation function that executes the complete FB4 model day by day.
 Handles different consumption methods and optional daily output.
 Performs basic validation of critical parameters.
+}
+\examples{
+\donttest{
+# Requires processed simulation data; see ?prepare_simulation_data
+# sim <- run_fb4_simulation(
+#   consumption_method = list(type = "p_value", value = 0.5),
+#   processed_simulation_data = sim_data
+# )
+# sim$final_weight
+}
 }

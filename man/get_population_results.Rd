@@ -12,9 +12,27 @@ get_population_results(result, confidence_level = 0.95)
 \item{confidence_level}{Confidence level for intervals (default 0.95)}
 }
 \value{
-List with population results and uncertainties
+A named list containing at minimum ten elements: \code{mu_p_estimate}
+  and \code{mu_p_se} (population-mean ration), \code{sigma_p_estimate} and
+  \code{sigma_p_se} (among-individual SD), \code{sigma_obs_estimate} and
+  \code{sigma_obs_se} (observation SD), \code{n_individuals} (integer),
+  \code{log_likelihood}, \code{aic}, and \code{bic}. When population
+  uncertainty data are available, additional \code{mean_*_est},
+  \code{mean_*_se}, \code{mean_*_ci_lower}, and \code{mean_*_ci_upper}
+  elements are appended for \code{final_weight}, \code{consumption},
+  \code{total_growth}, \code{relative_growth}, \code{gross_efficiency}, and
+  \code{metabolic_scope}. Confidence-interval elements are also added for
+  \code{mu_p}, \code{sigma_p}, and \code{sigma_obs}. Stops with an error if
+  \code{result} was not produced by the hierarchical method.
 }
 \description{
 Extracts population-level results from hierarchical FB4 models.
 Returns means, standard errors, and population parameters.
+}
+\examples{
+\donttest{
+# Population results require a hierarchical run; shown here for illustration
+# result <- run_fb4(bio, strategy = "hierarchical", ...)
+# pop <- get_population_results(result)
+}
 }

@@ -3,8 +3,19 @@
 \name{fb4-bioenergetic-plots}
 \alias{fb4-bioenergetic-plots}
 \title{Bioenergetic Object Plots for Setup Validation}
+\value{
+No return value, called for side effects (plots). See individual function documentation for details.
+}
 \description{
-Plotting functions for Bioenergetic objects (before running a simulation).
-These plots help validate model setup: temperature profiles, diet composition,
-and predator/prey energy densities.
+Plotting functions for \code{Bioenergetic} objects (before running a
+simulation). These plots help validate model setup by displaying temperature
+profiles (\code{plot_bio_temperature}), diet composition over time
+(\code{plot_bio_diet}), predator energy density
+(\code{plot_bio_energy}), and an integrated readiness dashboard
+(\code{plot_bio_dashboard}).
+}
+\references{
+Deslauriers, D., Chipps, S.R., Breck, J.E., Rice, J.A. and Madenjian, C.P.
+(2017). Fish Bioenergetics 4.0: An R-based modeling application.
+\emph{Fisheries}, 42(11), 586–596. \doi{10.1080/03632415.2017.1377558}
 }

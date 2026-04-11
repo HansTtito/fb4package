@@ -3,7 +3,19 @@
 \name{bioenergetic-methods}
 \alias{bioenergetic-methods}
 \title{Methods for FB4 Bioenergetic Model}
+\value{
+No return value; this page documents the S3 methods for bioenergetic objects. See individual function documentation for return values.
+}
 \description{
-S3 class system for the Fish Bioenergetics 4.0 model, providing structured
-data containers and methods for bioenergetic simulations and results.
+S3 \code{print} and \code{summary} methods for the two main classes of the
+FB4 package: \code{"Bioenergetic"} (the model configuration object) and
+\code{"fb4_result"} (the simulation output). \code{print} methods produce
+a concise one-screen overview; \code{summary} methods extend that with
+detailed per-method diagnostics (optimisation convergence, MLE statistics,
+bootstrap percentiles, or hierarchical population parameters).
+}
+\references{
+Deslauriers, D., Chipps, S.R., Breck, J.E., Rice, J.A. and Madenjian, C.P.
+(2017). Fish Bioenergetics 4.0: An R-based modeling application.
+\emph{Fisheries}, 42(11), 586–596. \doi{10.1080/03632415.2017.1377558}
 }

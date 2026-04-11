@@ -21,9 +21,24 @@ update_body_composition(
 \item{processed_composition_params}{List with processed composition parameters}
 }
 \value{
-New body composition
+A named list with the same 13 elements as
+  \code{\link{calculate_body_composition}}, describing the body composition
+  at \code{new_weight}. If \code{old_composition} is supplied, an additional
+  element \code{changes} is appended — a named list with five numeric
+  scalars: \code{weight_change}, \code{water_change}, \code{protein_change},
+  \code{fat_change}, and \code{energy_density_change} (all in the same units
+  as the corresponding composition elements).
 }
 \description{
 Updates body composition as fish grows or changes condition
 Used during simulation loops - assumes pre-validated inputs
+}
+\examples{
+params <- list(water_fraction = 0.72, fat_energy = 36450,
+               protein_energy = 17990, max_fat_fraction = 0.30)
+old <- calculate_body_composition(weight = 100,
+                                  processed_composition_params = params)
+update_body_composition(old_weight = 100, new_weight = 110,
+                        old_composition = old,
+                        processed_composition_params = params)
 }

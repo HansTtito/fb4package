@@ -3,6 +3,9 @@
 \name{consumption-functions}
 \alias{consumption-functions}
 \title{Consumption Functions for FB4 Model}
+\value{
+No return value; this page documents the consumption functions module. See individual function documentation for return values.
+}
 \description{
 Functions implementing the four consumption temperature-dependence equations
 (CEQ 1–4) and the allometric maximum-consumption function used in FB4.
@@ -28,6 +31,7 @@ is a temperature-dependence function, \eqn{W} is body mass (g), and \eqn{CA},
 Kitchell, J.F., Stewart, D.J. and Weininger, D. (1977). Applications of a
 bioenergetics model to yellow perch and walleye.
 \emph{Journal of the Fisheries Research Board of Canada}, 34(10), 1922–1935.
+\doi{10.1139/f77-258}
 
 Thornton, K.W. and Lessem, A.S. (1978). A temperature algorithm for modifying
 biological rates.

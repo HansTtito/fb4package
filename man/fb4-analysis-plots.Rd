@@ -3,7 +3,18 @@
 \name{fb4-analysis-plots}
 \alias{fb4-analysis-plots}
 \title{Analysis Plots for FB4 Results (Uncertainty and Sensitivity)}
+\value{
+No return value, called for side effects (plots). See individual function documentation for details.
+}
 \description{
 Plotting functions for uncertainty analysis and sensitivity analysis.
-Includes functions for MLE, bootstrap, hierarchical methods, and sensitivity analysis.
+Exported functions include \code{plot_uncertainty.fb4_result} (dispatches
+to MLE, bootstrap, and hierarchical sub-functions),
+\code{plot_distributions.fb4_result}, \code{plot_sensitivity.fb4_result},
+and \code{plot_growth_temperature_sensitivity}.
+}
+\references{
+Deslauriers, D., Chipps, S.R., Breck, J.E., Rice, J.A. and Madenjian, C.P.
+(2017). Fish Bioenergetics 4.0: An R-based modeling application.
+\emph{Fisheries}, 42(11), 586–596. \doi{10.1080/03632415.2017.1377558}
 }

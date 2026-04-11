@@ -2,7 +2,26 @@
 % Please edit documentation in R/14.2.5-strategy-mle.R
 \name{strategy-mle}
 \alias{strategy-mle}
-\title{Strategy-MLE for FB4 Model}
+\title{Maximum Likelihood Estimation Strategy for FB4 Model}
+\value{
+No return value; this page documents the maximum likelihood estimation strategy functions. See individual function documentation for return values.
+}
 \description{
-Strategy-MLE for FB4 Model
+Implements the \code{"mle"} FB4 fitting strategy, which estimates the
+proportion of maximum consumption (\emph{p}-value) and its uncertainty by
+maximising the log-normal likelihood of observed final weights. Both an R
+backend (\code{fit_fb4_mle}) and a faster TMB/C++ backend
+(\code{execute_mle_tmb}) are supported. Confidence intervals are derived
+from the Hessian (delta method) and optionally from a likelihood profile
+(\code{compute_likelihood_profile}).
+}
+\references{
+Deslauriers, D., Chipps, S.R., Breck, J.E., Rice, J.A. and Madenjian, C.P.
+(2017). Fish Bioenergetics 4.0: An R-based modeling application.
+\emph{Fisheries}, 42(11), 586–596. \doi{10.1080/03632415.2017.1377558}
+
+Kristensen, K., Nielsen, A., Berg, C.W., Skaug, H. and Bell, B.M. (2016).
+TMB: Automatic differentiation and Laplace approximation.
+\emph{Journal of Statistical Software}, 70(5), 1–21.
+\doi{10.18637/jss.v070.i05}
 }

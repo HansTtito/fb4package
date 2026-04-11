@@ -12,9 +12,36 @@ calculate_body_composition(weight, processed_composition_params)
 \item{processed_composition_params}{List with processed composition parameters}
 }
 \value{
-List with complete body composition
+A named list with 13 elements describing the body composition:
+  \describe{
+    \item{total_weight}{Numeric. Total wet weight (g), equal to \code{weight}.}
+    \item{water_g}{Numeric. Water content (g).}
+    \item{protein_g}{Numeric. Protein content (g), estimated from water via
+      Breck (2014) regression.}
+    \item{ash_g}{Numeric. Ash content (g), estimated from water via Breck
+      (2014) regression.}
+    \item{fat_g}{Numeric. Fat content (g), calculated by subtraction and
+      bounded to \code{[0, max_fat_fraction * weight]}.}
+    \item{water_fraction}{Numeric. Water as a fraction of total weight.}
+    \item{protein_fraction}{Numeric. Protein as a fraction of total weight.}
+    \item{ash_fraction}{Numeric. Ash as a fraction of total weight.}
+    \item{fat_fraction}{Numeric. Fat as a fraction of total weight.}
+    \item{energy_density}{Numeric. Energy density (J/g wet weight).}
+    \item{total_energy}{Numeric. Total body energy (J).}
+    \item{total_fraction}{Numeric. Sum of all four fractions; should be
+      close to 1.}
+    \item{balanced}{Logical. \code{TRUE} if \code{total_fraction} is within
+      0.05 of 1.}
+  }
+  Returns \code{\link{create_empty_composition}()} when \code{weight <= 0}.
 }
 \description{
 Main function that calculates all body composition components
 and energy density from weight and processed parameters
+}
+\examples{
+params <- list(water_fraction = 0.72, fat_energy = 36450,
+               protein_energy = 17990, max_fat_fraction = 0.30)
+calculate_body_composition(weight = 100,
+                           processed_composition_params = params)
 }

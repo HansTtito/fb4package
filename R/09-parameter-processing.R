@@ -1,5 +1,27 @@
 #' Parameter Processing Functions for FB4
 #'
+#' @description
+#' Functions for validating, transforming, and enriching raw user-supplied
+#' species parameters before they are passed to the simulation engine.
+#' Each major bioenergetic category (consumption, respiration, egestion,
+#' excretion, predator energy density, contaminant, nutrient, mortality,
+#' body composition) has a dedicated processor that (i) checks that the
+#' required parameters for the chosen equation are present, (ii) computes
+#' derived values (e.g., \code{CX}/\code{CY}/\code{CZ} for CEQ 2, gill
+#' efficiency for CONTEQ 3), and (iii) fills missing optional parameters
+#' with documented defaults. The top-level entry point is
+#' \code{\link{process_species_parameters}}.
+#'
+#' @references
+#' Hanson, P.C., Johnson, T.B., Schindler, D.E. and Kitchell, J.F. (1997).
+#' \emph{Fish Bioenergetics 3.0}. University of Wisconsin Sea Grant Institute,
+#' Madison, WI.
+#'
+#' Deslauriers, D., Chipps, S.R., Breck, J.E., Rice, J.A. and Madenjian, C.P.
+#' (2017). Fish Bioenergetics 4.0: An R-based modeling application.
+#' \emph{Fisheries}, 42(11), 586–596. \doi{10.1080/03632415.2017.1377558}
+#'
+#' @return No return value; this page documents the parameter processing functions module. See individual function documentation for return values.
 #' @name parameter-processing
 #' @aliases parameter-processing
 NULL
@@ -18,7 +40,28 @@ NULL
 #' @param n_days Integer. Number of simulation days, used to build the
 #'   predator energy density vector when `ED_ini`/`ED_end` are supplied
 #'   (PREDEDEQ = 1). If `NULL` the vector length is inferred later.
-#' @return List with all processed parameters ready for simulation
+#' @return A named list containing one processed sub-list for each category
+#'   present in \code{species_params} (e.g. \code{consumption},
+#'   \code{respiration}, \code{egestion}, \code{excretion}, \code{predator},
+#'   and optionally \code{contaminant}, \code{nutrient}, \code{mortality},
+#'   \code{composition}). Each sub-list holds the validated raw parameters
+#'   plus any derived values required by the chosen equation. A
+#'   \code{processing_info} element is always appended containing
+#'   \code{processed_at} (POSIXct timestamp), \code{validation_warnings}
+#'   (character vector), and \code{categories_processed} (character vector
+#'   of processed category names).
+#' @examples
+#' sp <- list(
+#'   consumption = list(CEQ = 1, CA = 0.303, CB = -0.275, CQ = 0.06),
+#'   egestion    = list(EGEQ = 1, FA = 0.16),
+#'   excretion   = list(EXEQ = 1, UA = 0.10),
+#'   predator    = list(PREDEDEQ = 3, Alpha1 = 4800, Beta1 = 0.1),
+#'   respiration = list(REQ = 2, RA = 0.0033, RB = -0.227,
+#'                      RQ = 0.025, RTM = 30, RTO = 18),
+#'   activity    = list(ACT = 1.5),
+#'   sda         = list(SDA = 0.15)
+#' )
+#' process_species_parameters(sp)
 #' @export
 process_species_parameters <- function(species_params, n_days = NULL) {
   
@@ -90,7 +133,13 @@ process_species_parameters <- function(species_params, n_days = NULL) {
 #' Process consumption parameters
 #'
 #' @param consumption_params Raw consumption parameters
-#' @return Processed consumption parameters with derived values
+#' @return A list containing all elements of \code{consumption_params} plus
+#'   derived values required by the selected equation: \code{CX}, \code{CY},
+#'   \code{CZ} for CEQ 2 (Kitchell et al. 1977); \code{CG1}, \code{CG2} for
+#'   CEQ 3 (Thornton and Lessem 1978). For CEQ 1 and CEQ 4 the input list is
+#'   returned unchanged after validation.
+#' @examples
+#' process_consumption_params(list(CEQ = 1, CA = 0.303, CB = -0.275, CQ = 0.06))
 #' @export
 process_consumption_params <- function(consumption_params) {
   
@@ -135,7 +184,18 @@ process_consumption_params <- function(consumption_params) {
 #' @param respiration_params Raw respiration parameters
 #' @param activity_params Activity parameters (required for REQ=1)
 #' @param sda_params SDA parameters
-#' @return Processed respiration parameters with derived values
+#' @return A list containing all elements of \code{respiration_params},
+#'   the activity parameters (merged from \code{activity_params}), the SDA
+#'   coefficient (\code{SDA}), and — for REQ 2 — the derived values
+#'   \code{RX}, \code{RY}, \code{RZ} (Kitchell et al. 1977). For REQ 1 no
+#'   additional derived values are added.
+#' @examples
+#' process_respiration_params(
+#'   respiration_params = list(REQ = 2, RA = 0.0033, RB = -0.227,
+#'                             RQ = 0.025, RTM = 30, RTO = 18),
+#'   activity_params = list(ACT = 1.5),
+#'   sda_params = list(SDA = 0.15)
+#' )
 #' @export
 process_respiration_params <- function(respiration_params, activity_params = NULL, 
                                        sda_params = NULL) {
@@ -182,7 +242,11 @@ process_respiration_params <- function(respiration_params, activity_params = NUL
 #' Process egestion parameters
 #'
 #' @param egestion_params Raw egestion parameters
-#' @return Processed egestion parameters
+#' @return A list identical to \code{egestion_params} after validation. No
+#'   additional derived values are computed; the function ensures the
+#'   required parameters for the selected EGEQ are present and valid.
+#' @examples
+#' process_egestion_params(list(EGEQ = 1, FA = 0.16))
 #' @export
 process_egestion_params <- function(egestion_params) {
   
@@ -197,7 +261,11 @@ process_egestion_params <- function(egestion_params) {
 #' Process excretion parameters
 #'
 #' @param excretion_params Raw excretion parameters
-#' @return Processed excretion parameters
+#' @return A list identical to \code{excretion_params} after validation. No
+#'   additional derived values are computed; the function ensures the
+#'   required parameters for the selected EXEQ are present and valid.
+#' @examples
+#' process_excretion_params(list(EXEQ = 1, UA = 0.10))
 #' @export
 process_excretion_params <- function(excretion_params) {
   
@@ -219,7 +287,13 @@ process_excretion_params <- function(excretion_params) {
 #' @param n_days Integer. Number of simulation days, used to build the
 #'   energy density vector from `ED_ini`/`ED_end` when PREDEDEQ = 1.
 #'   If `NULL` the vector is built lazily when the simulation starts.
-#' @return Processed predator parameters with energy data
+#' @return A list containing all elements of \code{predator_params}. For
+#'   PREDEDEQ 1, an \code{ED_data} numeric vector of length
+#'   \code{n_days + 1} is added (or validated if already present). For
+#'   PREDEDEQ 2 and 3 the list is returned after validation with no
+#'   additional derived values.
+#' @examples
+#' process_predator_params(list(PREDEDEQ = 3, Alpha1 = 4800, Beta1 = 0.1))
 #' @export
 process_predator_params <- function(predator_params, n_days = NULL) {
 
@@ -291,7 +365,18 @@ process_predator_energy_data <- function(predator_params) {
 #' Process contaminant parameters
 #'
 #' @param contaminant_params Raw contaminant parameters
-#' @return Processed contaminant parameters with calculated coefficients
+#' @return A list containing all elements of \code{contaminant_params}. For
+#'   CONTEQ 3 (Arnot and Gobas 2004), three additional elements are computed
+#'   when not already present: \code{gill_efficiency} (dimensionless),
+#'   \code{fish_water_partition} (dimensionless), and
+#'   \code{dissolved_fraction} (dimensionless). For CONTEQ 1 and 2 the list
+#'   is returned after validation unchanged.
+#' @examples
+#' process_contaminant_params(list(
+#'   CONTEQ = 1,
+#'   prey_concentrations  = c(0.05, 0.08),
+#'   transfer_efficiency  = c(0.80, 0.80)
+#' ))
 #' @export
 process_contaminant_params <- function(contaminant_params) {
   
@@ -338,7 +423,17 @@ process_contaminant_params <- function(contaminant_params) {
 #' Process nutrient parameters
 #'
 #' @param nutrient_params Raw nutrient parameters
-#' @return Processed nutrient parameters
+#' @return A list containing all elements of \code{nutrient_params}. Default
+#'   assimilation efficiencies are inserted when absent:
+#'   \code{n_assimilation_efficiency = 0.85} and
+#'   \code{p_assimilation_efficiency = 0.80} (with a warning in each case).
+#' @examples
+#' process_nutrient_params(list(
+#'   prey_n_concentrations    = c(0.025, 0.030),
+#'   prey_p_concentrations    = c(0.004, 0.005),
+#'   predator_n_concentration = 0.030,
+#'   predator_p_concentration = 0.004
+#' ))
 #' @export
 process_nutrient_params <- function(nutrient_params) {
   
@@ -367,8 +462,17 @@ process_nutrient_params <- function(nutrient_params) {
 
 #' Process mortality parameters
 #'
-#' @param mortality_params Raw mortality parameters  
-#' @return Processed mortality parameters
+#' @param mortality_params Raw mortality parameters
+#' @return A list containing all elements of \code{mortality_params} with
+#'   missing entries filled with defaults: \code{base_mortality = 0.001},
+#'   \code{natural_mortality} (copied from \code{base_mortality}),
+#'   \code{fishing_mortality = 0}, \code{predation_mortality = 0},
+#'   \code{optimal_temp = 15}, \code{thermal_tolerance = 5}, and
+#'   \code{stress_factor = 2}. If a \code{reproduction} sub-list is present,
+#'   a \code{spawn_pattern} numeric vector (length 365) is appended.
+#' @examples
+#' process_mortality_params(list(base_mortality = 0.001,
+#'                               natural_mortality = 0.001))
 #' @export
 process_mortality_params <- function(mortality_params) {
   
@@ -418,7 +522,12 @@ process_mortality_params <- function(mortality_params) {
 #' Process body composition parameters
 #'
 #' @param composition_params Raw composition parameters
-#' @return Processed composition parameters
+#' @return A list containing all elements of \code{composition_params} with
+#'   missing entries filled with defaults: \code{water_fraction = 0.75},
+#'   \code{fat_energy = 39500} (J/g), \code{protein_energy = 23600} (J/g),
+#'   and \code{max_fat_fraction = 0.25}.
+#' @examples
+#' process_composition_params(list(water_fraction = 0.72))
 #' @export
 process_composition_params <- function(composition_params) {
   

@@ -3,6 +3,22 @@
 \name{main-validators}
 \alias{main-validators}
 \title{Main Validation Functions for FB4}
+\value{
+No return value; this page documents the main validation functions module. See individual function documentation for return values.
+}
 \description{
-Main integration validation functions that orchestrate all other validators.
+Top-level validation functions that orchestrate all lower-level validators.
+\code{\link{validate_bioenergetic_for_simulation}} checks a
+\code{Bioenergetic} object for simulation readiness (structure, species
+equations, temperature/diet data, initial weight).
+\code{\link{validate_fb4_inputs}} extends this with strategy- and
+data-range checks before calling \code{\link{run_fb4}}.
+\code{\link{validate_fb4_system}} provides a multi-layer diagnostic
+report (basic, standard, comprehensive) with per-component pass/fail
+summaries.
+}
+\references{
+Deslauriers, D., Chipps, S.R., Breck, J.E., Rice, J.A. and Madenjian, C.P.
+(2017). Fish Bioenergetics 4.0: An R-based modeling application.
+\emph{Fisheries}, 42(11), 586–596. \doi{10.1080/03632415.2017.1377558}
 }

@@ -1,11 +1,21 @@
 #' Bioenergetic Object Plots for Setup Validation
 #'
 #' @description
-#' Plotting functions for Bioenergetic objects (before running a simulation).
-#' These plots help validate model setup: temperature profiles, diet composition,
-#' and predator/prey energy densities.
+#' Plotting functions for \code{Bioenergetic} objects (before running a
+#' simulation). These plots help validate model setup by displaying temperature
+#' profiles (\code{plot_bio_temperature}), diet composition over time
+#' (\code{plot_bio_diet}), predator energy density
+#' (\code{plot_bio_energy}), and an integrated readiness dashboard
+#' (\code{plot_bio_dashboard}).
 #'
+#' @references
+#' Deslauriers, D., Chipps, S.R., Breck, J.E., Rice, J.A. and Madenjian, C.P.
+#' (2017). Fish Bioenergetics 4.0: An R-based modeling application.
+#' \emph{Fisheries}, 42(11), 586–596. \doi{10.1080/03632415.2017.1377558}
+#'
+#' @return No return value, called for side effects (plots). See individual function documentation for details.
 #' @name fb4-bioenergetic-plots
+#' @aliases fb4-bioenergetic-plots
 #' @importFrom graphics plot lines abline text legend grid points barplot
 #' @importFrom grDevices gray.colors
 #' @importFrom utils tail
@@ -44,7 +54,7 @@ plot_bio_dashboard <- function(bio_obj, colors = "blue", title = NULL, ...) {
   for (i in seq_along(components)) {
     comp_name <- names(components)[i]
     status <- components[[i]]
-    symbol <- if (status) "\u2713" else "\u2717"
+    symbol <- if (status) "[OK]" else "[X]"
     color <- if (status) "darkgreen" else "red"
     text(0.1, y_pos[i], paste(symbol, comp_name), adj = 0, col = color, font = 2)
   }
@@ -96,10 +106,10 @@ plot_bio_dashboard <- function(bio_obj, colors = "blue", title = NULL, ...) {
   total_required <- 4
   
   if (ready_count == total_required) {
-    text(0.5, 0.6, "\u2713 READY", cex = 2.0, adj = 0.5, col = "darkgreen", font = 2)
+    text(0.5, 0.6, "[OK] READY", cex = 2.0, adj = 0.5, col = "darkgreen", font = 2)
     text(0.5, 0.3, "All components available", cex = 1.0, adj = 0.5)
   } else {
-    text(0.5, 0.6, "\u2717 NOT READY", cex = 1.5, adj = 0.5, col = "red", font = 2)
+    text(0.5, 0.6, "[X] NOT READY", cex = 1.5, adj = 0.5, col = "red", font = 2)
     text(0.5, 0.3, paste(ready_count, "/", total_required, "components"),
          cex = 1.0, adj = 0.5)
   }
@@ -209,7 +219,7 @@ plot_bio_energy <- function(bio_obj, colors = "purple", ...) {
   if (PREDEDEQ == 1) {
     # Time-series energy data
     duration <- bio_obj$simulation_settings$duration %||% 365
-    days <- 1:duration
+    days <- seq_len(duration)
     
     if (!is.null(predator_params$ED_data) && !all(is.na(predator_params$ED_data))) {
       energy_values <- rep(predator_params$ED_data, length.out = duration)

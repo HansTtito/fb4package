@@ -39,4 +39,3 @@ Performs comprehensive validation including:
 temp_data <- data.frame(Day = 1:10, Temperature = 15:24)
 isTRUE(validate_time_series_data(temp_data, "temperature", c("Day", "Temperature")))
 }
-\keyword{internal}

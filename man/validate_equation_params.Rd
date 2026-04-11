@@ -7,11 +7,22 @@
 validate_equation_params(category, equation_num, params)
 }
 \arguments{
-\item{category}{Category name}
+\item{category}{Character string naming the bioenergetic category (e.g.
+\code{"consumption"}, \code{"respiration"}, \code{"egestion"},
+\code{"excretion"}, \code{"predator"}).}
 
-\item{equation_num}{Equation number as character}
+\item{equation_num}{Character string identifying the equation variant within
+the category (e.g. \code{"1"}, \code{"2"}).}
 
-\item{params}{Parameter list}
+\item{params}{Named list of parameter values to validate against the
+requirements defined for the specified category and equation.}
+}
+\value{
+Invisibly returns \code{TRUE} if all required parameters are present
+  and pass their range checks. Throws an error with a descriptive message if
+  \code{category} or \code{equation_num} is unrecognised, if any required
+  parameter is missing from \code{params}, or if any parameter value falls
+  outside its admissible range.
 }
 \description{
 Validates equation parameters against their category requirements.

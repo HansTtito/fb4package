@@ -51,6 +51,7 @@
 #' bioenergetics model to yellow perch (\emph{Perca flavescens}) and walleye
 #' (\emph{Stizostedion vitreum vitreum}).
 #' \emph{Journal of the Fisheries Research Board of Canada}, 34(10), 1922–1935.
+#' \doi{10.1139/f77-258}
 #'
 #' Thornton, K.W. and Lessem, A.S. (1978). A temperature algorithm for modifying
 #' biological rates.
@@ -79,6 +80,15 @@
 #' Winberg, G.G. (1956). Rate of metabolism and food requirements of fishes.
 #' \emph{Fisheries Research Board of Canada Translation Series} No. 194.
 #'
+#' Breck, J.E. (2014). Body composition in fishes: body size matters.
+#' \emph{Aquaculture}, 433, 40–49.
+#' \doi{10.1016/j.aquaculture.2014.05.049}
+#'
+#' Arnot, J.A. and Gobas, F.A.P.C. (2004). A food web bioaccumulation model
+#' for organic chemicals in aquatic ecosystems.
+#' \emph{Environmental Toxicology and Chemistry}, 23(10), 2343–2355.
+#' \doi{10.1897/03-438}
+#'
 #' @seealso
 #' \code{\link{Bioenergetic}}, \code{\link{run_fb4}}, \code{\link{fish4_parameters}}
 #'
@@ -87,6 +97,10 @@
 #' @importFrom Rcpp sourceCpp
 #' @importFrom TMB MakeADFun dynlib
 #' @importFrom stats median nlminb optim quantile rnorm sd dlnorm runif var
-#' @importFrom utils head
-#' @importFrom graphics mtext plot.new plot.window
+#'   density lowess cor qnorm
+#' @importFrom utils head tail
+#' @importFrom tools file_ext
+#' @importFrom graphics par plot lines points abline text legend grid hist
+#'   barplot polygon arrows rug mtext plot.new plot.window title axis box
+#' @importFrom grDevices png pdf dev.off rgb col2rgb rainbow gray.colors
 "_PACKAGE"

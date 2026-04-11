@@ -3,8 +3,20 @@
 \name{data-validators}
 \alias{data-validators}
 \title{Data Validation Functions for FB4}
+\value{
+No return value; this page documents the data validation functions module. See individual function documentation for return values.
+}
 \description{
-Reorganized and optimized versions of your data validation functions.
-Maintains original interfaces while using core validators internally
-to eliminate code duplication.
+Data validation functions built on top of the core validators in
+\code{\link{core-validators}}. Covers diet-energy consistency
+(\code{\link{validate_diet_consistency}}), individual mark-recapture data
+(\code{\link{validate_individual_data}}), processed temporal arrays
+(\code{\link{validate_temporal_data}}), the complete simulation data
+structure (\code{\link{validate_complete_simulation_data}}), and equation
+parameter requirements (\code{\link{validate_equation_params}}).
+}
+\references{
+Deslauriers, D., Chipps, S.R., Breck, J.E., Rice, J.A. and Madenjian, C.P.
+(2017). Fish Bioenergetics 4.0: An R-based modeling application.
+\emph{Fisheries}, 42(11), 586–596. \doi{10.1080/03632415.2017.1377558}
 }

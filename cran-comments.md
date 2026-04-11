@@ -1,17 +1,18 @@
 ## R CMD check results
 
-0 errors | 0 warnings | 2 notes
+0 errors | 0 warnings | 1 or 2 notes (see below; see also submission comments)
 
-* NOTE: Possibly misspelled words in DESCRIPTION: `Deslauriers`, `et`, `al`.
-  These words are part of the author citation `Deslauriers et al. (2017)`
-  added to comply with CRAN policy requiring references in the form
-  `authors (year) <doi:...>`. They are not misspellings.
+* NOTE: Possibly misspelled words in DESCRIPTION (`Deslauriers`, `et`, `al`).
+  These are not errors: they are the standard author citation
+  `Deslauriers et al. (2017)` written to satisfy CRAN policy
+  (`authors (year) <doi:...>` in the Description field). The same explanation
+  is provided in this file for reviewers.
 
-* NOTE: Compilation used the following non-portable flag: `-Wa,-mbig-obj`.
-  This flag is present only in `src/Makevars.win` (Windows-specific) and is
-  required to compile the large TMB C++ object file on Windows. There is no
-  portable alternative; other TMB-based CRAN packages (e.g. glmmTMB) carry
-  the same note on Windows.
+* NOTE (Windows only): Compilation used the non-portable flag `-Wa,-mbig-obj`.
+  Present only in `src/Makevars.win`; required so the TMB-generated C++ object
+  stays within the default COFF section limit on Windows. Not used on
+  Debian/Linux. No portable alternative; other TMB packages often show the
+  same NOTE on Windows.
 
 ## Notes on par() / on.exit() usage
 
@@ -28,8 +29,9 @@ the layout active for the duration of the surrounding function.
 ## Test environments
 
 * Local Windows 11, R 4.5.1
-* win-builder R 4.6.0 alpha (2026-03-28 r89737) — 2 NOTEs (same as above)
-* win-builder Debian R-devel — 0 NOTEs
+* win-builder incoming pre-test — spelling NOTE (citation in Description) on
+  all flavours; additional NOTE on Windows only (`-Wa,-mbig-obj`).
+* win-builder Debian R-devel
 * GitHub Actions: ubuntu-latest, windows-latest, macos-latest (R release)
 
 ## Downstream dependencies

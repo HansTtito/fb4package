@@ -14,8 +14,25 @@ set_simulation_settings(x, initial_weight = NULL, duration = NULL)
 \item{duration}{Simulation duration in days (auto-detected if NULL)}
 }
 \value{
-Updated Bioenergetic object with new simulation settings
+The \code{Bioenergetic} object \code{x} with
+  \code{simulation_settings$initial_weight} and/or
+  \code{simulation_settings$duration} updated, and \code{fitted} reset to
+  \code{FALSE}. If \code{duration} is \code{NULL} and none was previously
+  set, the duration is auto-detected from the maximum \code{Day} in
+  environmental or diet data.
 }
 \description{
 Updates the simulation configuration of a Bioenergetic object.
+}
+\examples{
+\donttest{
+bio <- Bioenergetic(
+  species_params = list(
+    consumption = list(CEQ = 1, CA = 0.303, CB = -0.275, CQ = 0.06)
+  ),
+  species_info = list(common_name = "Example fish")
+)
+bio <- set_simulation_settings(bio, initial_weight = 50, duration = 365)
+bio$simulation_settings$initial_weight
+}
 }

@@ -3,8 +3,20 @@
 \name{fb4-plot-core}
 \alias{fb4-plot-core}
 \title{Core Plotting Functions for FB4 Results}
+\value{
+No return value, called for side effects (plots). See individual function documentation for details.
+}
 \description{
-Core utilities and helper functions for FB4 visualization system.
-Provides consistent styling, validation, and common plotting operations
-shared across all plotting functions.
+Core utilities and helper functions for the FB4 visualization system.
+Provides consistent color schemes (\code{get_color_scheme}), plot layout
+helpers (\code{setup_plot_layout}), graphics-device management
+(\code{setup_save_device}, \code{close_save_device}), annotation utilities
+(\code{add_confidence_bands}, \code{add_plot_annotations}), and data
+validation helpers (\code{validate_plot_data}) shared across all plotting
+modules.
+}
+\references{
+Deslauriers, D., Chipps, S.R., Breck, J.E., Rice, J.A. and Madenjian, C.P.
+(2017). Fish Bioenergetics 4.0: An R-based modeling application.
+\emph{Fisheries}, 42(11), 586–596. \doi{10.1080/03632415.2017.1377558}
 }

@@ -7,9 +7,17 @@
 create_empty_composition()
 }
 \value{
-Empty composition list
+A named list with 13 numeric/logical elements, all set to zero or
+  \code{FALSE}: \code{total_weight}, \code{water_g}, \code{protein_g},
+  \code{ash_g}, \code{fat_g}, \code{water_fraction}, \code{protein_fraction},
+  \code{ash_fraction}, \code{fat_fraction}, \code{energy_density},
+  \code{total_energy}, \code{total_fraction} (all \code{0}), and
+  \code{balanced} (\code{FALSE}). Used as a safe fallback when fish weight
+  is zero or negative.
 }
 \description{
 Create empty composition for invalid inputs (Utility)
 }
-\keyword{internal}
+\examples{
+create_empty_composition()
+}

@@ -4,7 +4,16 @@
 #' Functions for basic analysis and extraction of FB4 simulation results.
 #' These functions build on the core extraction functions to provide
 #' meaningful biological interpretations and statistical summaries.
+#' Exported functions include \code{analyze_growth_patterns},
+#' \code{analyze_energy_budget}, \code{analyze_feeding_performance},
+#' and \code{create_result_summary}.
 #'
+#' @references
+#' Deslauriers, D., Chipps, S.R., Breck, J.E., Rice, J.A. and Madenjian, C.P.
+#' (2017). Fish Bioenergetics 4.0: An R-based modeling application.
+#' \emph{Fisheries}, 42(11), 586–596. \doi{10.1080/03632415.2017.1377558}
+#'
+#' @return No return value; this page documents the result extraction and summary functions. See individual function documentation for return values.
 #' @name analysis-extraction
 #' @aliases analysis-extraction
 NULL
@@ -23,7 +32,16 @@ NULL
 #' @param result FB4 result object
 #' @param individual_id Individual ID for hierarchical models (NULL for population/single individual)
 #' @param confidence_level Confidence level for intervals (default 0.95)
-#' @return List with comprehensive growth analysis
+#' @return A named list with at minimum \code{method} (character),
+#'   \code{has_uncertainty} (logical), \code{individual_id}, and
+#'   \code{initial_weight} (numeric, g). The following growth metrics are
+#'   included as sub-lists each with \code{estimate}, \code{se}, \code{ci_lower},
+#'   and \code{ci_upper}: \code{final_weight} (g), \code{total_growth} (g),
+#'   and \code{relative_growth} (\%). When simulation duration is available,
+#'   \code{daily_growth_rate} (g/day) and \code{specific_growth_rate}
+#'   (\%/day) are appended. For fitted methods a \code{p_value} sub-list
+#'   (\code{estimate}, \code{se}) is also included; for hierarchical
+#'   population-level calls, \code{n_individuals} (integer) is added.
 #' @export
 #'
 #' @examples
@@ -255,8 +273,51 @@ analyze_growth_patterns <- function(result, individual_id = NULL, confidence_lev
 #' @param result FB4 result object
 #' @param individual_id Individual ID for hierarchical models (NULL for population/single individual)
 #' @param confidence_level Confidence level for intervals (default 0.95)
-#' @return List with comprehensive energy budget analysis
+#' @return A named list with four elements:
+#'   \describe{
+#'     \item{energy_components}{The list returned by
+#'       \code{\link{get_energy_budget_uncertainty}}, containing six component
+#'       sub-lists each with \code{estimate}, \code{se}, \code{ci_lower}, and
+#'       \code{ci_upper}.}
+#'     \item{proportions}{Named list of proportional allocations
+#'       (\code{prop_respiration}, \code{prop_egestion}, \code{prop_excretion},
+#'       \code{prop_sda}, \code{prop_net}), each a sub-list with \code{estimate},
+#'       \code{se}, \code{ci_lower}, and \code{ci_upper}. \code{NULL} when
+#'       consumption energy is zero or unavailable.}
+#'     \item{summary_metrics}{Named list with \code{gross_growth_efficiency},
+#'       \code{metabolic_scope}, and \code{assimilation_efficiency} sub-lists
+#'       (each \code{estimate} + \code{se}). \code{NULL} when proportions are
+#'       unavailable.}
+#'     \item{balance_check}{Named list with \code{consumption_energy},
+#'       \code{total_allocated}, \code{balance_error}, and
+#'       \code{relative_error} (all numeric) to verify mass-balance closure.}
+#'   }
+#'   Plus the context scalars \code{method}, \code{has_uncertainty}, and
+#'   \code{individual_id}.
 #' @export
+#' @examples
+#' \donttest{
+#' data(fish4_parameters)
+#' sp   <- fish4_parameters[["Oncorhynchus tshawytscha"]]$life_stages$adult
+#' info <- fish4_parameters[["Oncorhynchus tshawytscha"]]$species_info
+#' bio  <- Bioenergetic(
+#'   species_params     = sp,
+#'   species_info       = info,
+#'   environmental_data = list(
+#'     temperature = data.frame(Day = 1:30, Temperature = rep(12, 30))
+#'   ),
+#'   diet_data = list(
+#'     proportions = data.frame(Day = 1:30, Prey1 = 1.0),
+#'     energies    = data.frame(Day = 1:30, Prey1 = 5000),
+#'     prey_names  = "Prey1"
+#'   ),
+#'   simulation_settings = list(initial_weight = 100, duration = 30)
+#' )
+#' bio$species_params$predator$ED_ini <- 5000
+#' bio$species_params$predator$ED_end <- 5500
+#' result <- run_fb4(bio, strategy = "direct", p_value = 0.5, verbose = FALSE)
+#' budget <- analyze_energy_budget(result)
+#' }
 analyze_energy_budget <- function(result, individual_id = NULL, confidence_level = 0.95) {
   
   if (!is.fb4_result(result)) {
@@ -369,8 +430,50 @@ analyze_energy_budget <- function(result, individual_id = NULL, confidence_level
 #' @param result FB4 result object
 #' @param individual_id Individual ID for hierarchical models (NULL for population/single individual)
 #' @param confidence_level Confidence level for intervals (default 0.95)
-#' @return List with feeding analysis
+#' @return A named list with at minimum \code{method} (character),
+#'   \code{has_uncertainty} (logical), and \code{individual_id}. Additional
+#'   elements present when the relevant data are available:
+#'   \describe{
+#'     \item{total_consumption}{The list returned by
+#'       \code{\link{get_consumption_uncertainty}} (\code{estimate}, \code{se},
+#'       \code{ci_lower}, \code{ci_upper}, plus context scalars).}
+#'     \item{daily_consumption}{Sub-list (\code{estimate}, \code{se},
+#'       \code{ci_lower}, \code{ci_upper}) for the daily consumption rate
+#'       (g/day).}
+#'     \item{specific_consumption}{Sub-list (same four slots) for the
+#'       specific consumption rate (g consumption / g fish / day).}
+#'     \item{p_value}{Structure depends on method: for hierarchical it contains
+#'       \code{population_mean}, \code{population_se}, \code{population_sd}, and
+#'       \code{n_individuals}; for single-individual methods it contains
+#'       \code{estimate}, \code{se}, \code{ci_lower}, and \code{ci_upper}.}
+#'     \item{feeding_efficiency}{Sub-list (\code{estimate}, \code{se},
+#'       \code{ci_lower}, \code{ci_upper}) for the ratio of total growth to
+#'       total consumption (dimensionless).}
+#'   }
 #' @export
+#' @examples
+#' \donttest{
+#' data(fish4_parameters)
+#' sp   <- fish4_parameters[["Oncorhynchus tshawytscha"]]$life_stages$adult
+#' info <- fish4_parameters[["Oncorhynchus tshawytscha"]]$species_info
+#' bio  <- Bioenergetic(
+#'   species_params     = sp,
+#'   species_info       = info,
+#'   environmental_data = list(
+#'     temperature = data.frame(Day = 1:30, Temperature = rep(12, 30))
+#'   ),
+#'   diet_data = list(
+#'     proportions = data.frame(Day = 1:30, Prey1 = 1.0),
+#'     energies    = data.frame(Day = 1:30, Prey1 = 5000),
+#'     prey_names  = "Prey1"
+#'   ),
+#'   simulation_settings = list(initial_weight = 100, duration = 30)
+#' )
+#' bio$species_params$predator$ED_ini <- 5000
+#' bio$species_params$predator$ED_end <- 5500
+#' result <- run_fb4(bio, strategy = "direct", p_value = 0.5, verbose = FALSE)
+#' feeding <- analyze_feeding_performance(result)
+#' }
 analyze_feeding_performance <- function(result, individual_id = NULL, confidence_level = 0.95) {
   
   if (!is.fb4_result(result)) {

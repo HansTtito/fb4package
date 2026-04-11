@@ -14,9 +14,23 @@ process_bioenergetic_data(bio_obj, first_day, last_day)
 \item{last_day}{Last simulation day}
 }
 \value{
-List with processed temporal data ready for simulation
+A named list with ten elements containing the temporal arrays
+  interpolated to each simulation day: \code{temperature} (numeric vector,
+  °C), \code{diet_proportions} (numeric matrix, rows = days, columns =
+  prey), \code{prey_energies} (numeric matrix, J/g), \code{prey_indigestible}
+  (numeric matrix, fractions), \code{reproduction} (numeric vector,
+  fractions), \code{duration} (integer, number of days), \code{prey_names}
+  (character vector), \code{first_day}, \code{last_day}, and
+  \code{target_days} (integer sequence of simulated days).
 }
 \description{
 Version that processes all temporal data required for FB4 simulation.
 Includes better error handling and additional data types.
+}
+\examples{
+\donttest{
+# Requires a fully-configured Bioenergetic object; see ?Bioenergetic
+# bio <- Bioenergetic(...)
+# temporal <- process_bioenergetic_data(bio, first_day = 1, last_day = 365)
+}
 }

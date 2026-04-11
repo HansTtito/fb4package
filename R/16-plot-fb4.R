@@ -2,10 +2,19 @@
 #'
 #' @description
 #' Main plotting functions for FB4 bioenergetic model results.
-#' Provides S3 methods and plot types for fb4_result and Bioenergetic objects.
+#' Provides S3 methods (\code{plot.fb4_result}, \code{plot.Bioenergetic}) that
+#' dispatch to specialised plot types (\code{"dashboard"}, \code{"growth"},
+#' \code{"consumption"}, \code{"temperature"}, \code{"energy"},
+#' \code{"uncertainty"}, \code{"sensitivity"}).
 #'
+#' @references
+#' Deslauriers, D., Chipps, S.R., Breck, J.E., Rice, J.A. and Madenjian, C.P.
+#' (2017). Fish Bioenergetics 4.0: An R-based modeling application.
+#' \emph{Fisheries}, 42(11), 586–596. \doi{10.1080/03632415.2017.1377558}
+#'
+#' @return No return value, called for side effects (plots). See individual function documentation for details.
 #' @name fb4-plots
-# #' @importFrom graphics plot par mfrow mar oma lines points abline text legend grid hist barplot polygon arrows rug
+#' @aliases fb4-plots
 #' @importFrom grDevices png pdf dev.off rgb col2rgb rainbow gray.colors
 #' @importFrom stats density lowess cor sd
 #' @importFrom utils tail
@@ -28,7 +37,8 @@ NULL
 #' @param save_plot Optional path to save plot (.png or .pdf)
 #' @param ... Additional arguments passed to specific plot functions
 #'
-#' @return Invisibly returns the input object
+#' @return Invisibly returns the input object \code{x}, called for its
+#'   plotting side-effect.
 #' @export
 #'
 #' @examples
@@ -106,8 +116,32 @@ plot.fb4_result <- function(x, type = "dashboard", save_plot = NULL, ...) {
 #' @param save_plot Optional path to save plot
 #' @param ... Additional arguments
 #'
-#' @return Invisibly returns the input object
+#' @return Invisibly returns the input object \code{x}, called for its
+#'   plotting side-effect.
 #' @export
+#' @examples
+#' \donttest{
+#' data(fish4_parameters)
+#' sp   <- fish4_parameters[["Oncorhynchus tshawytscha"]]$life_stages$adult
+#' info <- fish4_parameters[["Oncorhynchus tshawytscha"]]$species_info
+#' bio  <- Bioenergetic(
+#'   species_params     = sp,
+#'   species_info       = info,
+#'   environmental_data = list(
+#'     temperature = data.frame(Day = 1:30, Temperature = rep(12, 30))
+#'   ),
+#'   diet_data = list(
+#'     proportions = data.frame(Day = 1:30, Prey1 = 1.0),
+#'     energies    = data.frame(Day = 1:30, Prey1 = 5000),
+#'     prey_names  = "Prey1"
+#'   ),
+#'   simulation_settings = list(initial_weight = 100, duration = 30)
+#' )
+#' bio$species_params$predator$ED_ini <- 5000
+#' bio$species_params$predator$ED_end <- 5500
+#' plot(bio)
+#' plot(bio, type = "temperature")
+#' }
 plot.Bioenergetic <- function(x, type = "dashboard", save_plot = NULL, ...) {
   
   if (!is.Bioenergetic(x)) {
@@ -149,6 +183,3 @@ plot.Bioenergetic <- function(x, type = "dashboard", save_plot = NULL, ...) {
   
   invisible(x)
 }
-
-
-

@@ -12,10 +12,43 @@ analyze_composition_changes(result, processed_composition_params)
 \item{processed_composition_params}{Processed composition parameters}
 }
 \value{
-Data frame with composition time series
+A \code{data.frame} with one row per simulation day and thirteen
+  columns: \code{Weight} (g), \code{Water_g}, \code{Protein_g},
+  \code{Ash_g}, \code{Fat_g} (g), \code{Water_fraction},
+  \code{Protein_fraction}, \code{Ash_fraction}, \code{Fat_fraction}
+  (dimensionless), \code{Energy_density} (J/g), \code{Day} (integer),
+  \code{Energy_density_change} (J/g/day; \code{NA} on day 1),
+  \code{Fat_fraction_change}, and \code{Protein_fraction_change}
+  (change per day; \code{NA} on day 1). Stops with an error if
+  \code{result} has no \code{daily_output}.
 }
 \description{
 Analyzes how body composition changes as fish grow during a simulation.
 Useful for understanding ontogenetic changes in energy density and
 macronutrient allocation.
+}
+\examples{
+\donttest{
+data(fish4_parameters)
+sp   <- fish4_parameters[["Oncorhynchus tshawytscha"]]$life_stages$adult
+info <- fish4_parameters[["Oncorhynchus tshawytscha"]]$species_info
+bio  <- Bioenergetic(
+  species_params     = sp,
+  species_info       = info,
+  environmental_data = list(
+    temperature = data.frame(Day = 1:30, Temperature = rep(12, 30))
+  ),
+  diet_data = list(
+    proportions = data.frame(Day = 1:30, Prey1 = 1.0),
+    energies    = data.frame(Day = 1:30, Prey1 = 5000),
+    prey_names  = "Prey1"
+  ),
+  simulation_settings = list(initial_weight = 100, duration = 30)
+)
+bio$species_params$predator$ED_ini <- 5000
+bio$species_params$predator$ED_end <- 5500
+result      <- run_fb4(bio, strategy = "direct", p_value = 0.5, verbose = FALSE)
+comp_params <- process_composition_params(list())
+df <- analyze_composition_changes(result, comp_params)
+}
 }

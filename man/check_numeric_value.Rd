@@ -16,7 +16,10 @@ check_numeric_value(value, name, min_val = -Inf, max_val = Inf)
 \item{max_val}{Maximum allowed value (default Inf)}
 }
 \value{
-Validated numeric value(s)
+The original \code{value} (numeric, same length as input),
+  returned unchanged when all checks pass. Throws an error if \code{value}
+  is \code{NULL}, non-numeric, contains non-finite elements (\code{NA},
+  \code{NaN}, \code{Inf}), or falls outside \code{[min_val, max_val]}.
 }
 \description{
 Fast validation of numeric values with basic range checking.
@@ -36,4 +39,3 @@ check_numeric_value(5, "weight")
 try(check_numeric_value(-1, "weight", min_val = 0))
 try(check_numeric_value(NA, "weight"))
 }
-\keyword{internal}

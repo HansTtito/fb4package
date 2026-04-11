@@ -3,8 +3,19 @@
 \name{analysis-extraction}
 \alias{analysis-extraction}
 \title{Basic Analysis and Extraction Functions for FB4 Results}
+\value{
+No return value; this page documents the result extraction and summary functions. See individual function documentation for return values.
+}
 \description{
 Functions for basic analysis and extraction of FB4 simulation results.
 These functions build on the core extraction functions to provide
 meaningful biological interpretations and statistical summaries.
+Exported functions include \code{analyze_growth_patterns},
+\code{analyze_energy_budget}, \code{analyze_feeding_performance},
+and \code{create_result_summary}.
+}
+\references{
+Deslauriers, D., Chipps, S.R., Breck, J.E., Rice, J.A. and Madenjian, C.P.
+(2017). Fish Bioenergetics 4.0: An R-based modeling application.
+\emph{Fisheries}, 42(11), 586–596. \doi{10.1080/03632415.2017.1377558}
 }

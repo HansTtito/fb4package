@@ -18,9 +18,39 @@ get_energy_budget_uncertainty(
 \item{confidence_level}{Confidence level for intervals (default 0.95)}
 }
 \value{
-List with energy budget components and uncertainties
+A named list with ten elements: six energy-component sub-lists
+  (\code{consumption_energy}, \code{respiration_energy},
+  \code{egestion_energy}, \code{excretion_energy}, \code{sda_energy},
+  \code{net_energy}), each containing \code{estimate}, \code{se},
+  \code{ci_lower}, and \code{ci_upper} (all numeric, \code{NA} when
+  unavailable); plus \code{method} (character), \code{backend} (character),
+  \code{has_uncertainty} (logical), and \code{individual_id} (as supplied).
 }
 \description{
 Extracts energy budget components from FB4 simulations with uncertainty
 propagation when available.
+}
+\examples{
+\donttest{
+data(fish4_parameters)
+sp   <- fish4_parameters[["Oncorhynchus tshawytscha"]]$life_stages$adult
+info <- fish4_parameters[["Oncorhynchus tshawytscha"]]$species_info
+bio  <- Bioenergetic(
+  species_params     = sp,
+  species_info       = info,
+  environmental_data = list(
+    temperature = data.frame(Day = 1:30, Temperature = rep(12, 30))
+  ),
+  diet_data = list(
+    proportions = data.frame(Day = 1:30, Prey1 = 1.0),
+    energies    = data.frame(Day = 1:30, Prey1 = 5000),
+    prey_names  = "Prey1"
+  ),
+  simulation_settings = list(initial_weight = 100, duration = 30)
+)
+bio$species_params$predator$ED_ini <- 5000
+bio$species_params$predator$ED_end <- 5500
+result <- run_fb4(bio, strategy = "direct", p_value = 0.5, verbose = FALSE)
+budget <- get_energy_budget_uncertainty(result)
+}
 }

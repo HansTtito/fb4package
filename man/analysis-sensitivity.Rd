@@ -3,8 +3,19 @@
 \name{analysis-sensitivity}
 \alias{analysis-sensitivity}
 \title{Sensitivity and Comparative Analysis Functions for FB4 Results}
+\value{
+No return value; this page documents the sensitivity analysis functions. See individual function documentation for return values.
+}
 \description{
 Functions for sensitivity analysis, comparative studies, and population-level
-analysis of FB4 simulation results. Includes individual comparisons,
-parameter sensitivity assessment, and scenario analysis.
+analysis of FB4 simulation results. Includes individual comparisons
+(\code{compare_individuals}), population variation decomposition
+(\code{analyze_population_variation}), temperature-feeding sensitivity
+analysis (\code{analyze_growth_temperature_sensitivity}), and multi-scenario
+comparisons (\code{compare_scenarios}).
+}
+\references{
+Deslauriers, D., Chipps, S.R., Breck, J.E., Rice, J.A. and Madenjian, C.P.
+(2017). Fish Bioenergetics 4.0: An R-based modeling application.
+\emph{Fisheries}, 42(11), 586–596. \doi{10.1080/03632415.2017.1377558}
 }

@@ -20,7 +20,9 @@ A list containing metadata about the fish4_parameters database:
 }
 }
 \source{
-Generated automatically during database creation from Parameters_official.csv
+Generated automatically when converting \code{Parameters_official.csv}
+(from the Fish Bioenergetics 4.0 Shiny application,
+<https://github.com/biofish/FishBioenergetics>) into an R list object.
 }
 \usage{
 fish4_parameters_metadata

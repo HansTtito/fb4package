@@ -14,8 +14,19 @@ calculate_respiration(temperature, weight, processed_respiration_params)
 \item{processed_respiration_params}{List with processed respiration parameters (includes activity params)}
 }
 \value{
-Respiration (g O2/g fish/day)
+A positive numeric scalar giving the daily specific respiration rate
+  in g O\eqn{_2} per g fish per day. Returns \code{0.000001} as a minimum
+  safety floor when the result is non-finite or non-positive (e.g. at or
+  above the lethal temperature \code{RTM}). The value accounts for both the
+  temperature-dependence function (REQ 1 or 2) and the activity multiplier.
 }
 \description{
 Main respiration calculation function called from simulation loop
+}
+\examples{
+# REQ 2: Kitchell et al. (1977) temperature dependence
+params <- list(REQ = 2, RA = 0.0033, RB = -0.227,
+               RTM = 30, RTO = 18, RX = 0.5, ACT = 1.5)
+calculate_respiration(temperature = 15, weight = 100,
+                      processed_respiration_params = params)
 }

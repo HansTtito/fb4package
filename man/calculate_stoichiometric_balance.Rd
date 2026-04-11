@@ -10,9 +10,36 @@ calculate_stoichiometric_balance(nutrient_balance)
 \item{nutrient_balance}{Complete list result from calculate_nutrient_balance with efficiencies and ratios}
 }
 \value{
-List with stoichiometric analysis and limitation assessment
+A named list with ten elements:
+  \describe{
+    \item{nutrient_limitation}{Character. Overall assessment:
+      \code{"N-limited"}, \code{"P-limited"}, or \code{"Undetermined"}.}
+    \item{limiting_nutrient}{Character. The identified limiting nutrient
+      (\code{"nitrogen"}, \code{"phosphorus"}, or \code{"unknown"}).}
+    \item{excess_nutrient}{Character. The nutrient in relative excess.}
+    \item{excess_factor}{Numeric. Fold-excess of the non-limiting nutrient
+      relative to the Redfield ratio; 1 when undetermined.}
+    \item{limiting_efficiency}{Numeric. Retention efficiency of the limiting
+      nutrient; \code{NA} when undetermined.}
+    \item{consumption_np_ratio}{Numeric. Observed N:P ratio of consumed
+      food.}
+    \item{redfield_ratio}{Numeric. Reference Redfield ratio used.}
+    \item{np_deviation}{Numeric. Difference between observed and Redfield
+      N:P ratio.}
+    \item{efficiencies}{List from \code{\link{calculate_nutrient_efficiencies}}.}
+    \item{np_ratios}{List from \code{\link{calculate_np_ratios}}.}
+  }
 }
 \description{
 Analyzes nutritional limitations based on N:P ratios and determines
 which nutrient is limiting growth.
+}
+\examples{
+nb <- list(
+  nitrogen   = list(consumed = 10, assimilated = 8, growth = 3, excretion = 5,
+                    egestion = 2, assimilation_efficiency = 0.8),
+  phosphorus = list(consumed = 1.5, assimilated = 1.1, growth = 0.5,
+                    excretion = 0.6, egestion = 0.4, assimilation_efficiency = 0.73)
+)
+calculate_stoichiometric_balance(nb)
 }

@@ -14,8 +14,15 @@ energy density vector from `ED_ini`/`ED_end` when PREDEDEQ = 1.
 If `NULL` the vector is built lazily when the simulation starts.}
 }
 \value{
-Processed predator parameters with energy data
+A list containing all elements of \code{predator_params}. For
+  PREDEDEQ 1, an \code{ED_data} numeric vector of length
+  \code{n_days + 1} is added (or validated if already present). For
+  PREDEDEQ 2 and 3 the list is returned after validation with no
+  additional derived values.
 }
 \description{
 Process predator energy density parameters
+}
+\examples{
+process_predator_params(list(PREDEDEQ = 3, Alpha1 = 4800, Beta1 = 0.1))
 }

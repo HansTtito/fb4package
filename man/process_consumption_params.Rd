@@ -10,8 +10,15 @@ process_consumption_params(consumption_params)
 \item{consumption_params}{Raw consumption parameters}
 }
 \value{
-Processed consumption parameters with derived values
+A list containing all elements of \code{consumption_params} plus
+  derived values required by the selected equation: \code{CX}, \code{CY},
+  \code{CZ} for CEQ 2 (Kitchell et al. 1977); \code{CG1}, \code{CG2} for
+  CEQ 3 (Thornton and Lessem 1978). For CEQ 1 and CEQ 4 the input list is
+  returned unchanged after validation.
 }
 \description{
 Process consumption parameters
+}
+\examples{
+process_consumption_params(list(CEQ = 1, CA = 0.303, CB = -0.275, CQ = 0.06))
 }

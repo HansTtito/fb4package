@@ -25,6 +25,7 @@
 #' Kitchell, J.F., Stewart, D.J. and Weininger, D. (1977). Applications of a
 #' bioenergetics model to yellow perch and walleye.
 #' \emph{Journal of the Fisheries Research Board of Canada}, 34(10), 1922–1935.
+#' \doi{10.1139/f77-258}
 #'
 #' Thornton, K.W. and Lessem, A.S. (1978). A temperature algorithm for modifying
 #' biological rates.
@@ -38,6 +39,7 @@
 #' (2017). Fish Bioenergetics 4.0: An R-based modeling application.
 #' \emph{Fisheries}, 42(11), 586–596. \doi{10.1080/03632415.2017.1377558}
 #'
+#' @return No return value; this page documents the consumption functions module. See individual function documentation for return values.
 #' @name consumption-functions
 #' @aliases consumption-functions
 NULL
@@ -168,6 +170,9 @@ calculate_temperature_factor_consumption <- function(temperature, processed_cons
   } else if (CEQ == 4) {
     return(consumption_temp_eq4(temperature, processed_consumption_params$CQ, 
                                 processed_consumption_params$CK1, processed_consumption_params$CK4))
+  } else {
+    stop("calculate_temperature_factor_consumption: unrecognized CEQ value (", CEQ,
+         "). Must be 1, 2, 3, or 4.", call. = FALSE)
   }
 }
 
@@ -180,7 +185,17 @@ calculate_temperature_factor_consumption <- function(temperature, processed_cons
 #' @param p_value Proportion of maximum consumption (0-5)
 #' @param processed_consumption_params List with processed consumption parameters
 #' @param method Calculation method ("maximum", "rate", "specific")
-#' @return Specific consumption (g prey/g fish/day)
+#' @return A non-negative numeric scalar giving the daily specific consumption
+#'   rate in g prey per g fish per day. Returns \code{0} when the
+#'   temperature-dependence factor is zero (e.g. temperature \eqn{\ge} CTM in
+#'   equation 2). The value depends on \code{method}: \code{"rate"} (default)
+#'   scales by \code{p_value} (\eqn{C_{\max} \cdot p \cdot F(T)}); \code{"maximum"}
+#'   and \code{"specific"} return the unscaled value (\eqn{C_{\max} \cdot F(T)}).
+#' @examples
+#' # CEQ 1: simple exponential temperature dependence
+#' params <- list(CEQ = 1, CA = 0.303, CB = -0.275, CQ = 0.06)
+#' calculate_consumption(temperature = 15, weight = 100, p_value = 0.5,
+#'                       processed_consumption_params = params)
 #' @export
 calculate_consumption <- function(temperature, weight, p_value, processed_consumption_params, method = "rate") {
   
@@ -211,6 +226,8 @@ calculate_consumption <- function(temperature, weight, p_value, processed_consum
 #' @param CQ Temperature coefficient
 #' @param CTM Maximum temperature
 #' @param CTO Optimum temperature
+#' @param warn Logical; if \code{TRUE} (default) issues a warning when
+#'   \code{CY = 0} or the discriminant is negative.
 #' @return List with CY, CZ, CX
 #' @keywords internal
 calculate_consumption_params_eq2 <- function(CQ, CTM, CTO, warn = TRUE) {
@@ -255,16 +272,16 @@ calculate_consumption_params_eq3 <- function(CTO, CQ, CTL, CTM, CK1, CK4) {
   # Safe calculations
   numerator1 <- 0.98 * (1 - CK1)
   denominator1 <- CK1 * 0.02
-  
+
   numerator2 <- 0.98 * (1 - CK4)
   denominator2 <- CK4 * 0.02
-  
+
   if (denominator1 <= 0 || denominator2 <= 0) {
     stop("CK1 or CK4 parameters cause division by zero", call. = FALSE)
   }
-  
+
   CG1 <- (1/(CTO - CQ)) * log(numerator1 / denominator1)
   CG2 <- (1/(CTL - CTM)) * log(numerator2 / denominator2)
-  
+
   return(list(CG1 = CG1, CG2 = CG2))
 }

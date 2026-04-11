@@ -3,6 +3,30 @@
 \name{contaminant-accumulation}
 \alias{contaminant-accumulation}
 \title{Contaminant Accumulation Functions for FB4 Model}
+\value{
+No return value; this page documents the contaminant accumulation functions module. See individual function documentation for return values.
+}
 \description{
-Contaminant Accumulation Functions for FB4 Model
+Experimental functions for modelling daily contaminant (e.g. methylmercury,
+PCBs) dynamics in fish using three bioaccumulation models (CONTEQ 1–3).
+
+\strong{CONTEQ 1} — food uptake only, no elimination:
+\eqn{\text{Burden}_{t+1} = \text{Burden}_t + \sum_i C_i \cdot [\text{prey}]_i \cdot \text{AE}_i}
+
+\strong{CONTEQ 2} — food uptake with temperature- and weight-dependent
+elimination (Trudel and Rasmussen 1997):
+\eqn{K_x = \exp(0.066 T - 0.2 \ln W - 6.56)}
+
+\strong{CONTEQ 3} — Arnot and Gobas (2004): uptake from both water
+(via gill transfer) and food, elimination proportional to respiration.
+}
+\references{
+Arnot, J.A. and Gobas, F.A.P.C. (2004). A food web bioaccumulation model
+for organic chemicals in aquatic ecosystems.
+\emph{Environmental Toxicology and Chemistry}, 23(10), 2343–2355.
+\doi{10.1897/03-438}
+
+Trudel, M. and Rasmussen, J.B. (1997). Modeling the elimination of mercury
+by fish. \emph{Environmental Science and Technology}, 31(6), 1716–1722.
+\doi{10.1021/es960609t}
 }

@@ -12,9 +12,24 @@ set_environment(x, temperature_data)
 \item{temperature_data}{Data frame with Day and Temperature columns}
 }
 \value{
-Updated Bioenergetic object with new environmental data
+The \code{Bioenergetic} object \code{x} with its
+  \code{environmental_data$temperature} component replaced by
+  \code{temperature_data} (interpolated to fill missing days if needed),
+  and \code{fitted} reset to \code{FALSE}.
 }
 \description{
 Updates the environmental data component of a Bioenergetic object
 with new temperature information.
+}
+\examples{
+\donttest{
+bio <- Bioenergetic(
+  species_params = list(
+    consumption = list(CEQ = 1, CA = 0.303, CB = -0.275, CQ = 0.06)
+  ),
+  species_info  = list(common_name = "Example fish")
+)
+temp <- data.frame(Day = 1:365, Temperature = rep(15, 365))
+bio <- set_environment(bio, temp)
+}
 }

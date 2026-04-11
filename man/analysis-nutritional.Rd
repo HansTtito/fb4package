@@ -3,8 +3,21 @@
 \name{analysis-nutritional}
 \alias{analysis-nutritional}
 \title{Nutritional Analysis Functions for FB4 Results}
+\value{
+No return value; this page documents the nutritional analysis functions. See individual function documentation for return values.
+}
 \description{
 Specialized functions for nutritional analysis of FB4 simulation results.
-Includes N:P ratio analysis, nutrient efficiency calculations, 
-stoichiometric balance assessment, and body composition analysis.
+Includes N:P ratio analysis (\code{calculate_np_ratios},
+\code{compare_with_redfield}), nutrient retention efficiency calculations
+(\code{calculate_nutrient_efficiencies}), stoichiometric balance assessment
+(\code{calculate_stoichiometric_balance}), body composition analysis
+(\code{analyze_composition_by_size}, \code{analyze_composition_changes}),
+diet quality assessment (\code{assess_diet_quality}), and an integrated
+wrapper (\code{comprehensive_nutritional_analysis}).
+}
+\references{
+Deslauriers, D., Chipps, S.R., Breck, J.E., Rice, J.A. and Madenjian, C.P.
+(2017). Fish Bioenergetics 4.0: An R-based modeling application.
+\emph{Fisheries}, 42(11), 586–596. \doi{10.1080/03632415.2017.1377558}
 }

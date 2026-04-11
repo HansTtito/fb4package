@@ -24,8 +24,18 @@ calculate_excretion(
 \item{processed_excretion_params}{List with processed excretion parameters}
 }
 \value{
-Excretion (J/g)
+A non-negative numeric scalar giving the daily excretion rate in
+  J per g fish per day. Returns \code{0} when \code{consumption} is zero.
+  The equation used depends on \code{processed_excretion_params$EXEQ}
+  (1 = constant fraction of assimilated energy; 2-3 = temperature- and
+  ration-dependent; 4 = temperature-dependent only).
 }
 \description{
 Main excretion calculation function called from simulation loop
+}
+\examples{
+# EXEQ 1: constant fraction of assimilated energy
+params <- list(EXEQ = 1, UA = 0.1)
+calculate_excretion(consumption = 5.0, egestion = 0.8, temperature = 15,
+                    p_value = 0.5, processed_excretion_params = params)
 }

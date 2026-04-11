@@ -1,5 +1,26 @@
 #' Data Processing Functions for FB4
 #'
+#' @description
+#' Functions for preparing, validating, and transforming the temporal and
+#' parameter data required by the FB4 simulation engine. The main entry
+#' point is \code{\link{prepare_simulation_data}}, which orchestrates
+#' species-parameter processing (via \code{\link{process_species_parameters}})
+#' and temporal-data processing (via \code{\link{process_bioenergetic_data}}).
+#' Ancillary functions handle time-series interpolation
+#' (\code{\link{interpolate_time_series}}), diet normalisation, reproduction
+#' scheduling, and TMB-format transformations for statistical fitting
+#' strategies.
+#'
+#' @references
+#' Hanson, P.C., Johnson, T.B., Schindler, D.E. and Kitchell, J.F. (1997).
+#' \emph{Fish Bioenergetics 3.0}. University of Wisconsin Sea Grant Institute,
+#' Madison, WI.
+#'
+#' Deslauriers, D., Chipps, S.R., Breck, J.E., Rice, J.A. and Madenjian, C.P.
+#' (2017). Fish Bioenergetics 4.0: An R-based modeling application.
+#' \emph{Fisheries}, 42(11), 586–596. \doi{10.1080/03632415.2017.1377558}
+#'
+#' @return No return value; this page documents the data processing functions module. See individual function documentation for return values.
 #' @name data-processing
 #' @aliases data-processing
 NULL
@@ -25,7 +46,21 @@ NULL
 #' @param output_format Output format: "simulation", "tmb_basic", "tmb_hierarchical"
 #' @param observed_weights Data frame with columns: individual_id, initial_weight and observed_weight
 #' @param covariates Optional covariate matrix or data frame or choose a column of individual_data
-#' @return List with complete processed data ready for simulation
+#' @return For \code{output_format = "simulation"} (default), a named list
+#'   with seven elements: \code{species_params} (processed species parameter
+#'   sub-lists), \code{temporal_data} (processed temporal arrays),
+#'   \code{simulation_settings} (processed settings), \code{metadata}
+#'   (processing timestamp, duration, prey species, data sources),
+#'   \code{n_days} (integer), \code{temperatures} (numeric vector), and
+#'   \code{initial_weight} (numeric scalar). For
+#'   \code{output_format = "tmb_basic"} or \code{"tmb_hierarchical"},
+#'   returns a list formatted for TMB model fitting (structure differs).
+#' @examples
+#' \donttest{
+#' # Requires a fully-configured Bioenergetic object; see ?Bioenergetic
+#' # bio <- Bioenergetic(...)
+#' # sim_data <- prepare_simulation_data(bio, strategy = "direct")
+#' }
 #' @export
 prepare_simulation_data <- function(bio_obj, strategy, fit_to = NULL, fit_value = NULL, first_day = 1, last_day = NULL,
                                    validate_inputs = TRUE, oxycal = 13560,
@@ -128,7 +163,20 @@ prepare_simulation_data <- function(bio_obj, strategy, fit_to = NULL, fit_value 
 #' @param bio_obj Bioenergetic object (must be pre-validated)
 #' @param first_day First simulation day
 #' @param last_day Last simulation day
-#' @return List with processed temporal data ready for simulation
+#' @return A named list with ten elements containing the temporal arrays
+#'   interpolated to each simulation day: \code{temperature} (numeric vector,
+#'   °C), \code{diet_proportions} (numeric matrix, rows = days, columns =
+#'   prey), \code{prey_energies} (numeric matrix, J/g), \code{prey_indigestible}
+#'   (numeric matrix, fractions), \code{reproduction} (numeric vector,
+#'   fractions), \code{duration} (integer, number of days), \code{prey_names}
+#'   (character vector), \code{first_day}, \code{last_day}, and
+#'   \code{target_days} (integer sequence of simulated days).
+#' @examples
+#' \donttest{
+#' # Requires a fully-configured Bioenergetic object; see ?Bioenergetic
+#' # bio <- Bioenergetic(...)
+#' # temporal <- process_bioenergetic_data(bio, first_day = 1, last_day = 365)
+#' }
 #' @export
 process_bioenergetic_data <- function(bio_obj, first_day, last_day) {
 
@@ -263,7 +311,17 @@ process_bioenergetic_data <- function(bio_obj, first_day, last_day) {
 #' @param first_day First simulation day
 #' @param last_day Last simulation day
 #' @param oxycal Oxycalorific coefficient (J/g O2), default 13560
-#' @return Processed simulation settings
+#' @return A named list with ten elements: \code{initial_weight} (numeric,
+#'   g), \code{duration} (integer, days), \code{first_day}, \code{last_day},
+#'   \code{oxycal} (numeric, J/g O2), \code{output_frequency} (integer),
+#'   \code{save_daily_details} (logical), \code{tolerance} (numeric),
+#'   \code{max_iterations} (integer), \code{step_size} (numeric), and four
+#'   logical flags: \code{calculate_composition}, \code{calculate_contaminants},
+#'   \code{calculate_nutrients}, \code{track_mortality}.
+#' @examples
+#' settings <- list(initial_weight = 100, p_value = 0.5,
+#'                  fit_to = "Weight", fit_value = 200)
+#' process_simulation_settings(settings, first_day = 1, last_day = 365)
 #' @export
 process_simulation_settings <- function(settings, first_day, last_day, oxycal = 13560) {
   
@@ -369,7 +427,18 @@ normalize_diet_proportions <- function(diet_matrix) {
 #' @param method Interpolation method ("linear", "constant", "spline")
 #' @param fill_na_method Method to fill missing values ("extend", "zero", "mean")
 #' @param validate_input Validate input structure, default TRUE
-#' @return Data frame with interpolated data
+#' @return A \code{data.frame} with one row per element of \code{target_days}.
+#'   The first column is \code{Day} (integer). Subsequent columns correspond
+#'   to \code{value_columns}, each containing the interpolated numeric values
+#'   at the requested days. \code{NA} values are resolved according to
+#'   \code{fill_na_method}: \code{"extend"} fills with the nearest valid
+#'   value, \code{"zero"} replaces with 0, and \code{"mean"} uses the
+#'   column mean.
+#' @examples
+#' temp_data <- data.frame(Day = c(1, 100, 200, 365),
+#'                         Temperature = c(5, 15, 18, 7))
+#' interpolate_time_series(temp_data, value_columns = "Temperature",
+#'                         target_days = 1:365)
 #' @importFrom stats approx spline
 #' @importFrom utils tail
 #' @export
@@ -410,7 +479,7 @@ interpolate_time_series <- function(data, value_columns, target_days,
   }
   
   # Prepare result
-  n_days <- length(target_days)
+  # n_days <- length(target_days)
   result <- data.frame(Day = target_days)
   
   # Internal function to handle interpolation
@@ -446,13 +515,13 @@ interpolate_time_series <- function(data, value_columns, target_days,
         interpolated <- stats::approx(x = clean_days, y = clean_values,
                                       xout = target_days, method = "linear", rule = 2)$y
       } else {
-        tryCatch({
-          interpolated <- stats::spline(x = clean_days, y = clean_values,
-                                        xout = target_days, method = "natural")$y
+        interpolated <- tryCatch({
+          stats::spline(x = clean_days, y = clean_values,
+                        xout = target_days, method = "natural")$y
         }, error = function(e) {
           warning("Spline interpolation failed, using linear method")
-          interpolated <- stats::approx(x = clean_days, y = clean_values,
-                                        xout = target_days, method = "linear", rule = 2)$y
+          stats::approx(x = clean_days, y = clean_values,
+                        xout = target_days, method = "linear", rule = 2)$y
         })
       }
     } else {

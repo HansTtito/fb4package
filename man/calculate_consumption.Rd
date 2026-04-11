@@ -24,8 +24,19 @@ calculate_consumption(
 \item{method}{Calculation method ("maximum", "rate", "specific")}
 }
 \value{
-Specific consumption (g prey/g fish/day)
+A non-negative numeric scalar giving the daily specific consumption
+  rate in g prey per g fish per day. Returns \code{0} when the
+  temperature-dependence factor is zero (e.g. temperature \eqn{\ge} CTM in
+  equation 2). The value depends on \code{method}: \code{"rate"} (default)
+  scales by \code{p_value} (\eqn{C_{\max} \cdot p \cdot F(T)}); \code{"maximum"}
+  and \code{"specific"} return the unscaled value (\eqn{C_{\max} \cdot F(T)}).
 }
 \description{
 Main consumption calculation function called from simulation loop
+}
+\examples{
+# CEQ 1: simple exponential temperature dependence
+params <- list(CEQ = 1, CA = 0.303, CB = -0.275, CQ = 0.06)
+calculate_consumption(temperature = 15, weight = 100, p_value = 0.5,
+                      processed_consumption_params = params)
 }

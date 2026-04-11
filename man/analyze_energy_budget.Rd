@@ -14,10 +14,54 @@ analyze_energy_budget(result, individual_id = NULL, confidence_level = 0.95)
 \item{confidence_level}{Confidence level for intervals (default 0.95)}
 }
 \value{
-List with comprehensive energy budget analysis
+A named list with four elements:
+  \describe{
+    \item{energy_components}{The list returned by
+      \code{\link{get_energy_budget_uncertainty}}, containing six component
+      sub-lists each with \code{estimate}, \code{se}, \code{ci_lower}, and
+      \code{ci_upper}.}
+    \item{proportions}{Named list of proportional allocations
+      (\code{prop_respiration}, \code{prop_egestion}, \code{prop_excretion},
+      \code{prop_sda}, \code{prop_net}), each a sub-list with \code{estimate},
+      \code{se}, \code{ci_lower}, and \code{ci_upper}. \code{NULL} when
+      consumption energy is zero or unavailable.}
+    \item{summary_metrics}{Named list with \code{gross_growth_efficiency},
+      \code{metabolic_scope}, and \code{assimilation_efficiency} sub-lists
+      (each \code{estimate} + \code{se}). \code{NULL} when proportions are
+      unavailable.}
+    \item{balance_check}{Named list with \code{consumption_energy},
+      \code{total_allocated}, \code{balance_error}, and
+      \code{relative_error} (all numeric) to verify mass-balance closure.}
+  }
+  Plus the context scalars \code{method}, \code{has_uncertainty}, and
+  \code{individual_id}.
 }
 \description{
 Analyzes energy budget components from FB4 simulation results.
 Calculates proportional allocation to different processes with
 uncertainty propagation when available.
+}
+\examples{
+\donttest{
+data(fish4_parameters)
+sp   <- fish4_parameters[["Oncorhynchus tshawytscha"]]$life_stages$adult
+info <- fish4_parameters[["Oncorhynchus tshawytscha"]]$species_info
+bio  <- Bioenergetic(
+  species_params     = sp,
+  species_info       = info,
+  environmental_data = list(
+    temperature = data.frame(Day = 1:30, Temperature = rep(12, 30))
+  ),
+  diet_data = list(
+    proportions = data.frame(Day = 1:30, Prey1 = 1.0),
+    energies    = data.frame(Day = 1:30, Prey1 = 5000),
+    prey_names  = "Prey1"
+  ),
+  simulation_settings = list(initial_weight = 100, duration = 30)
+)
+bio$species_params$predator$ED_ini <- 5000
+bio$species_params$predator$ED_end <- 5500
+result <- run_fb4(bio, strategy = "direct", p_value = 0.5, verbose = FALSE)
+budget <- analyze_energy_budget(result)
+}
 }

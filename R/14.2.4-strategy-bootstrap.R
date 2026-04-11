@@ -1,3 +1,24 @@
+#' Bootstrap Estimation Strategy for FB4 Model
+#'
+#' @description
+#' Implements the \code{"bootstrap"} FB4 fitting strategy, which estimates the
+#' proportion of maximum consumption (\emph{p}-value) and its uncertainty by
+#' resampling observed final weights. Each bootstrap replicate finds the
+#' p_value that minimises the difference between the simulated final weight and
+#' the resampled mean weight via \code{optim_search_p_value}. Parallel
+#' execution is supported through the \pkg{future}/\pkg{furrr} ecosystem
+#' (\code{parallel = TRUE}).
+#'
+#' @references
+#' Deslauriers, D., Chipps, S.R., Breck, J.E., Rice, J.A. and Madenjian, C.P.
+#' (2017). Fish Bioenergetics 4.0: An R-based modeling application.
+#' \emph{Fisheries}, 42(11), 586–596. \doi{10.1080/03632415.2017.1377558}
+#'
+#' @return No return value; this page documents the bootstrap estimation strategy functions. See individual function documentation for return values.
+#' @name strategy-bootstrap
+#' @aliases strategy-bootstrap
+NULL
+
 # ============================================================================
 # BOOTSTRAP STRATEGY (USING SHARED COMMONS)
 # ============================================================================
@@ -379,7 +400,7 @@ bootstrap_p_values <- function(processed_simulation_data,
 
   # ---- Verbose summary -----------------------------------------------------
   if (verbose) {
-    message("Bootstrap completed \u2014 successful: ", successful_iterations, "/",
+    message("Bootstrap completed "--" successful: ", successful_iterations, "/",
             n_bootstrap, " (", round(success_rate * 100, 1), "%)")
     if (success_rate < 0.5) {
       warning("Low success rate (", round(success_rate * 100, 1),
@@ -412,8 +433,9 @@ bootstrap_p_values <- function(processed_simulation_data,
 #' Fit FB4 model using bootstrap estimation with parallel option
 #'
 #' @description
-#' Coordinates bootstrap fitting process for final weight data.
-#' Now uses shared commons functions and run_final_simulation for consistency.
+#' Coordinates the bootstrap fitting process: runs the resampling loop via
+#' \code{bootstrap_p_values}, computes summary statistics and confidence
+#' intervals, and runs a final detailed simulation with the mean p_value.
 #'
 #' @param final_weights Vector of final observed weights
 #' @param processed_simulation_data Complete processed simulation data (contains initial_weight)

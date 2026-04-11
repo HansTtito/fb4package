@@ -2,7 +2,7 @@
 % Please edit documentation in R/14.3-result-builders.R
 \name{create_execution_summary}
 \alias{create_execution_summary}
-\title{Create execution summary for verbose output (UNIFIED)}
+\title{Create execution summary for verbose output}
 \usage{
 create_execution_summary(result, execution_plan, elapsed_time)
 }

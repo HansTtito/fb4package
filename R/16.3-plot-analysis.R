@@ -2,9 +2,19 @@
 #'
 #' @description
 #' Plotting functions for uncertainty analysis and sensitivity analysis.
-#' Includes functions for MLE, bootstrap, hierarchical methods, and sensitivity analysis.
+#' Exported functions include \code{plot_uncertainty.fb4_result} (dispatches
+#' to MLE, bootstrap, and hierarchical sub-functions),
+#' \code{plot_distributions.fb4_result}, \code{plot_sensitivity.fb4_result},
+#' and \code{plot_growth_temperature_sensitivity}.
 #'
+#' @references
+#' Deslauriers, D., Chipps, S.R., Breck, J.E., Rice, J.A. and Madenjian, C.P.
+#' (2017). Fish Bioenergetics 4.0: An R-based modeling application.
+#' \emph{Fisheries}, 42(11), 586–596. \doi{10.1080/03632415.2017.1377558}
+#'
+#' @return No return value, called for side effects (plots). See individual function documentation for details.
 #' @name fb4-analysis-plots
+#' @aliases fb4-analysis-plots
 #' @importFrom graphics plot hist lines abline text legend grid points barplot
 #' @importFrom stats density
 NULL
@@ -24,7 +34,7 @@ NULL
 #' @param color_scheme Color scheme to use, default "blue"
 #' @param add_ci_text Add confidence interval text, default TRUE
 #'
-#' @return NULL (creates plot)
+#' @return Called for its plotting side-effect. Invisibly returns \code{NULL}.
 #' @export
 #'
 #' @examples
@@ -87,7 +97,7 @@ plot_uncertainty.fb4_result <- function(fb4_result, parameters = "all",
 #' @param color_scheme Color scheme to use, default "green"
 #' @param show_individuals For hierarchical: show individual estimates, default TRUE
 #'
-#' @return NULL (creates plot)
+#' @return Called for its plotting side-effect. Invisibly returns \code{NULL}.
 #' @export
 #'
 #' @examples
@@ -166,7 +176,7 @@ plot_distributions.fb4_result <- function(fb4_result, color_scheme = "green",
 #' @param verbose Show analysis progress. Default FALSE.
 #' @param ... Additional arguments passed to \code{plot_growth_temperature_sensitivity()}.
 #'
-#' @return NULL (creates plot)
+#' @return Called for its plotting side-effect. Invisibly returns \code{NULL}.
 #' @export
 #'
 #' @examples
@@ -247,8 +257,9 @@ plot_growth_vs_temperature <- function(sensitivity_data, fb4_result,
                                        add_annotations = TRUE, ...) {
   
   # Setup plot
-  old_par <- setup_plot_layout("single", "default")
+  old_par <- graphics::par(no.readonly = TRUE)
   on.exit(graphics::par(old_par))
+  graphics::par(mfrow = c(1, 1), mar = c(4, 4, 3, 2))
   
   # Get colors
   colors <- get_color_scheme(color_scheme)
@@ -299,6 +310,12 @@ plot_growth_vs_temperature <- function(sensitivity_data, fb4_result,
 #' @keywords internal
 plot_estimate_panel <- function(estimate, ci_lower, ci_upper,
                                 param_name, method_label, colors, add_ci_text) {
+  # Fall back to a symmetric range when CIs are not available
+  if (!is.finite(ci_lower) || !is.finite(ci_upper)) {
+    half_range <- if (is.finite(estimate) && estimate != 0) abs(estimate) * 0.5 else 1
+    ci_lower <- estimate - half_range
+    ci_upper <- estimate + half_range
+  }
   graphics::plot(1, estimate,
                  ylim = c(ci_lower * 0.9, ci_upper * 1.1),
                  xlab = "", ylab = param_name,
@@ -323,8 +340,9 @@ plot_estimate_panel <- function(estimate, ci_lower, ci_upper,
 #' @return NULL
 #' @keywords internal
 plot_mle_uncertainty <- function(fb4_result, parameters, colors, add_ci_text) {
-  old_par <- setup_plot_layout(c(2, 2), "compact")
+  old_par <- graphics::par(no.readonly = TRUE)
   on.exit(graphics::par(old_par))
+  graphics::par(mfrow = c(2, 2), mar = c(3, 3, 2, 1))
 
   # MLE data lives in result$method_data (built by create_method_specific_data)
   md  <- fb4_result$method_data
@@ -396,8 +414,9 @@ plot_mle_uncertainty <- function(fb4_result, parameters, colors, add_ci_text) {
 #' @return NULL
 #' @keywords internal
 plot_bootstrap_uncertainty <- function(fb4_result, parameters, colors, add_ci_text) {
-  old_par <- setup_plot_layout(c(2, 2), "compact")
+  old_par <- graphics::par(no.readonly = TRUE)
   on.exit(graphics::par(old_par))
+  graphics::par(mfrow = c(2, 2), mar = c(3, 3, 2, 1))
 
   # Bootstrap data lives in result$method_data (built by create_method_specific_data)
   md   <- fb4_result$method_data
@@ -470,8 +489,9 @@ plot_bootstrap_uncertainty <- function(fb4_result, parameters, colors, add_ci_te
 #' @return NULL
 #' @keywords internal
 plot_hierarchical_uncertainty <- function(fb4_result, parameters, colors, add_ci_text) {
-  old_par <- setup_plot_layout(c(2, 2), "compact")
+  old_par <- graphics::par(no.readonly = TRUE)
   on.exit(graphics::par(old_par))
+  graphics::par(mfrow = c(2, 2), mar = c(3, 3, 2, 1))
 
   hr     <- fb4_result$hierarchical_results
   params <- if (parameters == "all") names(hr$estimates) else parameters
@@ -501,8 +521,9 @@ plot_hierarchical_uncertainty <- function(fb4_result, parameters, colors, add_ci
 plot_bootstrap_distributions <- function(fb4_result, colors) {
   
   # Setup plot
-  old_par <- setup_plot_layout(c(2, 2), "compact")
+  old_par <- graphics::par(no.readonly = TRUE)
   on.exit(graphics::par(old_par))
+  graphics::par(mfrow = c(2, 2), mar = c(3, 3, 2, 1))
   
   # Extract bootstrap samples
   bootstrap_samples <- fb4_result$bootstrap_results$samples
@@ -539,8 +560,9 @@ plot_bootstrap_distributions <- function(fb4_result, colors) {
 plot_hierarchical_distributions <- function(fb4_result, colors, show_individuals) {
   
   # Setup plot
-  old_par <- setup_plot_layout(c(2, 2), "compact")
+  old_par <- graphics::par(no.readonly = TRUE)
   on.exit(graphics::par(old_par))
+  graphics::par(mfrow = c(2, 2), mar = c(3, 3, 2, 1))
   
   # Extract hierarchical results
   hierarchical_results <- fb4_result$hierarchical_results
@@ -587,8 +609,37 @@ plot_hierarchical_distributions <- function(fb4_result, colors, show_individuals
 #' @param verbose Show progress messages
 #' @param ... Additional arguments
 #'
-#' @return NULL (creates plot)
+#' @return Called for its plotting side-effect. Invisibly returns \code{NULL}.
 #' @export
+#' @examples
+#' \donttest{
+#' data(fish4_parameters)
+#' sp   <- fish4_parameters[["Oncorhynchus tshawytscha"]]$life_stages$adult
+#' info <- fish4_parameters[["Oncorhynchus tshawytscha"]]$species_info
+#' bio  <- Bioenergetic(
+#'   species_params     = sp,
+#'   species_info       = info,
+#'   environmental_data = list(
+#'     temperature = data.frame(Day = 1:30, Temperature = rep(12, 30))
+#'   ),
+#'   diet_data = list(
+#'     proportions = data.frame(Day = 1:30, Prey1 = 1.0),
+#'     energies    = data.frame(Day = 1:30, Prey1 = 5000),
+#'     prey_names  = "Prey1"
+#'   ),
+#'   simulation_settings = list(initial_weight = 100, duration = 30)
+#' )
+#' bio$species_params$predator$ED_ini <- 5000
+#' bio$species_params$predator$ED_end <- 5500
+#' sens_data <- analyze_growth_temperature_sensitivity(
+#'   bio_obj         = bio,
+#'   temperatures    = c(10, 14),
+#'   p_values        = c(0.4, 0.7),
+#'   simulation_days = 30,
+#'   verbose         = FALSE
+#' )
+#' plot_growth_temperature_sensitivity(sens_data, species = "Chinook")
+#' }
 plot_growth_temperature_sensitivity <- function(sensitivity_data,
                                                 temperatures = seq(5, 20, by = 2),
                                                 feeding_levels = c(0.5, 0.75, 1.0),

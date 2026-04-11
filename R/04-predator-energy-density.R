@@ -1,5 +1,29 @@
 #' Predator Energy Density Functions for FB4 Model
 #'
+#' @description
+#' Functions implementing three predator energy density models (PREDEDEQ 1–3)
+#' and the corresponding weight-solving routines used in the FB4 energy balance.
+#'
+#' \strong{PREDEDEQ 1} — interpolated daily data: energy density supplied as a
+#' vector of length \eqn{n_{\text{days}} + 1} (one value per day boundary).
+#'
+#' \strong{PREDEDEQ 2} — piecewise linear by weight:
+#' \eqn{ED = \alpha_1 + \beta_1 W} below the cutoff,
+#' \eqn{ED = \alpha_2 + \beta_2 W} above.
+#'
+#' \strong{PREDEDEQ 3} — power function:
+#' \eqn{ED = \alpha_1 \cdot W^{\beta_1}}.
+#'
+#' @references
+#' Hanson, P.C., Johnson, T.B., Schindler, D.E. and Kitchell, J.F. (1997).
+#' \emph{Fish Bioenergetics 3.0}. University of Wisconsin Sea Grant Institute,
+#' Madison, WI.
+#'
+#' Deslauriers, D., Chipps, S.R., Breck, J.E., Rice, J.A. and Madenjian, C.P.
+#' (2017). Fish Bioenergetics 4.0: An R-based modeling application.
+#' \emph{Fisheries}, 42(11), 586–596. \doi{10.1080/03632415.2017.1377558}
+#'
+#' @return No return value; this page documents the predator energy density functions module. See individual function documentation for return values.
 #' @name predator-energy-density
 #' @aliases predator-energy-density
 NULL
@@ -156,7 +180,14 @@ solve_weight_linear_segments <- function(available_energy, Alpha1, Beta1, Alpha2
 #' @param weight Fish weight (g)
 #' @param day Simulation day (for equation 1)
 #' @param processed_predator_params List with processed predator parameters
-#' @return Energy density (J/g)
+#' @return A numeric scalar giving the predator energy density in J per g fish,
+#'   calculated according to \code{processed_predator_params$PREDEDEQ}
+#'   (1 = interpolated daily data; 2 = piecewise linear by weight;
+#'   3 = power function of weight).
+#' @examples
+#' # PREDEDEQ 3: power function of weight
+#' params <- list(PREDEDEQ = 3, Alpha1 = 4800, Beta1 = 0.1)
+#' calculate_predator_energy_density(weight = 100, processed_predator_params = params)
 #' @export
 calculate_predator_energy_density <- function(weight, day = 1, processed_predator_params) {
   
@@ -172,6 +203,9 @@ calculate_predator_energy_density <- function(weight, day = 1, processed_predato
     
   } else if (PREDEDEQ == 3) {
     return(predator_energy_eq3(weight, processed_predator_params$Alpha1, processed_predator_params$Beta1))
+  } else {
+    stop("calculate_predator_energy_density: unrecognized PREDEDEQ value (", PREDEDEQ,
+         "). Must be 1, 2, or 3.", call. = FALSE)
   }
 }
 
@@ -216,7 +250,22 @@ solve_weight_iterative <- function(target_energy, processed_predator_params, day
 #' @param spawn_energy Energy lost to reproduction (J)
 #' @param processed_predator_params Processed predator parameters
 #' @param day Current day
-#' @return List with final weight and change
+#' @return A named list with three elements:
+#'   \describe{
+#'     \item{final_weight}{Numeric scalar. Fish weight (g) at end of day,
+#'       after accounting for net energy and reproductive losses. Minimum
+#'       value is \code{0.01} g.}
+#'     \item{final_energy_density}{Numeric scalar. Energy density (J/g)
+#'       corresponding to \code{final_weight}.}
+#'     \item{weight_change}{Numeric scalar. Change in weight (g) during the
+#'       day (\code{final_weight - initial_weight}); negative values indicate
+#'       weight loss.}
+#'   }
+#' @examples
+#' # PREDEDEQ 3: power function, positive net energy (weight gain)
+#' params <- list(PREDEDEQ = 3, Alpha1 = 4800, Beta1 = 0.1)
+#' calculate_final_weight_fb4(initial_weight = 100, net_energy = 500,
+#'                            processed_predator_params = params)
 #' @export
 calculate_final_weight_fb4 <- function(initial_weight, net_energy, spawn_energy = 0, 
                                        processed_predator_params, day = 1) {
@@ -256,6 +305,9 @@ calculate_final_weight_fb4 <- function(initial_weight, net_energy, spawn_energy 
     # Power function energy density
     final_weight <- solve_weight_power_function(initial_weight, net_energy_after_spawn, 
                                                 processed_predator_params$Alpha1, processed_predator_params$Beta1)
+  } else {
+    stop("calculate_final_weight_fb4: unrecognized PREDEDEQ value (", PREDEDEQ,
+         "). Must be 1, 2, or 3.", call. = FALSE)
   }
   
   # Final validation and safety check
@@ -272,5 +324,3 @@ calculate_final_weight_fb4 <- function(initial_weight, net_energy, spawn_energy 
     weight_change = final_weight - initial_weight
   ))
 }
-
-

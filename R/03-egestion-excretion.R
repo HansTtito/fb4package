@@ -47,6 +47,7 @@
 #' (2017). Fish Bioenergetics 4.0: An R-based modeling application.
 #' \emph{Fisheries}, 42(11), 586–596. \doi{10.1080/03632415.2017.1377558}
 #'
+#' @return No return value; this page documents the egestion and excretion functions module. See individual function documentation for return values.
 #' @name egestion-excretion
 #' @aliases egestion-excretion
 NULL
@@ -200,7 +201,17 @@ excretion_model_4 <- function(consumption, egestion, temperature, UA, UB) {
 #' @param temperature Water temperature (deg C)
 #' @param p_value Proportion of maximum consumption (p_value)
 #' @param processed_egestion_params List with processed egestion parameters
-#' @return Egestion (J/g)
+#' @return A non-negative numeric scalar giving the daily egestion rate in
+#'   J per g fish per day. Returns \code{0} when \code{consumption} is zero.
+#'   The equation used depends on \code{processed_egestion_params$EGEQ}
+#'   (1 = constant fraction; 2-3 = temperature- and ration-dependent;
+#'   4 = temperature-dependent only). The result is always capped at
+#'   \code{consumption} (egestion cannot exceed intake).
+#' @examples
+#' # EGEQ 1: constant fraction of consumption
+#' params <- list(EGEQ = 1, FA = 0.16)
+#' calculate_egestion(consumption = 5.0, temperature = 15, p_value = 0.5,
+#'                    processed_egestion_params = params)
 #' @export
 calculate_egestion <- function(consumption, temperature, p_value, processed_egestion_params) {
   
@@ -224,6 +235,9 @@ calculate_egestion <- function(consumption, temperature, p_value, processed_eges
   } else if (EGEQ == 4) {
     return(egestion_model_4(consumption, temperature, 
                             processed_egestion_params$FA, processed_egestion_params$FB))
+  } else {
+    stop("calculate_egestion: unrecognized EGEQ value (", EGEQ,
+         "). Must be 1, 2, 3, or 4.", call. = FALSE)
   }
 }
 
@@ -237,7 +251,16 @@ calculate_egestion <- function(consumption, temperature, p_value, processed_eges
 #' @param temperature Water temperature (deg C)
 #' @param p_value Proportion of maximum consumption (p_value)
 #' @param processed_excretion_params List with processed excretion parameters
-#' @return Excretion (J/g)
+#' @return A non-negative numeric scalar giving the daily excretion rate in
+#'   J per g fish per day. Returns \code{0} when \code{consumption} is zero.
+#'   The equation used depends on \code{processed_excretion_params$EXEQ}
+#'   (1 = constant fraction of assimilated energy; 2-3 = temperature- and
+#'   ration-dependent; 4 = temperature-dependent only).
+#' @examples
+#' # EXEQ 1: constant fraction of assimilated energy
+#' params <- list(EXEQ = 1, UA = 0.1)
+#' calculate_excretion(consumption = 5.0, egestion = 0.8, temperature = 15,
+#'                     p_value = 0.5, processed_excretion_params = params)
 #' @export
 calculate_excretion <- function(consumption, egestion, temperature, p_value, processed_excretion_params) {
   
@@ -261,5 +284,8 @@ calculate_excretion <- function(consumption, egestion, temperature, p_value, pro
   } else if (EXEQ == 4) {
     return(excretion_model_4(consumption, egestion, temperature, 
                              processed_excretion_params$UA, processed_excretion_params$UB))
+  } else {
+    stop("calculate_excretion: unrecognized EXEQ value (", EXEQ,
+         "). Must be 1, 2, 3, or 4.", call. = FALSE)
   }
 }

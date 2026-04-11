@@ -3,6 +3,26 @@
 \name{mortality-reproduction}
 \alias{mortality-reproduction}
 \title{Mortality and Reproduction Functions for FB4 Model}
+\value{
+No return value; this page documents the mortality and reproduction functions module. See individual function documentation for return values.
+}
 \description{
-Mortality and Reproduction Functions for FB4 Model
+Experimental functions for computing daily fish mortality and reproductive
+energy costs in the FB4 framework. Mortality is decomposed into natural,
+fishing, and predation components, with optional adjustments for thermal
+stress and starvation (weight-dependent). Reproduction is modelled as a
+seasonal spawn-fraction pattern that removes a fraction of body weight
+(and its associated energy) on each spawning day.
+
+\strong{Note}: Mortality rate tracking is not yet integrated into the main
+\code{run_fb4()} loop; spawning energy loss is.
+}
+\references{
+Hanson, P.C., Johnson, T.B., Schindler, D.E. and Kitchell, J.F. (1997).
+\emph{Fish Bioenergetics 3.0}. University of Wisconsin Sea Grant Institute,
+Madison, WI.
+
+Deslauriers, D., Chipps, S.R., Breck, J.E., Rice, J.A. and Madenjian, C.P.
+(2017). Fish Bioenergetics 4.0: An R-based modeling application.
+\emph{Fisheries}, 42(11), 586–596. \doi{10.1080/03632415.2017.1377558}
 }

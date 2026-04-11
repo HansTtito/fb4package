@@ -14,9 +14,31 @@ predator energy density vector when `ED_ini`/`ED_end` are supplied
 (PREDEDEQ = 1). If `NULL` the vector length is inferred later.}
 }
 \value{
-List with all processed parameters ready for simulation
+A named list containing one processed sub-list for each category
+  present in \code{species_params} (e.g. \code{consumption},
+  \code{respiration}, \code{egestion}, \code{excretion}, \code{predator},
+  and optionally \code{contaminant}, \code{nutrient}, \code{mortality},
+  \code{composition}). Each sub-list holds the validated raw parameters
+  plus any derived values required by the chosen equation. A
+  \code{processing_info} element is always appended containing
+  \code{processed_at} (POSIXct timestamp), \code{validation_warnings}
+  (character vector), and \code{categories_processed} (character vector
+  of processed category names).
 }
 \description{
 Main function that processes and validates all species parameters,
 calculating derived parameters and preparing them for simulation.
+}
+\examples{
+sp <- list(
+  consumption = list(CEQ = 1, CA = 0.303, CB = -0.275, CQ = 0.06),
+  egestion    = list(EGEQ = 1, FA = 0.16),
+  excretion   = list(EXEQ = 1, UA = 0.10),
+  predator    = list(PREDEDEQ = 3, Alpha1 = 4800, Beta1 = 0.1),
+  respiration = list(REQ = 2, RA = 0.0033, RB = -0.227,
+                     RQ = 0.025, RTM = 30, RTO = 18),
+  activity    = list(ACT = 1.5),
+  sda         = list(SDA = 0.15)
+)
+process_species_parameters(sp)
 }

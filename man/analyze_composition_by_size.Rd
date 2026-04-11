@@ -18,7 +18,11 @@ analyze_composition_by_size(
 \item{processed_composition_params}{Processed composition parameters}
 }
 \value{
-Data frame with composition analysis by size
+A \code{data.frame} with \code{n_points} rows and ten columns:
+  \code{Weight} (g), \code{Water_g}, \code{Protein_g}, \code{Ash_g},
+  \code{Fat_g} (all in g), \code{Water_fraction}, \code{Protein_fraction},
+  \code{Ash_fraction}, \code{Fat_fraction} (dimensionless fractions of
+  total wet weight), and \code{Energy_density} (J/g wet weight).
 }
 \description{
 Analyzes body composition across a range of fish sizes to understand

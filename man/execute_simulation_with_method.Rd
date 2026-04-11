@@ -34,7 +34,7 @@ Extracted metric (if extract_metric specified) or full simulation result
 }
 \description{
 Unified simulation execution function used by all strategies.
-Consolidates the execute_simulation_with_method() that was duplicated 
-across multiple strategy files.
+Wraps \code{\link{run_fb4_simulation}} with a common interface for
+p_value, ration_percent, and ration_grams methods.
 }
 \keyword{internal}

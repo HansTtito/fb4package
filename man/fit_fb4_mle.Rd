@@ -36,7 +36,8 @@ fit_fb4_mle(
 List with MLE fitting results
 }
 \description{
-Coordinates MLE fitting process using log-normal distribution for weights.
-Now uses shared commons functions to eliminate code duplication.
+Coordinates the MLE fitting process: runs the log-normal likelihood
+optimisation, optionally computes a likelihood profile, and runs a
+final detailed simulation with the estimated p_value.
 }
 \keyword{internal}

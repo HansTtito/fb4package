@@ -27,9 +27,21 @@ validate_fb4_system(
 \item{...}{Additional arguments for strategy-specific validation}
 }
 \value{
-List with comprehensive validation results
+A named list with seven elements: \code{system_valid} (logical),
+  \code{validation_level} (character), \code{errors} (character vector),
+  \code{warnings} (character vector), \code{info} (character vector),
+  \code{component_results} (named list with results from each validation
+  layer), and \code{timestamp} (POSIXct). \code{system_valid} is
+  \code{TRUE} only when all active validation layers pass.
 }
 \description{
 Comprehensive validation that combines all validation layers.
 This is the ultimate validation function for production use.
+}
+\examples{
+\donttest{
+# Requires a fully-configured Bioenergetic object; see ?Bioenergetic
+# result <- validate_fb4_system(bio, strategy = "direct")
+# result$system_valid
+}
 }

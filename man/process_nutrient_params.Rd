@@ -10,8 +10,19 @@ process_nutrient_params(nutrient_params)
 \item{nutrient_params}{Raw nutrient parameters}
 }
 \value{
-Processed nutrient parameters
+A list containing all elements of \code{nutrient_params}. Default
+  assimilation efficiencies are inserted when absent:
+  \code{n_assimilation_efficiency = 0.85} and
+  \code{p_assimilation_efficiency = 0.80} (with a warning in each case).
 }
 \description{
 Process nutrient parameters
+}
+\examples{
+process_nutrient_params(list(
+  prey_n_concentrations    = c(0.025, 0.030),
+  prey_p_concentrations    = c(0.004, 0.005),
+  predator_n_concentration = 0.030,
+  predator_p_concentration = 0.004
+))
 }

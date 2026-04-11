@@ -1,8 +1,22 @@
 #' Main Validation Functions for FB4
 #'
 #' @description
-#' Main integration validation functions that orchestrate all other validators.
+#' Top-level validation functions that orchestrate all lower-level validators.
+#' \code{\link{validate_bioenergetic_for_simulation}} checks a
+#' \code{Bioenergetic} object for simulation readiness (structure, species
+#' equations, temperature/diet data, initial weight).
+#' \code{\link{validate_fb4_inputs}} extends this with strategy- and
+#' data-range checks before calling \code{\link{run_fb4}}.
+#' \code{\link{validate_fb4_system}} provides a multi-layer diagnostic
+#' report (basic, standard, comprehensive) with per-component pass/fail
+#' summaries.
 #'
+#' @references
+#' Deslauriers, D., Chipps, S.R., Breck, J.E., Rice, J.A. and Madenjian, C.P.
+#' (2017). Fish Bioenergetics 4.0: An R-based modeling application.
+#' \emph{Fisheries}, 42(11), 586–596. \doi{10.1080/03632415.2017.1377558}
+#'
+#' @return No return value; this page documents the main validation functions module. See individual function documentation for return values.
 #' @name main-validators
 #' @aliases main-validators
 NULL
@@ -18,7 +32,18 @@ NULL
 #' components with comprehensive error accumulation.
 #'
 #' @param bio_obj Bioenergetic object
-#' @return List with validation results
+#' @return A named list with four elements: \code{valid} (logical),
+#'   \code{errors} (character vector), \code{warnings} (character vector),
+#'   and \code{ready_to_run} (logical, \code{TRUE} only when \code{valid} is
+#'   \code{TRUE}). Errors are accumulated across all sub-checks (structure,
+#'   species equations, temperature data, diet data, initial weight) rather
+#'   than stopping at the first failure.
+#' @examples
+#' \donttest{
+#' # Requires a fully-configured Bioenergetic object; see ?Bioenergetic
+#' # result <- validate_bioenergetic_for_simulation(bio)
+#' # result$valid
+#' }
 #' @export
 validate_bioenergetic_for_simulation <- function(bio_obj) {
   
@@ -136,7 +161,18 @@ validate_bioenergetic_for_simulation <- function(bio_obj) {
 #' @param last_day Last simulation day
 #' @param observed_weights Vector of observed weights (for statistical strategies)
 #' @param covariates Covariates (for hierarchical strategy)
-#' @return NULL (throws error if invalid)
+#' @return Invisibly returns \code{TRUE} if all inputs are valid. Throws an
+#'   error with a descriptive message at the first validation failure: invalid
+#'   day range, unrecognised strategy, missing \code{fit_to}/\code{fit_value}
+#'   for traditional strategies, or missing \code{observed_weights} for
+#'   statistical strategies.
+#' @examples
+#' \donttest{
+#' # Requires a fully-configured Bioenergetic object; see ?Bioenergetic
+#' # validate_fb4_inputs(bio, strategy = "direct",
+#' #                     fit_to = "Weight", fit_value = 200,
+#' #                     first_day = 1, last_day = 365)
+#' }
 #' @export
 validate_fb4_inputs <- function(bio_obj, strategy, fit_to = NULL, fit_value = NULL,
                          first_day = 1, last_day = NULL, observed_weights = NULL, covariates = NULL) {
@@ -345,7 +381,18 @@ validate_backend_compatibility <- function(strategy, backend, verbose = FALSE) {
 #' @param validation_level Validation strictness ("basic", "standard", "comprehensive")
 #' @param ... Additional arguments for strategy-specific validation
 #'
-#' @return List with comprehensive validation results
+#' @return A named list with seven elements: \code{system_valid} (logical),
+#'   \code{validation_level} (character), \code{errors} (character vector),
+#'   \code{warnings} (character vector), \code{info} (character vector),
+#'   \code{component_results} (named list with results from each validation
+#'   layer), and \code{timestamp} (POSIXct). \code{system_valid} is
+#'   \code{TRUE} only when all active validation layers pass.
+#' @examples
+#' \donttest{
+#' # Requires a fully-configured Bioenergetic object; see ?Bioenergetic
+#' # result <- validate_fb4_system(bio, strategy = "direct")
+#' # result$system_valid
+#' }
 #' @export
 validate_fb4_system <- function(bio_obj, strategy, first_day = 1, last_day = NULL,
                                 validation_level = "standard", ...) {
@@ -393,10 +440,10 @@ validate_fb4_system <- function(bio_obj, strategy, first_day = 1, last_day = NUL
     
     # Test data processing pipeline
     tryCatch({
-      test_data <- prepare_simulation_data(bio_obj, first_day, 
-                                          last_day %||% (first_day + 10), 
-                                          validate_inputs = TRUE, 
-                                          output_format = "simulation")
+      prepare_simulation_data(bio_obj, first_day, 
+                             last_day %||% (first_day + 10), 
+                             validate_inputs = TRUE, 
+                             output_format = "simulation")
       validation_result$component_results$data_processing <- "PASSED"
       validation_result$info <- c(validation_result$info, "Data processing pipeline validated")
     }, error = function(e) {

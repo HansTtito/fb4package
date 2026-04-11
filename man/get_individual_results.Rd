@@ -12,9 +12,41 @@ get_individual_results(result, confidence_level = 0.95)
 \item{confidence_level}{Confidence level for intervals (default 0.95)}
 }
 \value{
-Data frame with individual results and uncertainties
+A \code{data.frame} with one row per individual. Base columns are
+  \code{individual_id}, \code{p_estimate}, and \code{p_se}. When individual
+  uncertainty data are available the frame additionally contains
+  \code{*_est}, \code{*_se}, \code{*_ci_lower}, and \code{*_ci_upper}
+  columns for \code{final_weight}, \code{consumption}, \code{total_growth},
+  \code{relative_growth}, \code{gross_efficiency}, and
+  \code{metabolic_scope}. Stops with an error if \code{result} was not
+  produced by the hierarchical method.
 }
 \description{
 Extracts all individual-level results from hierarchical FB4 models.
 Returns a comprehensive summary for each individual.
+}
+\examples{
+\donttest{
+data(fish4_parameters)
+sp   <- fish4_parameters[["Oncorhynchus tshawytscha"]]$life_stages$adult
+info <- fish4_parameters[["Oncorhynchus tshawytscha"]]$species_info
+bio  <- Bioenergetic(
+  species_params     = sp,
+  species_info       = info,
+  environmental_data = list(
+    temperature = data.frame(Day = 1:30, Temperature = rep(12, 30))
+  ),
+  diet_data = list(
+    proportions = data.frame(Day = 1:30, Prey1 = 1.0),
+    energies    = data.frame(Day = 1:30, Prey1 = 5000),
+    prey_names  = "Prey1"
+  ),
+  simulation_settings = list(initial_weight = 100, duration = 30)
+)
+bio$species_params$predator$ED_ini <- 5000
+bio$species_params$predator$ED_end <- 5500
+# Individual results require a hierarchical run; shown here for illustration
+# result <- run_fb4(bio, strategy = "hierarchical", ...)
+# df <- get_individual_results(result)
+}
 }

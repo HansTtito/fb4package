@@ -1,10 +1,20 @@
 #' Data Validation Functions for FB4
 #'
 #' @description
-#' Reorganized and optimized versions of your data validation functions.
-#' Maintains original interfaces while using core validators internally
-#' to eliminate code duplication.
+#' Data validation functions built on top of the core validators in
+#' \code{\link{core-validators}}. Covers diet-energy consistency
+#' (\code{\link{validate_diet_consistency}}), individual mark-recapture data
+#' (\code{\link{validate_individual_data}}), processed temporal arrays
+#' (\code{\link{validate_temporal_data}}), the complete simulation data
+#' structure (\code{\link{validate_complete_simulation_data}}), and equation
+#' parameter requirements (\code{\link{validate_equation_params}}).
 #'
+#' @references
+#' Deslauriers, D., Chipps, S.R., Breck, J.E., Rice, J.A. and Madenjian, C.P.
+#' (2017). Fish Bioenergetics 4.0: An R-based modeling application.
+#' \emph{Fisheries}, 42(11), 586–596. \doi{10.1080/03632415.2017.1377558}
+#'
+#' @return No return value; this page documents the data validation functions module. See individual function documentation for return values.
 #' @name data-validators
 #' @aliases data-validators
 NULL
@@ -22,7 +32,11 @@ NULL
 #' @param diet_data Data frame with diet proportions
 #' @param energy_data Data frame with prey energies
 #'
-#' @return NULL (throws error if inconsistent)
+#' @return Invisibly returns \code{TRUE} if all checks pass. Throws an error
+#'   if prey columns differ between the two data frames, if any diet
+#'   proportion is negative, or if any prey energy is non-positive. Issues a
+#'   warning when diet row sums deviate from 1.0 by more than 0.1 or when
+#'   prey energies fall outside the typical 500--25000 J/g range.
 #'
 #' @details
 #' Validation includes:
@@ -122,7 +136,17 @@ validate_diet_consistency <- function(diet_data, energy_data) {
 #' @param require_positive_growth Whether growth must be positive
 #' @param check_outliers Whether to check for outliers
 #'
-#' @return NULL (throws error if invalid)
+#' @return Invisibly returns \code{TRUE} if all checks pass. Throws an error
+#'   if \code{individual_data} is not a data frame, if required columns
+#'   (\code{individual_id}, \code{initial_weight}, \code{final_weight}) are
+#'   missing, if weights are non-positive, or if growth is negative when
+#'   \code{require_positive_growth = TRUE}. Issues warnings for outlier
+#'   observations when \code{check_outliers = TRUE}.
+#' @examples
+#' ind <- data.frame(individual_id = c("A", "B"),
+#'                   initial_weight = c(50, 80),
+#'                   final_weight   = c(120, 180))
+#' isTRUE(validate_individual_data(ind))
 #' @export
 validate_individual_data <- function(individual_data, require_positive_growth = TRUE,
                                     check_outliers = TRUE) {
@@ -237,7 +261,7 @@ check_weight_outliers <- function(individual_data) {
 }
 
 # ============================================================================
-# TEMPORAL DATA VALIDATION (from your data-processing.R, optimized)
+# TEMPORAL DATA VALIDATION
 # ============================================================================
 
 #' Validate temporal data
@@ -247,9 +271,17 @@ check_weight_outliers <- function(individual_data) {
 #'
 #' @param temperature Temperature vector
 #' @param diet_matrix Diet proportion matrix
-#' @param energy_matrix Prey energy matrix  
+#' @param energy_matrix Prey energy matrix
 #' @param indigestible_matrix Indigestible fraction matrix
 #' @param reproduction_data Reproduction vector
+#'
+#' @return Invisibly returns \code{TRUE} if all temporal data pass validation.
+#'   Throws an error with a descriptive message if any input contains invalid
+#'   values (e.g. non-finite temperatures, diet proportions outside \eqn{[0,1]},
+#'   non-positive prey energies, or indigestible/reproduction fractions outside
+#'   \eqn{[0,1]}). May also emit warnings for values that are technically valid
+#'   but biologically unusual (e.g. extreme temperatures or very high annual
+#'   reproductive investment).
 #' @keywords internal
 #' @export
 validate_temporal_data <- function(temperature, diet_matrix, energy_matrix, 
@@ -402,6 +434,12 @@ validate_complete_simulation_data <- function(simulation_data) {
 #'
 #' @param simulation_data Complete simulation data
 #' @param n_prey_temporal Number of prey species in temporal data
+#'
+#' @return Invisibly returns \code{TRUE} if all cross-component consistency
+#'   checks pass. Throws an error with a descriptive message when optional
+#'   contaminant or nutrient concentration matrices are present but their
+#'   number of columns does not match the number of prey species
+#'   (\code{n_prey_temporal}).
 #' @keywords internal
 #' @export
 validate_data_consistency <- function(simulation_data, n_prey_temporal) {
@@ -431,7 +469,7 @@ validate_data_consistency <- function(simulation_data, n_prey_temporal) {
 }
 
 # ============================================================================
-# FITTING SETTINGS VALIDATION (from your data-processing.R, optimized)
+# FITTING SETTINGS VALIDATION
 # ============================================================================
 
 #' Validate fitting settings
@@ -439,7 +477,16 @@ validate_data_consistency <- function(simulation_data, n_prey_temporal) {
 #' @description
 #' Validates processed simulation settings before execution.
 #'
-#' @param settings Processed simulation settings
+#' @param settings Processed simulation settings. Must be a list containing at
+#'   least the elements \code{fit_to} (character) and \code{fit_value}
+#'   (positive numeric).
+#'
+#' @return Invisibly returns \code{TRUE} if the settings are valid. Throws an
+#'   error with a descriptive message if \code{fit_to} is not one of the
+#'   accepted options (\code{"Weight"}, \code{"Consumption"}, \code{"Ration"},
+#'   \code{"Ration_prey"}, \code{"p_value"}) or if \code{fit_value} is not a
+#'   positive number. May also emit warnings for biologically unusual values
+#'   (e.g. very low target weight, or a \code{p_value} greater than 5).
 #' @keywords internal
 #' @export
 validate_fitting_settings <- function(settings) {
@@ -477,9 +524,19 @@ validate_fitting_settings <- function(settings) {
 #' @description
 #' Validates equation parameters against their category requirements.
 #'
-#' @param category Category name
-#' @param equation_num Equation number as character
-#' @param params Parameter list
+#' @param category Character string naming the bioenergetic category (e.g.
+#'   \code{"consumption"}, \code{"respiration"}, \code{"egestion"},
+#'   \code{"excretion"}, \code{"predator"}).
+#' @param equation_num Character string identifying the equation variant within
+#'   the category (e.g. \code{"1"}, \code{"2"}).
+#' @param params Named list of parameter values to validate against the
+#'   requirements defined for the specified category and equation.
+#'
+#' @return Invisibly returns \code{TRUE} if all required parameters are present
+#'   and pass their range checks. Throws an error with a descriptive message if
+#'   \code{category} or \code{equation_num} is unrecognised, if any required
+#'   parameter is missing from \code{params}, or if any parameter value falls
+#'   outside its admissible range.
 #' @keywords internal
 #' @export
 validate_equation_params <- function(category, equation_num, params) {

@@ -10,8 +10,22 @@ validate_species_equations(species_params)
 \item{species_params}{List with all species parameters}
 }
 \value{
-List with comprehensive validation results
+A named list with four elements: \code{valid} (logical),
+  \code{errors} (character vector), \code{warnings} (character vector),
+  and \code{category_results} (named list with one validation result per
+  bioenergetic category checked).
 }
 \description{
 Main function to validate all species equations
+}
+\examples{
+sp <- list(
+  consumption = list(CEQ = 1, CA = 0.303, CB = -0.275, CQ = 0.06),
+  respiration = list(REQ = 2, RA = 0.0033, RB = -0.227,
+                     RQ = 0.025, RTM = 30, RTO = 18),
+  egestion    = list(EGEQ = 1, FA = 0.16),
+  excretion   = list(EXEQ = 1, UA = 0.10),
+  predator    = list(PREDEDEQ = 3, Alpha1 = 4800, Beta1 = 0.1)
+)
+validate_species_equations(sp)$valid
 }

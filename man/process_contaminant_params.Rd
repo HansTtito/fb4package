@@ -10,8 +10,20 @@ process_contaminant_params(contaminant_params)
 \item{contaminant_params}{Raw contaminant parameters}
 }
 \value{
-Processed contaminant parameters with calculated coefficients
+A list containing all elements of \code{contaminant_params}. For
+  CONTEQ 3 (Arnot and Gobas 2004), three additional elements are computed
+  when not already present: \code{gill_efficiency} (dimensionless),
+  \code{fish_water_partition} (dimensionless), and
+  \code{dissolved_fraction} (dimensionless). For CONTEQ 1 and 2 the list
+  is returned after validation unchanged.
 }
 \description{
 Process contaminant parameters
+}
+\examples{
+process_contaminant_params(list(
+  CONTEQ = 1,
+  prey_concentrations  = c(0.05, 0.08),
+  transfer_efficiency  = c(0.80, 0.80)
+))
 }

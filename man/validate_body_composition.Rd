@@ -10,8 +10,21 @@ validate_body_composition(composition)
 \item{composition}{Body composition list}
 }
 \value{
-List with validation results
+A named list with three elements: \code{valid} (logical),
+  \code{errors} (character vector), and \code{warnings} (character
+  vector). \code{valid} is \code{FALSE} if required composition fields are
+  missing or if fractions do not sum to approximately 1. \code{warnings}
+  are issued when individual fractions fall outside typical biological
+  ranges for fish.
 }
 \description{
 Validate body composition
+}
+\examples{
+comp <- calculate_body_composition(
+  weight = 100,
+  processed_composition_params = list(water_fraction = 0.72,
+    fat_energy = 36450, protein_energy = 17990, max_fat_fraction = 0.30)
+)
+validate_body_composition(comp)$valid
 }

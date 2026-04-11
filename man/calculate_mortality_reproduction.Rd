@@ -24,7 +24,23 @@ calculate_mortality_reproduction(
 \item{initial_weight}{Initial weight for relative calculations (optional)}
 }
 \value{
-List with mortality and reproduction results
+A named list with five elements:
+  \describe{
+    \item{mortality}{Named list with seven numeric scalars (all daily
+      rates, 0--1): \code{survival_rate}, \code{combined_mortality},
+      \code{natural_mortality}, \code{fishing_mortality},
+      \code{predation_mortality}, \code{weight_effect} (increment to
+      mortality due to low body weight), and \code{temperature_effect}
+      (increment due to thermal stress).}
+    \item{reproduction}{\code{NULL} if no spawn pattern is defined in
+      \code{processed_mortality_params}; otherwise a named list with
+      \code{weight_loss} (g), \code{energy_loss} (J),
+      \code{spawn_fraction} (0--1), and \code{remaining_weight} (g).}
+    \item{day_of_year}{Integer. Day of year, as supplied.}
+    \item{current_weight}{Numeric. Fish weight (g), as supplied.}
+    \item{temperature}{Numeric. Water temperature (\eqn{^\circ}C), as
+      supplied.}
+  }
 }
 \description{
 Calculates daily mortality probability and reproductive energy loss
@@ -46,3 +62,20 @@ integrated into `run_fb4()` and applies automatically when
 `reproduction_data` is supplied to the `Bioenergetic` object.
 }
 
+\examples{
+params <- list(
+  base_mortality      = 0.001,
+  natural_mortality   = 0.001,
+  fishing_mortality   = 0.0005,
+  predation_mortality = 0.0002,
+  weight_threshold    = 10,
+  starvation_factor   = 2,
+  optimal_temp        = 18,
+  thermal_tolerance   = 8,
+  stress_factor       = 1.5,
+  spawn_pattern       = NULL
+)
+calculate_mortality_reproduction(current_weight = 100, temperature = 15,
+                                 day_of_year = 180,
+                                 processed_mortality_params = params)
+}

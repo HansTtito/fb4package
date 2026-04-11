@@ -1,5 +1,25 @@
-#' Strategy-MLE for FB4 Model
+#' Maximum Likelihood Estimation Strategy for FB4 Model
 #'
+#' @description
+#' Implements the \code{"mle"} FB4 fitting strategy, which estimates the
+#' proportion of maximum consumption (\emph{p}-value) and its uncertainty by
+#' maximising the log-normal likelihood of observed final weights. Both an R
+#' backend (\code{fit_fb4_mle}) and a faster TMB/C++ backend
+#' (\code{execute_mle_tmb}) are supported. Confidence intervals are derived
+#' from the Hessian (delta method) and optionally from a likelihood profile
+#' (\code{compute_likelihood_profile}).
+#'
+#' @references
+#' Deslauriers, D., Chipps, S.R., Breck, J.E., Rice, J.A. and Madenjian, C.P.
+#' (2017). Fish Bioenergetics 4.0: An R-based modeling application.
+#' \emph{Fisheries}, 42(11), 586–596. \doi{10.1080/03632415.2017.1377558}
+#'
+#' Kristensen, K., Nielsen, A., Berg, C.W., Skaug, H. and Bell, B.M. (2016).
+#' TMB: Automatic differentiation and Laplace approximation.
+#' \emph{Journal of Statistical Software}, 70(5), 1–21.
+#' \doi{10.18637/jss.v070.i05}
+#'
+#' @return No return value; this page documents the maximum likelihood estimation strategy functions. See individual function documentation for return values.
 #' @name strategy-mle
 #' @aliases strategy-mle
 NULL
@@ -305,22 +325,17 @@ mle_estimate_p_value_lognormal <- function(observed_weights, simulation_function
   }
   
   # Calculate standard errors from Hessian
+  p_se <- NA
+  sigma_se <- NA
   if (mle_result$convergence == 0 && all(is.finite(mle_result$hessian))) {
     tryCatch({
       std_errors <- sqrt(diag(solve(mle_result$hessian)))
-      p_se <- std_errors[1]
-      
-      if (estimate_sigma) {
-        # Delta method for log-transformed parameter
-        sigma_se <- exp(mle_result$par[2]) * std_errors[2]
-      } else {
-        sigma_se <- NA
-      }
+      p_se <<- std_errors[1]
+      sigma_se <<- if (estimate_sigma) exp(mle_result$par[2]) * std_errors[2] else NA
     }, error = function(e) {
-      p_se <- sigma_se <- NA
+      p_se <<- NA
+      sigma_se <<- NA
     })
-  } else {
-    p_se <- sigma_se <- NA
   }
   
   # Since optim() minimized the NEGATIVE log-likelihood
@@ -408,8 +423,9 @@ compute_likelihood_profile <- function(p_estimate, p_se, simulation_function,
 #' Fit FB4 model using Maximum Likelihood Estimation
 #'
 #' @description
-#' Coordinates MLE fitting process using log-normal distribution for weights.
-#' Now uses shared commons functions to eliminate code duplication.
+#' Coordinates the MLE fitting process: runs the log-normal likelihood
+#' optimisation, optionally computes a likelihood profile, and runs a
+#' final detailed simulation with the estimated p_value.
 #'
 #' @param observed_weights Vector of observed final weights
 #' @param processed_simulation_data Complete processed simulation data

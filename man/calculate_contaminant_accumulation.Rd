@@ -27,7 +27,21 @@ calculate_contaminant_accumulation(
 \item{processed_contaminant_params}{List with processed contaminant parameters}
 }
 \value{
-List with contaminant results
+A named list with at least six elements (all numeric scalars unless
+  noted):
+  \describe{
+    \item{clearance}{Daily elimination of contaminant (ug/day).}
+    \item{uptake}{Total daily uptake from food (ug/day); for CONTEQ 3
+      this is the sum of water and food uptake.}
+    \item{new_burden}{Body burden at end of day (ug); floored at 0.}
+    \item{new_concentration}{Whole-body concentration (ug/g wet weight);
+      floored at 0.}
+    \item{weight}{Fish weight (g), as supplied.}
+    \item{model_used}{Integer. CONTEQ equation used (1, 2, or 3).}
+  }
+  CONTEQ 3 (Arnot & Gobas 2004) appends two additional elements:
+  \code{uptake_water} (ug/day from water) and \code{uptake_food}
+  (ug/day from food).
 }
 \description{
 Calculates daily contaminant dynamics (uptake, elimination, body burden)
@@ -44,3 +58,17 @@ contaminant tracking across all simulation days, inclusion in
 release. The API may change.
 }
 
+\examples{
+# CONTEQ 1: food uptake only, no elimination
+params <- list(
+  CONTEQ = 1,
+  prey_concentrations = c(0.05, 0.08),
+  transfer_efficiency = c(0.8, 0.8)
+)
+calculate_contaminant_accumulation(
+  respiration_o2 = 0.02, consumption = c(2.0, 1.0),
+  weight = 100, temperature = 15,
+  current_concentration = 0.1,
+  processed_contaminant_params = params
+)
+}

@@ -12,9 +12,29 @@ calculate_nutrient_efficiencies(nitrogen_fluxes, phosphorus_fluxes)
 \item{phosphorus_fluxes}{List result from calculate_nutrient_balance (phosphorus component)}
 }
 \value{
-List with calculated efficiencies for both nutrients
+A named list with four elements:
+  \describe{
+    \item{nitrogen}{Named list with four numeric scalars:
+      \code{assimilation_efficiency} (fraction consumed that is assimilated),
+      \code{retention_efficiency} (fraction consumed retained in growth),
+      \code{excretion_rate} (fraction consumed lost via excretion), and
+      \code{growth_efficiency} (fraction assimilated retained in growth).}
+    \item{phosphorus}{Same structure as \code{nitrogen} but for
+      phosphorus.}
+    \item{relative_n_retention}{Numeric. Ratio of nitrogen to phosphorus
+      retention efficiency; \code{NA} when phosphorus retention is zero.}
+    \item{relative_n_excretion}{Numeric. Ratio of nitrogen to phosphorus
+      excretion rate; \code{NA} when phosphorus excretion rate is zero.}
+  }
 }
 \description{
 Calculates assimilation and retention efficiencies for nitrogen and phosphorus.
 These metrics are important for understanding nutrient use efficiency.
+}
+\examples{
+nitrogen   <- list(consumed = 10, assimilated = 8, growth = 3, excretion = 5,
+                   egestion = 2, assimilation_efficiency = 0.8)
+phosphorus <- list(consumed = 1.5, assimilated = 1.1, growth = 0.5,
+                   excretion = 0.6, egestion = 0.4, assimilation_efficiency = 0.73)
+calculate_nutrient_efficiencies(nitrogen, phosphorus)
 }

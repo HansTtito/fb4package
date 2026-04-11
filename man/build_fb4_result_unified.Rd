@@ -2,7 +2,7 @@
 % Please edit documentation in R/14.3-result-builders.R
 \name{build_fb4_result_unified}
 \alias{build_fb4_result_unified}
-\title{Build FB4 result object (UNIFIED APPROACH)}
+\title{Build FB4 result object}
 \usage{
 build_fb4_result_unified(raw_results, execution_plan, elapsed_time)
 }

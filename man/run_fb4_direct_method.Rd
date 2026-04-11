@@ -27,7 +27,7 @@ run_fb4_direct_method(
 Complete simulation result
 }
 \description{
-Execute FB4 simulation directly with specified method and value.
-Now uses shared commons functions for consistency.
+Execute FB4 simulation directly with a specified method and value,
+returning the full daily output.
 }
 \keyword{internal}

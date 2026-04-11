@@ -18,7 +18,26 @@ get_consumption_uncertainty(
 \item{confidence_level}{Confidence level for intervals (default 0.95)}
 }
 \value{
-List with consumption estimates, standard errors, and confidence intervals
+A named list with eight elements:
+  \describe{
+    \item{estimate}{Numeric. Total consumption estimate (g) for the simulation
+      period; \code{NA} when unavailable.}
+    \item{se}{Numeric. Standard error of the estimate; \code{NA} for methods
+      without uncertainty quantification (e.g. \code{"direct"},
+      \code{"binary_search"}, \code{"optim"}).}
+    \item{ci_lower}{Numeric. Lower bound of the confidence interval;
+      \code{NA} when \code{se} is unavailable.}
+    \item{ci_upper}{Numeric. Upper bound of the confidence interval;
+      \code{NA} when \code{se} is unavailable.}
+    \item{method}{Character. Fitting method used (e.g. \code{"direct"},
+      \code{"mle"}, \code{"hierarchical"}).}
+    \item{backend}{Character. Computational backend (\code{"r"} or
+      \code{"tmb"}).}
+    \item{has_uncertainty}{Logical. \code{TRUE} when standard errors and
+      confidence intervals are populated.}
+    \item{individual_id}{As supplied; the requested individual index, or
+      \code{NULL} for the population mean.}
+  }
 }
 \description{
 Extracts consumption results from FB4 simulations with uncertainty 

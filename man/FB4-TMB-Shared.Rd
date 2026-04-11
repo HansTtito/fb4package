@@ -3,7 +3,26 @@
 \name{FB4-TMB-Shared}
 \alias{FB4-TMB-Shared}
 \title{FB4 TMB Shared Functions}
+\value{
+No return value; this page documents shared TMB backend functions. See individual function documentation for return values.
+}
 \description{
-Core TMB functions shared between basic and hierarchical models.
-Includes optimization, result extraction, profiling, and utility functions.
+Internal helper functions shared by the TMB-based MLE and hierarchical
+fitting strategies. Covers TMB objective validation
+(\code{validate_tmb_objective}), DLL availability checks
+(\code{check_tmb_compilation}), robust multi-start optimization
+(\code{run_robust_optimization}), parameter extraction from sdreport
+summaries (\code{sdr_pull_est}, \code{sdr_pull_se}, \code{sdr_pull_vec},
+\code{sdr_assign_scalars}), and result assembly for basic and hierarchical
+models (\code{extract_tmb_results}).
+}
+\references{
+Kristensen, K., Nielsen, A., Berg, C.W., Skaug, H. and Bell, B.M. (2016).
+TMB: Automatic differentiation and Laplace approximation.
+\emph{Journal of Statistical Software}, 70(5), 1–21.
+\doi{10.18637/jss.v070.i05}
+
+Deslauriers, D., Chipps, S.R., Breck, J.E., Rice, J.A. and Madenjian, C.P.
+(2017). Fish Bioenergetics 4.0: An R-based modeling application.
+\emph{Fisheries}, 42(11), 586–596. \doi{10.1080/03632415.2017.1377558}
 }

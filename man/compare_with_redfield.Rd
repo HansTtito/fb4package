@@ -10,9 +10,21 @@ compare_with_redfield(np_ratios)
 \item{np_ratios}{List result from calculate_np_ratios}
 }
 \value{
-Data frame with comparison results and interpretation
+A \code{data.frame} with one row per process and six columns:
+  \code{Process} (character), \code{NP_Ratio} (numeric),
+  \code{Redfield_Ratio} (numeric), \code{Difference} (numeric;
+  observed minus Redfield), \code{Relative_Difference} (numeric; \%
+  deviation from Redfield), and \code{Interpretation} (character;
+  one of \code{"N-rich relative to P"}, \code{"N-poor relative to P"},
+  \code{"No P available"}, or \code{"No flux"}).
 }
 \description{
 Compares calculated N:P ratios with the classical Redfield ratio.
 Useful for understanding deviations from typical oceanic proportions.
+}
+\examples{
+nitrogen   <- list(consumed = 10, growth = 3, excretion = 5, egestion = 2)
+phosphorus <- list(consumed = 1.5, growth = 0.5, excretion = 0.6, egestion = 0.4)
+np  <- calculate_np_ratios(nitrogen, phosphorus)
+compare_with_redfield(np)
 }

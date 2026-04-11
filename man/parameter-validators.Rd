@@ -3,8 +3,26 @@
 \name{parameter-validators}
 \alias{parameter-validators}
 \title{Parameter Validation Functions for FB4}
+\value{
+No return value; this page documents the parameter validation functions module. See individual function documentation for return values.
+}
 \description{
-Reorganized and optimized versions of your parameter validation functions.
-Maintains original interfaces while using core validators internally
-to eliminate code duplication.
+Parameter validation functions built on top of the core validators in
+\code{\link{core-validators}}. Covers species-equation validation
+(\code{\link{validate_species_equations}}), predator energy density
+(\code{\link{validate_predator_energy_params}}), contaminant parameters
+(\code{\link{validate_contaminant_params}}), nutrient concentrations
+(\code{\link{validate_nutrient_concentrations}}), and body composition
+(\code{\link{validate_body_composition}}). A central
+\code{EQUATION_REQUIREMENTS} registry stores the required parameters and
+valid ranges for each bioenergetic equation.
+}
+\references{
+Hanson, P.C., Johnson, T.B., Schindler, D.E. and Kitchell, J.F. (1997).
+\emph{Fish Bioenergetics 3.0}. University of Wisconsin Sea Grant Institute,
+Madison, WI.
+
+Deslauriers, D., Chipps, S.R., Breck, J.E., Rice, J.A. and Madenjian, C.P.
+(2017). Fish Bioenergetics 4.0: An R-based modeling application.
+\emph{Fisheries}, 42(11), 586–596. \doi{10.1080/03632415.2017.1377558}
 }

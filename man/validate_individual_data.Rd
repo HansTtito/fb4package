@@ -18,8 +18,19 @@ validate_individual_data(
 \item{check_outliers}{Whether to check for outliers}
 }
 \value{
-NULL (throws error if invalid)
+Invisibly returns \code{TRUE} if all checks pass. Throws an error
+  if \code{individual_data} is not a data frame, if required columns
+  (\code{individual_id}, \code{initial_weight}, \code{final_weight}) are
+  missing, if weights are non-positive, or if growth is negative when
+  \code{require_positive_growth = TRUE}. Issues warnings for outlier
+  observations when \code{check_outliers = TRUE}.
 }
 \description{
 Validates individual fish data for hierarchical mark-recapture models.
+}
+\examples{
+ind <- data.frame(individual_id = c("A", "B"),
+                  initial_weight = c(50, 80),
+                  final_weight   = c(120, 180))
+isTRUE(validate_individual_data(ind))
 }

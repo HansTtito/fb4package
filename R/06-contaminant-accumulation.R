@@ -1,5 +1,30 @@
 #' Contaminant Accumulation Functions for FB4 Model
 #'
+#' @description
+#' Experimental functions for modelling daily contaminant (e.g. methylmercury,
+#' PCBs) dynamics in fish using three bioaccumulation models (CONTEQ 1–3).
+#'
+#' \strong{CONTEQ 1} — food uptake only, no elimination:
+#' \eqn{\text{Burden}_{t+1} = \text{Burden}_t + \sum_i C_i \cdot [\text{prey}]_i \cdot \text{AE}_i}
+#'
+#' \strong{CONTEQ 2} — food uptake with temperature- and weight-dependent
+#' elimination (Trudel and Rasmussen 1997):
+#' \eqn{K_x = \exp(0.066 T - 0.2 \ln W - 6.56)}
+#'
+#' \strong{CONTEQ 3} — Arnot and Gobas (2004): uptake from both water
+#' (via gill transfer) and food, elimination proportional to respiration.
+#'
+#' @references
+#' Arnot, J.A. and Gobas, F.A.P.C. (2004). A food web bioaccumulation model
+#' for organic chemicals in aquatic ecosystems.
+#' \emph{Environmental Toxicology and Chemistry}, 23(10), 2343–2355.
+#' \doi{10.1897/03-438}
+#'
+#' Trudel, M. and Rasmussen, J.B. (1997). Modeling the elimination of mercury
+#' by fish. \emph{Environmental Science and Technology}, 31(6), 1716–1722.
+#' \doi{10.1021/es960609t}
+#'
+#' @return No return value; this page documents the contaminant accumulation functions module. See individual function documentation for return values.
 #' @name contaminant-accumulation
 #' @aliases contaminant-accumulation
 NULL
@@ -136,7 +161,7 @@ contaminant_model_3 <- function(respiration_o2, consumption, weight, temperature
 
 
 # ============================================================================
-# PARAMETER CALCULATION FUNCTIONS (CLEANED)
+# PARAMETER CALCULATION FUNCTIONS
 # ============================================================================
 
 #' Calculate gill uptake efficiency (Low-level)
@@ -206,7 +231,21 @@ calculate_dissolved_fraction <- function(poc_concentration, doc_concentration, k
 #' @param temperature Water temperature (deg C)
 #' @param current_concentration Current concentration in predator (ug/g)
 #' @param processed_contaminant_params List with processed contaminant parameters
-#' @return List with contaminant results
+#' @return A named list with at least six elements (all numeric scalars unless
+#'   noted):
+#'   \describe{
+#'     \item{clearance}{Daily elimination of contaminant (ug/day).}
+#'     \item{uptake}{Total daily uptake from food (ug/day); for CONTEQ 3
+#'       this is the sum of water and food uptake.}
+#'     \item{new_burden}{Body burden at end of day (ug); floored at 0.}
+#'     \item{new_concentration}{Whole-body concentration (ug/g wet weight);
+#'       floored at 0.}
+#'     \item{weight}{Fish weight (g), as supplied.}
+#'     \item{model_used}{Integer. CONTEQ equation used (1, 2, or 3).}
+#'   }
+#'   CONTEQ 3 (Arnot & Gobas 2004) appends two additional elements:
+#'   \code{uptake_water} (ug/day from water) and \code{uptake_food}
+#'   (ug/day from food).
 #'
 #' @section Experimental:
 #' Contaminant modelling is an **experimental feature** under active
@@ -217,6 +256,19 @@ calculate_dissolved_fraction <- function(poc_concentration, doc_concentration, k
 #' `fb4_result` objects, and TMB backend support) is planned for a future
 #' release. The API may change.
 #'
+#' @examples
+#' # CONTEQ 1: food uptake only, no elimination
+#' params <- list(
+#'   CONTEQ = 1,
+#'   prey_concentrations = c(0.05, 0.08),
+#'   transfer_efficiency = c(0.8, 0.8)
+#' )
+#' calculate_contaminant_accumulation(
+#'   respiration_o2 = 0.02, consumption = c(2.0, 1.0),
+#'   weight = 100, temperature = 15,
+#'   current_concentration = 0.1,
+#'   processed_contaminant_params = params
+#' )
 #' @export
 calculate_contaminant_accumulation <- function(respiration_o2, consumption, weight, temperature,
                                                current_concentration, processed_contaminant_params) {
@@ -249,6 +301,9 @@ calculate_contaminant_accumulation <- function(respiration_o2, consumption, weig
                                   processed_contaminant_params$water_concentration,
                                   processed_contaminant_params$dissolved_fraction,
                                   processed_contaminant_params$do_saturation)
+  } else {
+    stop("calculate_contaminant_accumulation: unrecognized CONTEQ value (", CONTEQ,
+         "). Must be 1, 2, or 3.", call. = FALSE)
   }
   
   # Calculate new concentration

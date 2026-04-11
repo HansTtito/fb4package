@@ -30,7 +30,14 @@ Bioenergetic(
 \item{simulation_settings}{List with simulation configuration}
 }
 \value{
-Object of class "Bioenergetic"
+An object of class \code{"Bioenergetic"}: a named list with eight
+  elements: \code{species_info}, \code{species_params},
+  \code{environmental_data}, \code{diet_data}, \code{reproduction_data},
+  \code{model_options}, \code{simulation_settings}, and \code{fitted}
+  (logical, \code{FALSE} until a simulation is run). A \code{results}
+  element is appended by \code{\link{set_environment}},
+  \code{\link{set_diet}}, and \code{\link{run_fb4}} when they reset or
+  populate the object.
 }
 \description{
 Creates a Bioenergetic class object that encapsulates all components

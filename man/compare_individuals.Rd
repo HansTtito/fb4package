@@ -14,7 +14,20 @@ compare_individuals(result, metrics = "all", confidence_level = 0.95)
 \item{confidence_level}{Confidence level for comparisons (default 0.95)}
 }
 \value{
-List with individual comparisons and statistics
+A named list with at minimum three context elements:
+  \code{n_individuals} (integer), \code{metrics_compared} (character
+  vector), and \code{confidence_level} (numeric). Depending on
+  \code{metrics}, the following sub-lists are appended; each is produced
+  by an internal summary helper and contains \code{metric_name},
+  \code{n_valid}, \code{mean}, \code{sd}, \code{min}, \code{max},
+  \code{median}, \code{cv}, \code{range}, \code{outliers}, and
+  \code{performance}: \code{consumption}, \code{efficiency}, and
+  \code{p_value}. The \code{growth} element (when requested) is itself a
+  list with two such summaries (\code{total_growth} and
+  \code{relative_growth}). A \code{rankings} \code{data.frame} (one row
+  per individual; columns for per-metric ranks, \code{composite_rank}, and
+  \code{overall_rank}) is always appended. Stops with an error if
+  \code{result} was not produced by the hierarchical method.
 }
 \description{
 Compares performance metrics between individuals in hierarchical models.

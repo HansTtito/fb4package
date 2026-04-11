@@ -12,6 +12,9 @@ calculate_consumption_params_eq2(CQ, CTM, CTO, warn = TRUE)
 \item{CTM}{Maximum temperature}
 
 \item{CTO}{Optimum temperature}
+
+\item{warn}{Logical; if \code{TRUE} (default) issues a warning when
+\code{CY = 0} or the discriminant is negative.}
 }
 \value{
 List with CY, CZ, CX

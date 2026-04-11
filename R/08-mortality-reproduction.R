@@ -1,5 +1,26 @@
 #' Mortality and Reproduction Functions for FB4 Model
 #'
+#' @description
+#' Experimental functions for computing daily fish mortality and reproductive
+#' energy costs in the FB4 framework. Mortality is decomposed into natural,
+#' fishing, and predation components, with optional adjustments for thermal
+#' stress and starvation (weight-dependent). Reproduction is modelled as a
+#' seasonal spawn-fraction pattern that removes a fraction of body weight
+#' (and its associated energy) on each spawning day.
+#'
+#' \strong{Note}: Mortality rate tracking is not yet integrated into the main
+#' \code{run_fb4()} loop; spawning energy loss is.
+#'
+#' @references
+#' Hanson, P.C., Johnson, T.B., Schindler, D.E. and Kitchell, J.F. (1997).
+#' \emph{Fish Bioenergetics 3.0}. University of Wisconsin Sea Grant Institute,
+#' Madison, WI.
+#'
+#' Deslauriers, D., Chipps, S.R., Breck, J.E., Rice, J.A. and Madenjian, C.P.
+#' (2017). Fish Bioenergetics 4.0: An R-based modeling application.
+#' \emph{Fisheries}, 42(11), 586–596. \doi{10.1080/03632415.2017.1377558}
+#'
+#' @return No return value; this page documents the mortality and reproduction functions module. See individual function documentation for return values.
 #' @name mortality-reproduction
 #' @aliases mortality-reproduction
 NULL
@@ -189,6 +210,9 @@ generate_reproduction_pattern <- function(days, peak_day, duration,
     if (length(closest_day_index) > 0) {
       spawn_fractions[closest_day_index] <- max_spawn_fraction
     }
+  } else {
+    stop("generate_reproduction_pattern: unrecognized pattern_type '", pattern_type,
+         "'. Must be \"gaussian\", \"uniform\", or \"pulse\".", call. = FALSE)
   }
   
   return(spawn_fractions)
@@ -225,7 +249,23 @@ calculate_spawn_energy <- function(spawn_fraction, current_weight, energy_densit
 #' @param day_of_year Day of year (1-365)
 #' @param processed_mortality_params List with processed mortality parameters
 #' @param initial_weight Initial weight for relative calculations (optional)
-#' @return List with mortality and reproduction results
+#' @return A named list with five elements:
+#'   \describe{
+#'     \item{mortality}{Named list with seven numeric scalars (all daily
+#'       rates, 0--1): \code{survival_rate}, \code{combined_mortality},
+#'       \code{natural_mortality}, \code{fishing_mortality},
+#'       \code{predation_mortality}, \code{weight_effect} (increment to
+#'       mortality due to low body weight), and \code{temperature_effect}
+#'       (increment due to thermal stress).}
+#'     \item{reproduction}{\code{NULL} if no spawn pattern is defined in
+#'       \code{processed_mortality_params}; otherwise a named list with
+#'       \code{weight_loss} (g), \code{energy_loss} (J),
+#'       \code{spawn_fraction} (0--1), and \code{remaining_weight} (g).}
+#'     \item{day_of_year}{Integer. Day of year, as supplied.}
+#'     \item{current_weight}{Numeric. Fish weight (g), as supplied.}
+#'     \item{temperature}{Numeric. Water temperature (\eqn{^\circ}C), as
+#'       supplied.}
+#'   }
 #'
 #' @section Experimental:
 #' Mortality rate modelling is an **experimental feature** under active
@@ -240,13 +280,29 @@ calculate_spawn_energy <- function(spawn_fraction, current_weight, energy_densit
 #' integrated into `run_fb4()` and applies automatically when
 #' `reproduction_data` is supplied to the `Bioenergetic` object.
 #'
+#' @examples
+#' params <- list(
+#'   base_mortality      = 0.001,
+#'   natural_mortality   = 0.001,
+#'   fishing_mortality   = 0.0005,
+#'   predation_mortality = 0.0002,
+#'   weight_threshold    = 10,
+#'   starvation_factor   = 2,
+#'   optimal_temp        = 18,
+#'   thermal_tolerance   = 8,
+#'   stress_factor       = 1.5,
+#'   spawn_pattern       = NULL
+#' )
+#' calculate_mortality_reproduction(current_weight = 100, temperature = 15,
+#'                                  day_of_year = 180,
+#'                                  processed_mortality_params = params)
 #' @export
 calculate_mortality_reproduction <- function(current_weight, temperature, day_of_year,
                                              processed_mortality_params, 
                                              initial_weight = NULL) {
   
   # Extract processed mortality parameters
-  base_mortality <- processed_mortality_params$base_mortality
+  # base_mortality <- processed_mortality_params$base_mortality
   natural_mortality <- processed_mortality_params$natural_mortality
   fishing_mortality <- processed_mortality_params$fishing_mortality
   predation_mortality <- processed_mortality_params$predation_mortality
@@ -333,4 +389,3 @@ calculate_mortality_reproduction <- function(current_weight, temperature, day_of
     temperature = temperature
   ))
 }
-

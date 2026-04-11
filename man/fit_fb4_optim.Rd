@@ -39,7 +39,8 @@ fit_fb4_optim(
 List with fitting results and final simulation
 }
 \description{
-Coordinates optim() fitting process for weight or consumption targets.
-Now uses shared commons functions to eliminate code duplication.
+Coordinates the \code{\link[stats]{optim}}-based fitting process for weight
+or consumption targets, then runs a final detailed simulation with the
+optimal p_value.
 }
 \keyword{internal}

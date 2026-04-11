@@ -2,8 +2,24 @@
 #'
 #' @description
 #' S3 class system for the Fish Bioenergetics 4.0 model, providing structured
-#' data containers and methods for bioenergetic simulations and results.
+#' data containers and configuration methods for bioenergetic simulations.
+#' The central class \code{"Bioenergetic"} is created by
+#' \code{\link{Bioenergetic}} and configured via \code{\link{set_environment}},
+#' \code{\link{set_diet}}, and \code{\link{set_simulation_settings}}.
+#' Utility functions \code{\link{is.Bioenergetic}},
+#' \code{\link{get_parameter_value}}, and \code{\link{set_parameter_value}}
+#' support inspection and modification of the object.
 #'
+#' @references
+#' Hanson, P.C., Johnson, T.B., Schindler, D.E. and Kitchell, J.F. (1997).
+#' \emph{Fish Bioenergetics 3.0}. University of Wisconsin Sea Grant Institute,
+#' Madison, WI.
+#'
+#' Deslauriers, D., Chipps, S.R., Breck, J.E., Rice, J.A. and Madenjian, C.P.
+#' (2017). Fish Bioenergetics 4.0: An R-based modeling application.
+#' \emph{Fisheries}, 42(11), 586–596. \doi{10.1080/03632415.2017.1377558}
+#'
+#' @return No return value; this page documents the S3 class definitions for the bioenergetic model. See individual function documentation for return values.
 #' @name bioenergetic-classes
 #' @aliases bioenergetic-classes
 NULL
@@ -26,7 +42,14 @@ NULL
 #' @param model_options List with model configuration options
 #' @param simulation_settings List with simulation configuration
 #'
-#' @return Object of class "Bioenergetic"
+#' @return An object of class \code{"Bioenergetic"}: a named list with eight
+#'   elements: \code{species_info}, \code{species_params},
+#'   \code{environmental_data}, \code{diet_data}, \code{reproduction_data},
+#'   \code{model_options}, \code{simulation_settings}, and \code{fitted}
+#'   (logical, \code{FALSE} until a simulation is run). A \code{results}
+#'   element is appended by \code{\link{set_environment}},
+#'   \code{\link{set_diet}}, and \code{\link{run_fb4}} when they reset or
+#'   populate the object.
 #'
 #' @details
 #' The Bioenergetic object serves as a comprehensive container for all
@@ -190,7 +213,21 @@ Bioenergetic <- function(species_params,
 #'
 #' @param x Bioenergetic object
 #' @param temperature_data Data frame with Day and Temperature columns
-#' @return Updated Bioenergetic object with new environmental data
+#' @return The \code{Bioenergetic} object \code{x} with its
+#'   \code{environmental_data$temperature} component replaced by
+#'   \code{temperature_data} (interpolated to fill missing days if needed),
+#'   and \code{fitted} reset to \code{FALSE}.
+#' @examples
+#' \donttest{
+#' bio <- Bioenergetic(
+#'   species_params = list(
+#'     consumption = list(CEQ = 1, CA = 0.303, CB = -0.275, CQ = 0.06)
+#'   ),
+#'   species_info  = list(common_name = "Example fish")
+#' )
+#' temp <- data.frame(Day = 1:365, Temperature = rep(15, 365))
+#' bio <- set_environment(bio, temp)
+#' }
 #' @export
 set_environment <- function(x, temperature_data) {
   UseMethod("set_environment")
@@ -247,7 +284,21 @@ set_environment.Bioenergetic <- function(x, temperature_data) {
 #' @param prey_energies Data frame with daily prey energy densities
 #' @param indigestible_prey Data frame with indigestible proportions (optional)
 #' @param normalize_diet Logical, whether to normalize diet proportions to sum to 1 (default TRUE)
-#' @return Updated Bioenergetic object with new diet data
+#' @return The \code{Bioenergetic} object \code{x} with its \code{diet_data}
+#'   component updated (prey names, proportions, energies, and optionally
+#'   indigestible fractions), and \code{fitted} reset to \code{FALSE}.
+#' @examples
+#' \donttest{
+#' bio <- Bioenergetic(
+#'   species_params = list(
+#'     consumption = list(CEQ = 1, CA = 0.303, CB = -0.275, CQ = 0.06)
+#'   ),
+#'   species_info = list(common_name = "Example fish")
+#' )
+#' diet  <- data.frame(Day = 1:365, prey1 = 0.6, prey2 = 0.4)
+#' energ <- data.frame(Day = 1:365, prey1 = 4000, prey2 = 2500)
+#' bio   <- set_diet(bio, diet, energ)
+#' }
 #' @export
 set_diet <- function(x, diet_proportions, prey_energies, indigestible_prey = NULL, normalize_diet = TRUE) {
   UseMethod("set_diet")
@@ -370,7 +421,23 @@ set_diet.Bioenergetic <- function(x, diet_proportions, prey_energies,
 #' @param x Bioenergetic object
 #' @param initial_weight Initial weight in grams
 #' @param duration Simulation duration in days (auto-detected if NULL)
-#' @return Updated Bioenergetic object with new simulation settings
+#' @return The \code{Bioenergetic} object \code{x} with
+#'   \code{simulation_settings$initial_weight} and/or
+#'   \code{simulation_settings$duration} updated, and \code{fitted} reset to
+#'   \code{FALSE}. If \code{duration} is \code{NULL} and none was previously
+#'   set, the duration is auto-detected from the maximum \code{Day} in
+#'   environmental or diet data.
+#' @examples
+#' \donttest{
+#' bio <- Bioenergetic(
+#'   species_params = list(
+#'     consumption = list(CEQ = 1, CA = 0.303, CB = -0.275, CQ = 0.06)
+#'   ),
+#'   species_info = list(common_name = "Example fish")
+#' )
+#' bio <- set_simulation_settings(bio, initial_weight = 50, duration = 365)
+#' bio$simulation_settings$initial_weight
+#' }
 #' @export
 set_simulation_settings <- function(x, initial_weight = NULL, duration = NULL) {
   UseMethod("set_simulation_settings")
@@ -456,7 +523,17 @@ set_simulation_settings.Bioenergetic <- function(x, initial_weight = NULL, durat
 #' Tests whether an object inherits from the Bioenergetic class.
 #'
 #' @param x Object to test
-#' @return Logical indicating whether object is of class Bioenergetic
+#' @return A length-1 logical: \code{TRUE} if \code{x} inherits from class
+#'   \code{"Bioenergetic"}, \code{FALSE} otherwise.
+#' @examples
+#' bio <- Bioenergetic(
+#'   species_params = list(
+#'     consumption = list(CEQ = 1, CA = 0.303, CB = -0.275, CQ = 0.06)
+#'   ),
+#'   species_info = list(common_name = "Example fish")
+#' )
+#' is.Bioenergetic(bio)
+#' is.Bioenergetic(list())
 #' @export
 is.Bioenergetic <- function(x) inherits(x, "Bioenergetic")
 
@@ -468,7 +545,14 @@ is.Bioenergetic <- function(x) inherits(x, "Bioenergetic")
 #'
 #' @param params Species parameters list
 #' @param param Parameter name to retrieve
-#' @return Parameter value or NULL if not found
+#' @return The value associated with \code{param} in the first category of
+#'   \code{params} where it is found, or \code{NULL} if \code{param} is not
+#'   present in any category. The type of the returned value matches the
+#'   stored parameter (typically a numeric scalar).
+#' @examples
+#' sp <- list(consumption = list(CA = 0.303, CB = -0.275))
+#' get_parameter_value(sp, "CA")
+#' get_parameter_value(sp, "nonexistent")
 #' @export
 get_parameter_value <- function(params, param) {
   for (cat in names(params)) {
@@ -486,7 +570,14 @@ get_parameter_value <- function(params, param) {
 #' @param params Species parameters list
 #' @param param Parameter name to set
 #' @param value New parameter value
-#' @return Updated parameters list
+#' @return The \code{params} list with \code{params[[category]][[param]]}
+#'   replaced by \code{value}, where \code{category} is the first category
+#'   in which \code{param} is found. Throws an error if \code{param} is not
+#'   found in any category.
+#' @examples
+#' sp <- list(consumption = list(CA = 0.303, CB = -0.275))
+#' updated <- set_parameter_value(sp, "CA", 0.350)
+#' updated$consumption$CA
 #' @export
 set_parameter_value <- function(params, param, value) {
   for (cat in names(params)) {

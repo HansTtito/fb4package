@@ -10,8 +10,14 @@ process_composition_params(composition_params)
 \item{composition_params}{Raw composition parameters}
 }
 \value{
-Processed composition parameters
+A list containing all elements of \code{composition_params} with
+  missing entries filled with defaults: \code{water_fraction = 0.75},
+  \code{fat_energy = 39500} (J/g), \code{protein_energy = 23600} (J/g),
+  and \code{max_fat_fraction = 0.25}.
 }
 \description{
 Process body composition parameters
+}
+\examples{
+process_composition_params(list(water_fraction = 0.72))
 }

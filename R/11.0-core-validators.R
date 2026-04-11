@@ -3,8 +3,19 @@
 #' @description
 #' Atomic validation functions that provide the foundation for all other
 #' validation operations. These functions handle the most basic validation
-#' patterns used throughout the FB4 system.
+#' patterns used throughout the FB4 system: numeric range checks, structural
+#' requirements (required columns, minimum rows), and domain-specific
+#' validators for fractions, positive quantities, and temperatures. All
+#' validators return standardised \code{fb4_validation} objects constructed
+#' by \code{\link{validation_result}}, which can be aggregated with
+#' \code{\link{accumulate_validations}}.
 #'
+#' @references
+#' Deslauriers, D., Chipps, S.R., Breck, J.E., Rice, J.A. and Madenjian, C.P.
+#' (2017). Fish Bioenergetics 4.0: An R-based modeling application.
+#' \emph{Fisheries}, 42(11), 586–596. \doi{10.1080/03632415.2017.1377558}
+#'
+#' @return No return value; this page documents the core validation functions module. See individual function documentation for return values.
 #' @name core-validators
 #' @aliases core-validators
 NULL
@@ -27,7 +38,17 @@ NULL
 #' @param category Optional category being validated
 #' @param checked_items List of items that were checked
 #'
-#' @return Standardized validation result list
+#' @return An object of class \code{fb4_validation}: a named list with eight
+#'   elements: \code{valid} (logical), \code{errors} (character vector of
+#'   error messages), \code{warnings} (character vector of warning messages),
+#'   \code{info} (character vector of informational messages), \code{level}
+#'   (character, validation tier), \code{category} (character or \code{NULL}),
+#'   \code{checked_items} (list of items examined), and \code{timestamp}
+#'   (POSIXct).
+#' @examples
+#' validation_result(valid = TRUE)
+#' validation_result(valid = FALSE, errors = "weight must be positive",
+#'                   level = "parameter")
 #' @export
 validation_result <- function(valid = TRUE, errors = character(), warnings = character(),
                               info = character(), level = "core", category = NULL,
@@ -53,7 +74,15 @@ validation_result <- function(valid = TRUE, errors = character(), warnings = cha
 #' @param ... Validation result objects to combine
 #' @param level Overall validation level for the combined result
 #'
-#' @return Combined validation result
+#' @return An object of class \code{fb4_validation} (see
+#'   \code{\link{validation_result}}) representing the combined state of all
+#'   inputs. \code{valid} is \code{TRUE} only if all supplied results are
+#'   valid. \code{errors} and \code{warnings} are the concatenation of those
+#'   fields across all inputs.
+#' @examples
+#' r1 <- validation_result(valid = TRUE)
+#' r2 <- validation_result(valid = FALSE, errors = "value out of range")
+#' accumulate_validations(r1, r2)
 #' @export
 accumulate_validations <- function(..., level = "combined") {
   results <- list(...)
@@ -377,7 +406,15 @@ validate_structure_core <- function(data, data_name, required_class = NULL,
 #' @param allow_zero Whether zero is allowed
 #' @param allow_one Whether one is allowed
 #'
-#' @return Validation result
+#' @return An object of class \code{fb4_validation} (see
+#'   \code{\link{validation_result}}). \code{valid} is \code{TRUE} when all
+#'   values lie within \eqn{[0, 1]} (or the bounds set by \code{allow_zero}
+#'   and \code{allow_one}). Out-of-range values are recorded in
+#'   \code{errors} (strategy \code{"strict"}) or \code{warnings}
+#'   (strategy \code{"warn"}).
+#' @examples
+#' validate_fraction(0.5, "diet_proportion")
+#' validate_fraction(c(0.3, 0.7), "fractions")
 #' @export
 validate_fraction <- function(value, param_name, strategy = "strict", 
                              allow_zero = TRUE, allow_one = TRUE) {
@@ -399,7 +436,14 @@ validate_fraction <- function(value, param_name, strategy = "strict",
 #' @param strategy Handling strategy
 #' @param min_val Minimum positive value (default 0.001)
 #'
-#' @return Validation result
+#' @return An object of class \code{fb4_validation} (see
+#'   \code{\link{validation_result}}). \code{valid} is \code{TRUE} when all
+#'   values are \eqn{\ge} \code{min_val}. Violations are recorded in
+#'   \code{errors} (\code{strategy = "strict"}) or \code{warnings}
+#'   (\code{strategy = "warn"}).
+#' @examples
+#' validate_positive(5, "weight")
+#' validate_positive(0, "weight")$valid
 #' @export
 validate_positive <- function(value, param_name, strategy = "strict", min_val = 0.001) {
   validate_numeric_core(value, param_name, min_val = min_val, strategy = strategy)
@@ -416,7 +460,14 @@ validate_positive <- function(value, param_name, strategy = "strict", min_val = 
 #' @param min_temp Minimum realistic temperature (default -5°C)
 #' @param max_temp Maximum realistic temperature (default 45°C)
 #'
-#' @return Validation result
+#' @return An object of class \code{fb4_validation} (see
+#'   \code{\link{validation_result}}). \code{valid} is \code{TRUE} when all
+#'   values are finite and lie within \code{[min_temp, max_temp]}. Values
+#'   outside the range are recorded in \code{warnings} by default
+#'   (\code{strategy = "warn"}).
+#' @examples
+#' validate_temperature(15, "water_temp")
+#' validate_temperature(c(5, 12, 18), "temperatures")
 #' @export
 validate_temperature <- function(value, param_name, strategy = "warn", 
                                  min_temp = -5, max_temp = 45) {

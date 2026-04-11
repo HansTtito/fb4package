@@ -24,8 +24,16 @@ validate_temperature(
 \item{max_temp}{Maximum realistic temperature (default 45°C)}
 }
 \value{
-Validation result
+An object of class \code{fb4_validation} (see
+  \code{\link{validation_result}}). \code{valid} is \code{TRUE} when all
+  values are finite and lie within \code{[min_temp, max_temp]}. Values
+  outside the range are recorded in \code{warnings} by default
+  (\code{strategy = "warn"}).
 }
 \description{
 Specialized validator for temperature values with realistic ranges.
+}
+\examples{
+validate_temperature(15, "water_temp")
+validate_temperature(c(5, 12, 18), "temperatures")
 }

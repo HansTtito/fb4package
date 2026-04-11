@@ -3,8 +3,21 @@
 \name{core-validators}
 \alias{core-validators}
 \title{Core Validation Functions for FB4}
+\value{
+No return value; this page documents the core validation functions module. See individual function documentation for return values.
+}
 \description{
 Atomic validation functions that provide the foundation for all other
 validation operations. These functions handle the most basic validation
-patterns used throughout the FB4 system.
+patterns used throughout the FB4 system: numeric range checks, structural
+requirements (required columns, minimum rows), and domain-specific
+validators for fractions, positive quantities, and temperatures. All
+validators return standardised \code{fb4_validation} objects constructed
+by \code{\link{validation_result}}, which can be aggregated with
+\code{\link{accumulate_validations}}.
+}
+\references{
+Deslauriers, D., Chipps, S.R., Breck, J.E., Rice, J.A. and Madenjian, C.P.
+(2017). Fish Bioenergetics 4.0: An R-based modeling application.
+\emph{Fisheries}, 42(11), 586–596. \doi{10.1080/03632415.2017.1377558}
 }

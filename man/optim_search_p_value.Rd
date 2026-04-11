@@ -33,7 +33,7 @@ optim_search_p_value(
 List with fitted p_value and convergence information
 }
 \description{
-Uses R's optim() function for finding p_value that achieves target metric.
-Now uses shared simulation execution function.
+Uses R's \code{\link[stats]{optim}} to find the p_value that minimises
+the absolute difference between the simulated metric and the target value.
 }
 \keyword{internal}

@@ -10,8 +10,19 @@ is.Bioenergetic(x)
 \item{x}{Object to test}
 }
 \value{
-Logical indicating whether object is of class Bioenergetic
+A length-1 logical: \code{TRUE} if \code{x} inherits from class
+  \code{"Bioenergetic"}, \code{FALSE} otherwise.
 }
 \description{
 Tests whether an object inherits from the Bioenergetic class.
+}
+\examples{
+bio <- Bioenergetic(
+  species_params = list(
+    consumption = list(CEQ = 1, CA = 0.303, CB = -0.275, CQ = 0.06)
+  ),
+  species_info = list(common_name = "Example fish")
+)
+is.Bioenergetic(bio)
+is.Bioenergetic(list())
 }

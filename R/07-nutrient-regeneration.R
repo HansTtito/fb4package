@@ -1,5 +1,26 @@
 #' Nutrient Regeneration Functions for FB4 Model
 #'
+#' @description
+#' Experimental functions for computing daily nitrogen (N) and phosphorus (P)
+#' fluxes in fish using a mass-balance approach consistent with ecological
+#' stoichiometry theory. For each element the daily budget is:
+#'
+#' \deqn{\text{Consumed} = \text{Assimilated} + \text{Egested}}
+#' \deqn{\text{Assimilated} = \text{Growth} + \text{Excreted}}
+#'
+#' Assimilation efficiencies for N and P are species- and prey-specific and
+#' can differ from those used for energy.
+#'
+#' @references
+#' Sterner, R.W. and Elser, J.J. (2002).
+#' \emph{Ecological Stoichiometry: The Biology of Elements from Molecules to
+#' the Biosphere}. Princeton University Press, Princeton, NJ.
+#'
+#' Deslauriers, D., Chipps, S.R., Breck, J.E., Rice, J.A. and Madenjian, C.P.
+#' (2017). Fish Bioenergetics 4.0: An R-based modeling application.
+#' \emph{Fisheries}, 42(11), 586–596. \doi{10.1080/03632415.2017.1377558}
+#'
+#' @return No return value; this page documents the nutrient regeneration functions module. See individual function documentation for return values.
 #' @name nutrient-regeneration
 #' @aliases nutrient-regeneration
 NULL
@@ -54,7 +75,7 @@ calculate_nutrient_allocation <- function(consumption, prey_nutrient_concentrati
 }
 
 # ============================================================================
-# MID-LEVEL FUNCTION (SIMPLIFIED)
+# MID-LEVEL FUNCTION
 # ============================================================================
 
 #' Calculate nutrient balance (Mid-level - Main function)
@@ -66,7 +87,17 @@ calculate_nutrient_allocation <- function(consumption, prey_nutrient_concentrati
 #' @param consumption Vector of consumption by prey type (g/day)
 #' @param weight_gain Predator weight gain (g/day)
 #' @param processed_nutrient_params List with processed nutrient parameters
-#' @return List with nutrient results (N and P ingestion, retention, excretion)
+#' @return A named list with three elements:
+#'   \describe{
+#'     \item{nitrogen}{Named list with six numeric scalars describing daily
+#'       nitrogen fluxes (g N/day): \code{consumed}, \code{assimilated},
+#'       \code{growth}, \code{excretion}, \code{egestion}, and
+#'       \code{assimilation_efficiency} (dimensionless fraction, 0--1).}
+#'     \item{phosphorus}{Same structure as \code{nitrogen} but for
+#'       phosphorus (g P/day).}
+#'     \item{weight_gain}{Numeric scalar. Predator weight gain (g/day),
+#'       as supplied.}
+#'   }
 #'
 #' @section Experimental:
 #' Nutrient regeneration modelling is an **experimental feature** under
@@ -77,6 +108,18 @@ calculate_nutrient_allocation <- function(consumption, prey_nutrient_concentrati
 #' and TMB backend support) is planned for a future release. The API
 #' may change.
 #'
+#' @examples
+#' params <- list(
+#'   prey_n_concentrations     = c(0.025, 0.030),
+#'   prey_p_concentrations     = c(0.004, 0.005),
+#'   predator_n_concentration  = 0.030,
+#'   predator_p_concentration  = 0.004,
+#'   n_assimilation_efficiency = c(0.80, 0.80),
+#'   p_assimilation_efficiency = c(0.60, 0.60)
+#' )
+#' calculate_nutrient_balance(consumption = c(2.0, 1.0),
+#'                            weight_gain = 0.5,
+#'                            processed_nutrient_params = params)
 #' @export
 calculate_nutrient_balance <- function(consumption, weight_gain, processed_nutrient_params) {
   
@@ -112,5 +155,3 @@ calculate_nutrient_balance <- function(consumption, weight_gain, processed_nutri
     weight_gain = weight_gain
   ))
 }
-
-

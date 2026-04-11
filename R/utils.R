@@ -5,6 +5,7 @@
 #' operator, safe mathematical operations, and value clamping.
 #' These functions have no internal dependencies and are available to all layers.
 #'
+#' @return No return value; this page documents cross-cutting utility functions used throughout the package. See individual function documentation for return values.
 #' @name utils
 #' @aliases utils
 NULL

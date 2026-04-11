@@ -14,7 +14,17 @@ calculate_np_ratios(nitrogen_fluxes, phosphorus_fluxes, ratio_type = "mass")
 \item{ratio_type}{Type of ratio ("mass" or "molar"), default "mass"}
 }
 \value{
-List with N:P ratios for all processes
+A named list with three elements:
+  \describe{
+    \item{ratios}{Named numeric vector of length 4 giving the N:P ratio for
+      each process (\code{consumed}, \code{growth}, \code{excretion},
+      \code{egestion}). Values may be \code{Inf} when phosphorus is zero and
+      \code{NaN} when both nutrients are zero.}
+    \item{ratio_type}{Character. The ratio type as supplied (\code{"mass"} or
+      \code{"molar"}).}
+    \item{redfield_ratio}{Numeric. Reference Redfield ratio: 7.2 for mass
+      ratios and 16 for molar ratios.}
+  }
 }
 \description{
 Calculates molar and mass N:P ratios for consumption, growth, excretion and egestion.

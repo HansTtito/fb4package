@@ -1,5 +1,20 @@
-#' Strategy-Optim for FB4 Model
+#' Optimisation Strategy for FB4 Model
 #'
+#' @description
+#' Implements the \code{"optim"} FB4 fitting strategy, which uses R's
+#' \code{\link[stats]{optim}} function to find the proportion of maximum
+#' consumption (\emph{p}-value) that minimises the difference between a
+#' simulated metric and a user-supplied target. Supported fitting targets
+#' are \code{"Weight"} and \code{"Consumption"}. The strategy is instantiated
+#' by \code{create_optim_strategy}; the optimisation algorithm is in
+#' \code{optim_search_p_value}, coordinated by \code{fit_fb4_optim}.
+#'
+#' @references
+#' Deslauriers, D., Chipps, S.R., Breck, J.E., Rice, J.A. and Madenjian, C.P.
+#' (2017). Fish Bioenergetics 4.0: An R-based modeling application.
+#' \emph{Fisheries}, 42(11), 586–596. \doi{10.1080/03632415.2017.1377558}
+#'
+#' @return No return value; this page documents the optimisation-based strategy functions. See individual function documentation for return values.
 #' @name strategy-optim
 #' @aliases strategy-optim
 NULL
@@ -112,8 +127,8 @@ create_optim_strategy <- function(execution_plan) {
 #' Optimization using optim() for optimal p_value
 #'
 #' @description
-#' Uses R's optim() function for finding p_value that achieves target metric.
-#' Now uses shared simulation execution function.
+#' Uses R's \code{\link[stats]{optim}} to find the p_value that minimises
+#' the absolute difference between the simulated metric and the target value.
 #'
 #' @param target_value Target value (final weight or total consumption)
 #' @param fit_type Type of fitting ("weight" or "consumption")
@@ -167,8 +182,9 @@ optim_search_p_value <- function(target_value, fit_type, simulation_function,
 #' Fit FB4 model using optim()
 #'
 #' @description
-#' Coordinates optim() fitting process for weight or consumption targets.
-#' Now uses shared commons functions to eliminate code duplication.
+#' Coordinates the \code{\link[stats]{optim}}-based fitting process for weight
+#' or consumption targets, then runs a final detailed simulation with the
+#' optimal p_value.
 #'
 #' @param target_value Target value to fit
 #' @param fit_type Type of fitting ("weight" or "consumption")

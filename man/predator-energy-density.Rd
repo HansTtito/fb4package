@@ -3,6 +3,29 @@
 \name{predator-energy-density}
 \alias{predator-energy-density}
 \title{Predator Energy Density Functions for FB4 Model}
+\value{
+No return value; this page documents the predator energy density functions module. See individual function documentation for return values.
+}
 \description{
-Predator Energy Density Functions for FB4 Model
+Functions implementing three predator energy density models (PREDEDEQ 1–3)
+and the corresponding weight-solving routines used in the FB4 energy balance.
+
+\strong{PREDEDEQ 1} — interpolated daily data: energy density supplied as a
+vector of length \eqn{n_{\text{days}} + 1} (one value per day boundary).
+
+\strong{PREDEDEQ 2} — piecewise linear by weight:
+\eqn{ED = \alpha_1 + \beta_1 W} below the cutoff,
+\eqn{ED = \alpha_2 + \beta_2 W} above.
+
+\strong{PREDEDEQ 3} — power function:
+\eqn{ED = \alpha_1 \cdot W^{\beta_1}}.
+}
+\references{
+Hanson, P.C., Johnson, T.B., Schindler, D.E. and Kitchell, J.F. (1997).
+\emph{Fish Bioenergetics 3.0}. University of Wisconsin Sea Grant Institute,
+Madison, WI.
+
+Deslauriers, D., Chipps, S.R., Breck, J.E., Rice, J.A. and Madenjian, C.P.
+(2017). Fish Bioenergetics 4.0: An R-based modeling application.
+\emph{Fisheries}, 42(11), 586–596. \doi{10.1080/03632415.2017.1377558}
 }

@@ -33,9 +33,21 @@ validate_fb4_inputs(
 \item{covariates}{Covariates (for hierarchical strategy)}
 }
 \value{
-NULL (throws error if invalid)
+Invisibly returns \code{TRUE} if all inputs are valid. Throws an
+  error with a descriptive message at the first validation failure: invalid
+  day range, unrecognised strategy, missing \code{fit_to}/\code{fit_value}
+  for traditional strategies, or missing \code{observed_weights} for
+  statistical strategies.
 }
 \description{
 Validates all inputs for FB4 simulation, including the Bioenergetic object
 and strategy-specific parameters.
+}
+\examples{
+\donttest{
+# Requires a fully-configured Bioenergetic object; see ?Bioenergetic
+# validate_fb4_inputs(bio, strategy = "direct",
+#                     fit_to = "Weight", fit_value = 200,
+#                     first_day = 1, last_day = 365)
+}
 }

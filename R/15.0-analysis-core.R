@@ -3,8 +3,19 @@
 #' @description
 #' Core functions for extracting and accessing results from FB4 simulations.
 #' These functions provide a unified interface to access results regardless
-#' of the fitting method used (basic, optim, MLE, hierarchical).
+#' of the fitting method used (\code{"direct"}, \code{"optim"},
+#' \code{"binary_search"}, \code{"mle"}, \code{"bootstrap"},
+#' \code{"hierarchical"}). Exported functions include
+#' \code{is.fb4_result}, \code{get_consumption_uncertainty},
+#' \code{get_efficiency_uncertainty}, \code{get_individual_results},
+#' \code{get_population_results}, and \code{get_energy_budget_uncertainty}.
 #'
+#' @references
+#' Deslauriers, D., Chipps, S.R., Breck, J.E., Rice, J.A. and Madenjian, C.P.
+#' (2017). Fish Bioenergetics 4.0: An R-based modeling application.
+#' \emph{Fisheries}, 42(11), 586–596. \doi{10.1080/03632415.2017.1377558}
+#'
+#' @return No return value; this page documents the core analysis functions. See individual function documentation for return values.
 #' @name analysis-core
 #' @aliases analysis-core
 NULL
@@ -19,7 +30,10 @@ NULL
 #' Tests whether an object inherits from the fb4_result class.
 #'
 #' @param x Object to test
-#' @return Logical indicating whether object is of class fb4_result
+#' @return A length-1 logical: \code{TRUE} if \code{x} inherits from class
+#'   \code{"fb4_result"}, \code{FALSE} otherwise.
+#' @examples
+#' is.fb4_result(list())
 #' @export
 is.fb4_result <- function(x) {
   inherits(x, "fb4_result")
@@ -70,7 +84,26 @@ detect_result_type <- function(result) {
 #' @param result FB4 result object
 #' @param individual_id Individual ID for hierarchical models (NULL for population mean)
 #' @param confidence_level Confidence level for intervals (default 0.95)
-#' @return List with consumption estimates, standard errors, and confidence intervals
+#' @return A named list with eight elements:
+#'   \describe{
+#'     \item{estimate}{Numeric. Total consumption estimate (g) for the simulation
+#'       period; \code{NA} when unavailable.}
+#'     \item{se}{Numeric. Standard error of the estimate; \code{NA} for methods
+#'       without uncertainty quantification (e.g. \code{"direct"},
+#'       \code{"binary_search"}, \code{"optim"}).}
+#'     \item{ci_lower}{Numeric. Lower bound of the confidence interval;
+#'       \code{NA} when \code{se} is unavailable.}
+#'     \item{ci_upper}{Numeric. Upper bound of the confidence interval;
+#'       \code{NA} when \code{se} is unavailable.}
+#'     \item{method}{Character. Fitting method used (e.g. \code{"direct"},
+#'       \code{"mle"}, \code{"hierarchical"}).}
+#'     \item{backend}{Character. Computational backend (\code{"r"} or
+#'       \code{"tmb"}).}
+#'     \item{has_uncertainty}{Logical. \code{TRUE} when standard errors and
+#'       confidence intervals are populated.}
+#'     \item{individual_id}{As supplied; the requested individual index, or
+#'       \code{NULL} for the population mean.}
+#'   }
 #' @export
 #'
 #' @examples
@@ -174,8 +207,45 @@ get_consumption_uncertainty <- function(result, individual_id = NULL, confidence
 #' @param result FB4 result object
 #' @param individual_id Individual ID for hierarchical models (NULL for population mean)
 #' @param confidence_level Confidence level for intervals (default 0.95)
-#' @return List with efficiency estimates, standard errors, and confidence intervals
+#' @return A named list with six elements:
+#'   \describe{
+#'     \item{gross_growth_efficiency}{Named sub-list with \code{estimate},
+#'       \code{se}, \code{ci_lower}, and \code{ci_upper} for the gross growth
+#'       efficiency (dimensionless ratio of growth energy to consumption
+#'       energy); values are \code{NA} when unavailable.}
+#'     \item{metabolic_scope}{Named sub-list with the same four slots for
+#'       the metabolic scope (ratio of active to standard metabolism);
+#'       values are \code{NA} when unavailable.}
+#'     \item{method}{Character. Fitting method used.}
+#'     \item{backend}{Character. Computational backend.}
+#'     \item{has_uncertainty}{Logical. \code{TRUE} when SEs and CIs are
+#'       populated.}
+#'     \item{individual_id}{As supplied.}
+#'   }
 #' @export
+#' @examples
+#' \donttest{
+#' data(fish4_parameters)
+#' sp   <- fish4_parameters[["Oncorhynchus tshawytscha"]]$life_stages$adult
+#' info <- fish4_parameters[["Oncorhynchus tshawytscha"]]$species_info
+#' bio  <- Bioenergetic(
+#'   species_params     = sp,
+#'   species_info       = info,
+#'   environmental_data = list(
+#'     temperature = data.frame(Day = 1:30, Temperature = rep(12, 30))
+#'   ),
+#'   diet_data = list(
+#'     proportions = data.frame(Day = 1:30, Prey1 = 1.0),
+#'     energies    = data.frame(Day = 1:30, Prey1 = 5000),
+#'     prey_names  = "Prey1"
+#'   ),
+#'   simulation_settings = list(initial_weight = 100, duration = 30)
+#' )
+#' bio$species_params$predator$ED_ini <- 5000
+#' bio$species_params$predator$ED_end <- 5500
+#' result <- run_fb4(bio, strategy = "direct", p_value = 0.5, verbose = FALSE)
+#' eff <- get_efficiency_uncertainty(result)
+#' }
 get_efficiency_uncertainty <- function(result, individual_id = NULL, confidence_level = 0.95) {
   
   result_type <- detect_result_type(result)
@@ -260,8 +330,39 @@ get_efficiency_uncertainty <- function(result, individual_id = NULL, confidence_
 #'
 #' @param result FB4 result object from hierarchical method
 #' @param confidence_level Confidence level for intervals (default 0.95)
-#' @return Data frame with individual results and uncertainties
+#' @return A \code{data.frame} with one row per individual. Base columns are
+#'   \code{individual_id}, \code{p_estimate}, and \code{p_se}. When individual
+#'   uncertainty data are available the frame additionally contains
+#'   \code{*_est}, \code{*_se}, \code{*_ci_lower}, and \code{*_ci_upper}
+#'   columns for \code{final_weight}, \code{consumption}, \code{total_growth},
+#'   \code{relative_growth}, \code{gross_efficiency}, and
+#'   \code{metabolic_scope}. Stops with an error if \code{result} was not
+#'   produced by the hierarchical method.
 #' @export
+#' @examples
+#' \donttest{
+#' data(fish4_parameters)
+#' sp   <- fish4_parameters[["Oncorhynchus tshawytscha"]]$life_stages$adult
+#' info <- fish4_parameters[["Oncorhynchus tshawytscha"]]$species_info
+#' bio  <- Bioenergetic(
+#'   species_params     = sp,
+#'   species_info       = info,
+#'   environmental_data = list(
+#'     temperature = data.frame(Day = 1:30, Temperature = rep(12, 30))
+#'   ),
+#'   diet_data = list(
+#'     proportions = data.frame(Day = 1:30, Prey1 = 1.0),
+#'     energies    = data.frame(Day = 1:30, Prey1 = 5000),
+#'     prey_names  = "Prey1"
+#'   ),
+#'   simulation_settings = list(initial_weight = 100, duration = 30)
+#' )
+#' bio$species_params$predator$ED_ini <- 5000
+#' bio$species_params$predator$ED_end <- 5500
+#' # Individual results require a hierarchical run; shown here for illustration
+#' # result <- run_fb4(bio, strategy = "hierarchical", ...)
+#' # df <- get_individual_results(result)
+#' }
 get_individual_results <- function(result, confidence_level = 0.95) {
   
   result_type <- detect_result_type(result)
@@ -279,7 +380,7 @@ get_individual_results <- function(result, confidence_level = 0.95) {
   
   # Create individual results data frame
   individual_df <- data.frame(
-    individual_id = 1:n_individuals,
+    individual_id = seq_len(n_individuals),
     p_estimate = p_estimates,
     p_se = p_se,
     stringsAsFactors = FALSE
@@ -341,8 +442,25 @@ get_individual_results <- function(result, confidence_level = 0.95) {
 #'
 #' @param result FB4 result object from hierarchical method
 #' @param confidence_level Confidence level for intervals (default 0.95)
-#' @return List with population results and uncertainties
+#' @return A named list containing at minimum ten elements: \code{mu_p_estimate}
+#'   and \code{mu_p_se} (population-mean ration), \code{sigma_p_estimate} and
+#'   \code{sigma_p_se} (among-individual SD), \code{sigma_obs_estimate} and
+#'   \code{sigma_obs_se} (observation SD), \code{n_individuals} (integer),
+#'   \code{log_likelihood}, \code{aic}, and \code{bic}. When population
+#'   uncertainty data are available, additional \code{mean_*_est},
+#'   \code{mean_*_se}, \code{mean_*_ci_lower}, and \code{mean_*_ci_upper}
+#'   elements are appended for \code{final_weight}, \code{consumption},
+#'   \code{total_growth}, \code{relative_growth}, \code{gross_efficiency}, and
+#'   \code{metabolic_scope}. Confidence-interval elements are also added for
+#'   \code{mu_p}, \code{sigma_p}, and \code{sigma_obs}. Stops with an error if
+#'   \code{result} was not produced by the hierarchical method.
 #' @export
+#' @examples
+#' \donttest{
+#' # Population results require a hierarchical run; shown here for illustration
+#' # result <- run_fb4(bio, strategy = "hierarchical", ...)
+#' # pop <- get_population_results(result)
+#' }
 get_population_results <- function(result, confidence_level = 0.95) {
   
   result_type <- detect_result_type(result)
@@ -479,8 +597,37 @@ assign_energy_components <- function(budget, src, mapping, idx = NULL) {
 #' @param result FB4 result object
 #' @param individual_id Individual ID for hierarchical models (NULL for population mean)
 #' @param confidence_level Confidence level for intervals (default 0.95)
-#' @return List with energy budget components and uncertainties
+#' @return A named list with ten elements: six energy-component sub-lists
+#'   (\code{consumption_energy}, \code{respiration_energy},
+#'   \code{egestion_energy}, \code{excretion_energy}, \code{sda_energy},
+#'   \code{net_energy}), each containing \code{estimate}, \code{se},
+#'   \code{ci_lower}, and \code{ci_upper} (all numeric, \code{NA} when
+#'   unavailable); plus \code{method} (character), \code{backend} (character),
+#'   \code{has_uncertainty} (logical), and \code{individual_id} (as supplied).
 #' @export
+#' @examples
+#' \donttest{
+#' data(fish4_parameters)
+#' sp   <- fish4_parameters[["Oncorhynchus tshawytscha"]]$life_stages$adult
+#' info <- fish4_parameters[["Oncorhynchus tshawytscha"]]$species_info
+#' bio  <- Bioenergetic(
+#'   species_params     = sp,
+#'   species_info       = info,
+#'   environmental_data = list(
+#'     temperature = data.frame(Day = 1:30, Temperature = rep(12, 30))
+#'   ),
+#'   diet_data = list(
+#'     proportions = data.frame(Day = 1:30, Prey1 = 1.0),
+#'     energies    = data.frame(Day = 1:30, Prey1 = 5000),
+#'     prey_names  = "Prey1"
+#'   ),
+#'   simulation_settings = list(initial_weight = 100, duration = 30)
+#' )
+#' bio$species_params$predator$ED_ini <- 5000
+#' bio$species_params$predator$ED_end <- 5500
+#' result <- run_fb4(bio, strategy = "direct", p_value = 0.5, verbose = FALSE)
+#' budget <- get_energy_budget_uncertainty(result)
+#' }
 get_energy_budget_uncertainty <- function(result, individual_id = NULL, confidence_level = 0.95) {
   
   result_type <- detect_result_type(result)

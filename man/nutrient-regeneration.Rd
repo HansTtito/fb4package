@@ -3,6 +3,26 @@
 \name{nutrient-regeneration}
 \alias{nutrient-regeneration}
 \title{Nutrient Regeneration Functions for FB4 Model}
+\value{
+No return value; this page documents the nutrient regeneration functions module. See individual function documentation for return values.
+}
 \description{
-Nutrient Regeneration Functions for FB4 Model
+Experimental functions for computing daily nitrogen (N) and phosphorus (P)
+fluxes in fish using a mass-balance approach consistent with ecological
+stoichiometry theory. For each element the daily budget is:
+
+\deqn{\text{Consumed} = \text{Assimilated} + \text{Egested}}
+\deqn{\text{Assimilated} = \text{Growth} + \text{Excreted}}
+
+Assimilation efficiencies for N and P are species- and prey-specific and
+can differ from those used for energy.
+}
+\references{
+Sterner, R.W. and Elser, J.J. (2002).
+\emph{Ecological Stoichiometry: The Biology of Elements from Molecules to
+the Biosphere}. Princeton University Press, Princeton, NJ.
+
+Deslauriers, D., Chipps, S.R., Breck, J.E., Rice, J.A. and Madenjian, C.P.
+(2017). Fish Bioenergetics 4.0: An R-based modeling application.
+\emph{Fisheries}, 42(11), 586–596. \doi{10.1080/03632415.2017.1377558}
 }

@@ -18,7 +18,22 @@ compare_scenarios(
 \item{confidence_level}{Confidence level for comparisons}
 }
 \value{
-List with comparative analysis
+A named list with five elements:
+  \describe{
+    \item{n_scenarios}{Integer. Number of scenarios compared.}
+    \item{scenario_names}{Character vector of scenario names.}
+    \item{metrics_compared}{Character vector of metrics requested.}
+    \item{confidence_level}{Numeric. Confidence level as supplied.}
+    \item{scenario_data}{\code{data.frame} with one row per scenario.
+      Always contains \code{scenario}, \code{method}, \code{backend}, and
+      \code{converged}. Additional \code{*_est} and \code{*_se} columns are
+      appended for each requested metric (\code{consumption},
+      \code{growth}, \code{efficiency}, \code{p_value}).}
+  }
+  When at least two scenarios provide uncertainty estimates,
+  \code{statistical_tests} is appended (list of pairwise test results).
+  \code{best_performers} (named list of scenario names with highest
+  estimated value per metric) is always appended.
 }
 \description{
 Compares multiple FB4 simulation results across different scenarios,

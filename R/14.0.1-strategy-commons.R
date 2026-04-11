@@ -1,9 +1,20 @@
 #' Strategy Commons for FB4 Model
 #'
 #' @description
-#' Shared functions used across multiple FB4 strategies to eliminate code duplication.
-#' Consolidates execution, data preparation, and parameter extraction logic.
+#' Internal helper functions shared across all FB4 fitting strategies.
+#' Provides a unified simulation executor (\code{execute_simulation_with_method}),
+#' a common parameter extractor (\code{extract_strategy_parameters}),
+#' metadata helpers (\code{add_strategy_metadata}), a final-simulation runner
+#' (\code{run_final_simulation}), input validation
+#' (\code{validate_common_strategy_inputs}), and a standardised error-result
+#' constructor (\code{create_error_result}).
 #'
+#' @references
+#' Deslauriers, D., Chipps, S.R., Breck, J.E., Rice, J.A. and Madenjian, C.P.
+#' (2017). Fish Bioenergetics 4.0: An R-based modeling application.
+#' \emph{Fisheries}, 42(11), 586–596. \doi{10.1080/03632415.2017.1377558}
+#'
+#' @return No return value; this page documents the common strategy utility functions. See individual function documentation for return values.
 #' @name strategy-commons
 #' @aliases strategy-commons
 NULL
@@ -16,8 +27,8 @@ NULL
 #'
 #' @description
 #' Unified simulation execution function used by all strategies.
-#' Consolidates the execute_simulation_with_method() that was duplicated 
-#' across multiple strategy files.
+#' Wraps \code{\link{run_fb4_simulation}} with a common interface for
+#' p_value, ration_percent, and ration_grams methods.
 #'
 #' @param method_type Method type ("p_value", "ration_percent", "ration_grams")
 #' @param method_value Method-specific value
