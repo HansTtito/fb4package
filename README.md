@@ -7,7 +7,11 @@ daily estimates of fish consumption and weight gain.
 ## Installation
 
 ```r
+# Stable release from CRAN
+install.packages("fb4package")
+
 # Development version from GitHub
+# install.packages("devtools")
 devtools::install_github("HansTtito/fb4package")
 ```
 

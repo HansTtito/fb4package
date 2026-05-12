@@ -26,6 +26,8 @@ home:
     environmental conditions. Supports binary search, MLE, and bootstrap
     estimation of feeding level (p-value) with optional TMB backend.
   links:
+  - text: CRAN
+    href: https://CRAN.R-project.org/package=fb4package
   - text: rOpenSci Software Review
     href: https://github.com/ropensci/software-review
   - text: Report a bug
