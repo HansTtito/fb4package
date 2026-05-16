@@ -1,4 +1,4 @@
-# fb4package
+# fb4package <img src="man/figures/logo.png" align="right" height="139" alt="fb4package logo" />
 
 An R implementation of Fish Bioenergetics 4.0 (Deslauriers et al. 2017). The
 model partitions consumed energy among metabolism, waste, and growth to produce
