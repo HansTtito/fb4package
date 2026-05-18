@@ -28,8 +28,6 @@ home:
   links:
   - text: CRAN
     href: https://CRAN.R-project.org/package=fb4package
-  - text: rOpenSci Software Review
-    href: https://github.com/ropensci/software-review
   - text: Report a bug
     href: https://github.com/HansTtito/fb4package/issues
   - text: Author's blog
@@ -211,7 +209,6 @@ reference:
   contents:
   - get_color_scheme
   - check_bioenergetic_readiness
-  - z_score
   - clamp
   - safe_sqrt
   - safe_exp
