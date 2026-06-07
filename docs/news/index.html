@@ -34,6 +34,9 @@
     <li><hr class="dropdown-divider"></li>
     <li><h6 class="dropdown-header" data-toc-skip>Environmental applications</h6></li>
     <li><a class="dropdown-item" href="../articles/fb4-temperature-climate.html">Temperature sensitivity &amp; climate scenarios</a></li>
+    <li><hr class="dropdown-divider"></li>
+    <li><h6 class="dropdown-header" data-toc-skip>Validation</h6></li>
+    <li><a class="dropdown-item" href="../articles/fb4-shiny-validation.html">Comparison with FB4-Shiny</a></li>
   </ul></li>
 <li class="nav-item"><a class="nav-link" href="../reference/index.html">Reference</a></li>
 <li class="active nav-item"><a class="nav-link" href="../news/index.html">Changelog</a></li>
@@ -51,6 +54,22 @@
       <small>Source: <a href="https://github.com/HansTtito/fb4package/blob/HEAD/NEWS.md" class="external-link"><code>NEWS.md</code></a></small>
     </div>
 
+    <div class="section level2">
+<h2 class="pkg-version" data-toc-text="2.1.0" id="fb4package-210-2026-06-06">fb4package 2.1.0 (2026-06-06)<a class="anchor" aria-label="anchor" href="#fb4package-210-2026-06-06"></a></h2>
+<div class="section level4">
+<h4 id="new-features-2-1-0">New features<a class="anchor" aria-label="anchor" href="#new-features-2-1-0"></a></h4>
+<ul><li><p><strong>Nutrient sub-model now active</strong> — <code><a href="../reference/Bioenergetic.html">Bioenergetic()</a></code> accepts <code>nutrient_data</code> (N and P concentrations, assimilation efficiencies). When supplied, <code><a href="../reference/run_fb4.html">run_fb4()</a></code> computes daily nitrogen and phosphorus fluxes (consumed, growth, excretion, egestion, N:P ratios) and appends them to <code>daily_output</code>.</p></li>
+<li><p><strong>Contaminant sub-model now active</strong> — <code><a href="../reference/Bioenergetic.html">Bioenergetic()</a></code> accepts <code>contaminant_data</code>. All three CONTEQ equations (pure accumulation, T/W-dependent elimination, Arnot &amp; Gobas 2004) are now computed within the daily loop and returned as <code>Contaminant_*</code> columns in <code>daily_output</code>.</p></li>
+<li><p><strong>Expanded <code>daily_output</code></strong> — three columns added: <code>Starting_Weight</code> (body weight at the start of each day), <code>Mean_Prey_Energy_J_g</code> (energy-weighted mean prey energy density), and per-prey consumption columns (<code>Cons_&lt;prey&gt;_g</code>) for each diet item.</p></li>
+<li><p><strong>Validation vignette</strong> — new article <em>“Validation against FB4-Shiny”</em> (<code>vignettes/fb4-shiny-validation.Rmd</code>) verifies numerical equivalence with FB4-Shiny v1.1.7 across all five simulation modes and the nutrient and contaminant sub-models.</p></li>
+</ul></div>
+<div class="section level4">
+<h4 id="bug-fixes-2-1-0">Bug fixes<a class="anchor" aria-label="anchor" href="#bug-fixes-2-1-0"></a></h4>
+<ul><li><p><code>strategy = "direct"</code> now correctly infers the concrete sub-strategy from <code>fit_to</code>: <code>"Ration_prey"</code> routes to <code>direct_ration_grams</code> and <code>"Ration"</code> routes to <code>direct_ration_percent</code>, instead of always defaulting to <code>direct_p_value</code> (#strategy-interface).</p></li>
+<li><p>TMB C++ engine (<code>src/fb4_main.cpp</code>): total consumption, respiration, and waste fluxes are now accumulated using start-of-day weight, consistent with the R simulation engine.</p></li>
+<li><p><code><a href="../reference/extract_hierarchical_parameters.html">extract_hierarchical_parameters()</a></code>: <code>betas_se</code> is no longer overwritten if already populated; uses <code>NA_real_</code> instead of bare <code>NA</code>.</p></li>
+</ul><hr></div>
+</div>
     <div class="section level2">
 <h2 class="pkg-version" data-toc-text="2.0.0" id="fb4package-200-2026-03-28">fb4package 2.0.0 (2026-03-28)<a class="anchor" aria-label="anchor" href="#fb4package-200-2026-03-28"></a></h2><p class="text-muted">CRAN release: 2026-05-07</p>
 <p>This is a major rewrite. The entire codebase was reorganised from a monolithic structure (7 files) into a modular, strategy-based architecture (33 files), and an optional TMB/C++ backend was added for statistical estimation methods.</p>
