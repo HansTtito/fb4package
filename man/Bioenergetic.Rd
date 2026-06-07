@@ -10,6 +10,8 @@ Bioenergetic(
   environmental_data = NULL,
   diet_data = NULL,
   reproduction_data = NULL,
+  nutrient_data = NULL,
+  contaminant_data = NULL,
   model_options = list(),
   simulation_settings = list()
 )

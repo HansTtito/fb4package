@@ -1,3 +1,43 @@
+# fb4package 2.1.0 (2026-06-06)
+
+### New features
+
+* **Nutrient sub-model now active** — `Bioenergetic()` accepts `nutrient_data`
+  (N and P concentrations, assimilation efficiencies). When supplied, `run_fb4()`
+  computes daily nitrogen and phosphorus fluxes (consumed, growth, excretion,
+  egestion, N:P ratios) and appends them to `daily_output`.
+
+* **Contaminant sub-model now active** — `Bioenergetic()` accepts
+  `contaminant_data`. All three CONTEQ equations (pure accumulation, T/W-dependent
+  elimination, Arnot & Gobas 2004) are now computed within the daily loop and
+  returned as `Contaminant_*` columns in `daily_output`.
+
+* **Expanded `daily_output`** — three columns added:
+  `Starting_Weight` (body weight at the start of each day),
+  `Mean_Prey_Energy_J_g` (energy-weighted mean prey energy density),
+  and per-prey consumption columns (`Cons_<prey>_g`) for each diet item.
+
+* **Validation vignette** — new article *"Validation against FB4-Shiny"*
+  (`vignettes/fb4-shiny-validation.Rmd`) verifies numerical equivalence with
+  FB4-Shiny v1.1.7 across all five simulation modes and the nutrient and
+  contaminant sub-models.
+
+### Bug fixes
+
+* `strategy = "direct"` now correctly infers the concrete sub-strategy from
+  `fit_to`: `"Ration_prey"` routes to `direct_ration_grams` and `"Ration"`
+  routes to `direct_ration_percent`, instead of always defaulting to
+  `direct_p_value` (#strategy-interface).
+
+* TMB C++ engine (`src/fb4_main.cpp`): total consumption, respiration, and
+  waste fluxes are now accumulated using start-of-day weight, consistent with
+  the R simulation engine.
+
+* `extract_hierarchical_parameters()`: `betas_se` is no longer overwritten if
+  already populated; uses `NA_real_` instead of bare `NA`.
+
+---
+
 # fb4package 2.0.0 (2026-03-28)
 
 This is a major rewrite. The entire codebase was reorganised from a monolithic

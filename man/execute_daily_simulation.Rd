@@ -9,7 +9,8 @@ execute_daily_simulation(
   current_weight,
   consumption_method,
   processed_simulation_data,
-  oxycal = 13560
+  oxycal = 13560,
+  current_contaminant_concentration = NULL
 )
 }
 \arguments{
@@ -22,6 +23,9 @@ execute_daily_simulation(
 \item{processed_simulation_data}{Complete processed simulation data}
 
 \item{oxycal}{Oxycalorific coefficient (J/g O2)}
+
+\item{current_contaminant_concentration}{Current predator contaminant concentration (ug/g);
+only used when contaminant data is present in processed_simulation_data}
 }
 \value{
 List with all daily results
