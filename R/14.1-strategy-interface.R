@@ -146,14 +146,20 @@ create_fb4_strategy <- function(execution_plan) {
   method <- execution_plan$strategy
   fit_to <- execution_plan$fit_to
 
-  # Normalise "direct" shorthand: pull p_value / fit_value from additional_params
-  # so that create_direct_strategy can find it at plan$fit_value
+  # Normalise "direct" shorthand: infer concrete strategy from fit_to
   if (method == "direct") {
-    p_val <- execution_plan$additional_params$p_value %||%
-             execution_plan$additional_params$fit_value %||%
-             execution_plan$fit_value
-    execution_plan$fit_value <- p_val
-    method <- "direct_p_value"
+    method <- switch(fit_to %||% "p_value",
+      "Ration_prey" = "direct_ration_grams",
+      "Ration"      = "direct_ration_percent",
+      "direct_p_value"   # default: p_value or NULL fit_to
+    )
+    # For p_value path, pull the value from additional_params as before
+    if (method == "direct_p_value") {
+      p_val <- execution_plan$additional_params$p_value %||%
+               execution_plan$additional_params$fit_value %||%
+               execution_plan$fit_value
+      execution_plan$fit_value <- p_val
+    }
     execution_plan$strategy <- method
   }
 

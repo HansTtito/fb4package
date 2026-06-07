@@ -273,11 +273,17 @@ process_bioenergetic_data <- function(bio_obj, first_day, last_day) {
   
   # Process reproduction data (OPTIONAL)
   reproduction_data <- process_reproduction_data(bio_obj, target_days)
-  
+
+  # Process nutrient data (OPTIONAL)
+  nutrient_data <- process_nutrient_data(bio_obj, target_days, prey_names)
+
+  # Process contaminant data (OPTIONAL)
+  contaminant_data <- process_contaminant_data(bio_obj, target_days, prey_names)
+
   # Final validation of processed temporal data
-  validate_temporal_data(temp_data$Temperature, diet_matrix, energy_matrix, 
+  validate_temporal_data(temp_data$Temperature, diet_matrix, energy_matrix,
                          indigestible_matrix, reproduction_data)
-  
+
   # Return comprehensive temporal data structure
   return(list(
     # Core required data
@@ -285,12 +291,11 @@ process_bioenergetic_data <- function(bio_obj, first_day, last_day) {
     diet_proportions = diet_matrix,
     prey_energies = energy_matrix,
     prey_indigestible = indigestible_matrix,
-    
+
     # Optional temporal data
     reproduction = reproduction_data,
-    # environmental = environmental_data,
-    # contaminant = contaminant_data,
-    # nutrient = nutrient_data,
+    nutrient = nutrient_data,
+    contaminant = contaminant_data,
     
     # Metadata
     duration = n_days,
@@ -383,6 +388,175 @@ process_reproduction_data <- function(bio_obj, target_days) {
   }
   
   return(reproduction_data)
+}
+
+# ============================================================================
+# NUTRIENT DATA PROCESSING
+# ============================================================================
+
+#' Process nutrient regeneration data
+#'
+#' @description
+#' Interpolates N and P time series from \code{bio_obj$nutrient_data} to
+#' daily values aligned with \code{target_days}. Returns \code{NULL} when
+#' no nutrient data is present.
+#'
+#' Expected structure of \code{bio_obj$nutrient_data}:
+#' \describe{
+#'   \item{prey_n_concentrations}{data.frame with Day + one column per prey (g N/g wet wt)}
+#'   \item{prey_p_concentrations}{data.frame with Day + one column per prey (g P/g wet wt)}
+#'   \item{predator_n_concentration}{data.frame with Day + value column (g N/g wet wt)}
+#'   \item{predator_p_concentration}{data.frame with Day + value column (g P/g wet wt)}
+#'   \item{n_assimilation_efficiency}{data.frame with Day + one column per prey (fraction 0-1)}
+#'   \item{p_assimilation_efficiency}{data.frame with Day + one column per prey (fraction 0-1)}
+#' }
+#'
+#' @param bio_obj Bioenergetic object
+#' @param target_days Target simulation days
+#' @param prey_names Character vector of prey names
+#' @return Named list with interpolated daily arrays, or NULL
+#' @keywords internal
+process_nutrient_data <- function(bio_obj, target_days, prey_names) {
+
+  nd <- bio_obj$nutrient_data
+  if (is.null(nd)) return(NULL)
+
+  n_days <- length(target_days)
+
+  helper_interp_prey_matrix <- function(df, component_name) {
+    # Interpolate a Day x n_prey data.frame to a matrix aligned with target_days
+    if (is.null(df)) {
+      warning("nutrient_data$", component_name, " is missing; using zeros.")
+      return(matrix(0, nrow = n_days, ncol = length(prey_names),
+                    dimnames = list(NULL, prey_names)))
+    }
+    cols <- intersect(prey_names, names(df))
+    if (length(cols) == 0) {
+      warning("nutrient_data$", component_name,
+              " has no columns matching prey names; using zeros.")
+      return(matrix(0, nrow = n_days, ncol = length(prey_names),
+                    dimnames = list(NULL, prey_names)))
+    }
+    result <- interpolate_time_series(df, value_columns = cols,
+                                      target_days = target_days)
+    mat <- as.matrix(result[, cols, drop = FALSE])
+    # Fill missing prey columns with zeros
+    out <- matrix(0, nrow = n_days, ncol = length(prey_names),
+                  dimnames = list(NULL, prey_names))
+    out[, cols] <- mat
+    out
+  }
+
+  helper_interp_scalar <- function(df, col_name, component_name) {
+    if (is.null(df)) {
+      warning("nutrient_data$", component_name, " is missing; using zeros.")
+      return(rep(0, n_days))
+    }
+    interp <- interpolate_time_series(df, value_columns = col_name,
+                                      target_days = target_days)
+    as.numeric(interp[[col_name]])
+  }
+
+  # Detect scalar column name for predator concentrations
+  pred_n_col <- setdiff(names(nd$predator_n_concentration %||% data.frame()), "Day")
+  pred_p_col <- setdiff(names(nd$predator_p_concentration %||% data.frame()), "Day")
+  pred_n_col <- if (length(pred_n_col) > 0) pred_n_col[1] else "value"
+  pred_p_col <- if (length(pred_p_col) > 0) pred_p_col[1] else "value"
+
+  list(
+    prey_n_concentrations     = helper_interp_prey_matrix(nd$prey_n_concentrations,     "prey_n_concentrations"),
+    prey_p_concentrations     = helper_interp_prey_matrix(nd$prey_p_concentrations,     "prey_p_concentrations"),
+    predator_n_concentration  = helper_interp_scalar(nd$predator_n_concentration, pred_n_col, "predator_n_concentration"),
+    predator_p_concentration  = helper_interp_scalar(nd$predator_p_concentration, pred_p_col, "predator_p_concentration"),
+    n_assimilation_efficiency = helper_interp_prey_matrix(nd$n_assimilation_efficiency, "n_assimilation_efficiency"),
+    p_assimilation_efficiency = helper_interp_prey_matrix(nd$p_assimilation_efficiency, "p_assimilation_efficiency")
+  )
+}
+
+# ============================================================================
+# CONTAMINANT DATA PROCESSING
+# ============================================================================
+
+#' Process contaminant accumulation data
+#'
+#' @description
+#' Interpolates contaminant time series from \code{bio_obj$contaminant_data}
+#' to daily values aligned with \code{target_days}. Returns \code{NULL} when
+#' no contaminant data is present.
+#'
+#' Expected structure of \code{bio_obj$contaminant_data}:
+#' \describe{
+#'   \item{CONTEQ}{Integer 1, 2 or 3 (bioaccumulation model)}
+#'   \item{initial_concentration}{Initial predator concentration (ug/g)}
+#'   \item{prey_concentrations}{data.frame Day + one column per prey (ug/g)}
+#'   \item{transfer_efficiency}{data.frame Day + one per prey — used by CONTEQ 1}
+#'   \item{assimilation_efficiency}{data.frame Day + one per prey — used by CONTEQ 2, 3}
+#'   \item{gill_efficiency, fish_water_partition, water_concentration,
+#'         dissolved_fraction, do_saturation}{Scalars required by CONTEQ 3}
+#' }
+#'
+#' @param bio_obj Bioenergetic object
+#' @param target_days Target simulation days
+#' @param prey_names Character vector of prey names
+#' @return Named list with processed contaminant parameters, or NULL
+#' @keywords internal
+process_contaminant_data <- function(bio_obj, target_days, prey_names) {
+
+  cd <- bio_obj$contaminant_data
+  if (is.null(cd)) return(NULL)
+
+  n_days <- length(target_days)
+  CONTEQ <- as.integer(cd$CONTEQ %||% 1L)
+
+  helper_interp_prey_matrix <- function(df, component_name) {
+    if (is.null(df)) {
+      warning("contaminant_data$", component_name, " is missing; using zeros.")
+      return(matrix(0, nrow = n_days, ncol = length(prey_names),
+                    dimnames = list(NULL, prey_names)))
+    }
+    cols <- intersect(prey_names, names(df))
+    if (length(cols) == 0) {
+      warning("contaminant_data$", component_name,
+              " has no columns matching prey names; using zeros.")
+      return(matrix(0, nrow = n_days, ncol = length(prey_names),
+                    dimnames = list(NULL, prey_names)))
+    }
+    result <- interpolate_time_series(df, value_columns = cols,
+                                      target_days = target_days)
+    mat <- as.matrix(result[, cols, drop = FALSE])
+    out <- matrix(0, nrow = n_days, ncol = length(prey_names),
+                  dimnames = list(NULL, prey_names))
+    out[, cols] <- mat
+    out
+  }
+
+  prey_concentrations <- helper_interp_prey_matrix(cd$prey_concentrations, "prey_concentrations")
+
+  # Efficiency matrix: CONTEQ 1 uses transfer_efficiency, 2 & 3 use assimilation_efficiency
+  if (CONTEQ == 1) {
+    efficiency_matrix <- helper_interp_prey_matrix(cd$transfer_efficiency, "transfer_efficiency")
+  } else {
+    efficiency_matrix <- helper_interp_prey_matrix(cd$assimilation_efficiency, "assimilation_efficiency")
+  }
+
+  result <- list(
+    CONTEQ               = CONTEQ,
+    initial_concentration = as.numeric(cd$initial_concentration %||% 0),
+    prey_concentrations  = prey_concentrations,
+    transfer_efficiency  = efficiency_matrix,   # CONTEQ 1
+    assimilation_efficiency = efficiency_matrix # CONTEQ 2 & 3
+  )
+
+  # CONTEQ 3 extra parameters (constants)
+  if (CONTEQ == 3) {
+    result$gill_efficiency      <- as.numeric(cd$gill_efficiency      %||% 0.5)
+    result$fish_water_partition <- as.numeric(cd$fish_water_partition %||% 1.0)
+    result$water_concentration  <- as.numeric(cd$water_concentration  %||% 0.0)
+    result$dissolved_fraction   <- as.numeric(cd$dissolved_fraction   %||% 1.0)
+    result$do_saturation        <- as.numeric(cd$do_saturation        %||% 1.0)
+  }
+
+  result
 }
 
 # ============================================================================

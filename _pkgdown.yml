@@ -62,6 +62,10 @@ navbar:
       - text: "Environmental applications"
       - text: "Temperature sensitivity & climate scenarios"
         href: articles/fb4-temperature-climate.html
+      - text: "-------"
+      - text: "Validation"
+      - text: "Comparison with FB4-Shiny"
+        href: articles/fb4-shiny-validation.html
     github:
       icon: fab fa-github fa-lg
       href: https://github.com/HansTtito/fb4package
@@ -98,6 +102,13 @@ articles:
     Temperature sensitivity analysis and climate change scenario projections.
   contents:
   - fb4-temperature-climate
+
+- title: "Validation"
+  desc: >
+    Numerical verification of fb4package against the original FB4-Shiny
+    application across all simulation modes and sub-models.
+  contents:
+  - fb4-shiny-validation
 
 reference:
 

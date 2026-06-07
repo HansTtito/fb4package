@@ -765,7 +765,7 @@ extract_hierarchical_parameters <- function(results, params, obj, confidence_lev
   results$n_individuals <- as.numeric(n_individuals)
   results$confidence_level <- as.numeric(confidence_level)
   results$betas <- as.numeric(betas)
-  results$betas_se <- rep(NA, length(betas))
+  if (is.null(results$betas_se)) results$betas_se <- rep(NA_real_, length(betas))
   
   return(results)
 }

@@ -177,7 +177,12 @@ create_unified_summary <- function(raw_results, execution_plan, method) {
     summary$fit_to <- "Weight"
     summary$n_individuals <- raw_results$n_individuals
     summary$mu_p_estimate <- raw_results$mu_p_estimate
+    summary$mu_p_se <- raw_results$mu_p_se
     summary$sigma_p_estimate <- raw_results$sigma_p_estimate
+    summary$sigma_p_se <- raw_results$sigma_p_se
+    summary$sigma_obs_estimate <- raw_results$sigma_obs_estimate
+    summary$betas <- raw_results$betas
+    summary$betas_se <- raw_results$betas_se
     summary$converged <- raw_results$converged %||% FALSE
     
   } else {
@@ -276,7 +281,9 @@ create_method_specific_data <- function(raw_results, execution_plan, method) {
       sigma_p_estimate   = raw_results$sigma_p_estimate,
       sigma_p_se         = raw_results$sigma_p_se,
       sigma_obs_estimate = raw_results$sigma_obs_estimate,
-      sigma_obs_se       = raw_results$sigma_obs_se
+      sigma_obs_se       = raw_results$sigma_obs_se,
+      betas              = raw_results$betas,
+      betas_se           = raw_results$betas_se
     )
     method_data$model_fit <- list(
       log_likelihood = raw_results$log_likelihood,

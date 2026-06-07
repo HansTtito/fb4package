@@ -98,6 +98,8 @@ Bioenergetic <- function(species_params,
                          environmental_data = NULL,
                          diet_data = NULL,
                          reproduction_data = NULL,
+                         nutrient_data = NULL,
+                         contaminant_data = NULL,
                          model_options = list(),
                          simulation_settings = list()) {
   
@@ -136,7 +138,15 @@ Bioenergetic <- function(species_params,
   if (!is.null(reproduction_data) && !is.list(reproduction_data)) {
     stop("reproduction_data must be a list")
   }
-  
+
+  if (!is.null(nutrient_data) && !is.list(nutrient_data)) {
+    stop("nutrient_data must be a list")
+  }
+
+  if (!is.null(contaminant_data) && !is.list(contaminant_data)) {
+    stop("contaminant_data must be a list")
+  }
+
   if (!is.list(model_options)) {
     stop("model_options must be a list")
   }
@@ -175,6 +185,12 @@ Bioenergetic <- function(species_params,
   if (is.null(model_options$detailed_output)) {
     model_options$detailed_output <- FALSE
   }
+  if (is.null(model_options$calc_nutrients)) {
+    model_options$calc_nutrients <- !is.null(nutrient_data)
+  }
+  if (is.null(model_options$calc_contaminants)) {
+    model_options$calc_contaminants <- !is.null(contaminant_data)
+  }
   
   # Create and return object
   bio_obj <- structure(
@@ -184,6 +200,8 @@ Bioenergetic <- function(species_params,
       environmental_data = environmental_data,
       diet_data = diet_data,
       reproduction_data = reproduction_data,
+      nutrient_data = nutrient_data,
+      contaminant_data = contaminant_data,
       model_options = model_options,
       simulation_settings = simulation_settings,
       fitted = FALSE

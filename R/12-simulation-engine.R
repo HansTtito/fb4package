@@ -260,21 +260,24 @@ calculate_daily_weight_change <- function(current_weight, net_energy, spawn_ener
 #' @param consumption_method List with method type and value
 #' @param processed_simulation_data Complete processed simulation data
 #' @param oxycal Oxycalorific coefficient (J/g O2)
+#' @param current_contaminant_concentration Current predator contaminant concentration (ug/g);
+#'   only used when contaminant data is present in processed_simulation_data
 #' @return List with all daily results
 #' @keywords internal
-execute_daily_simulation <- function(day, current_weight, consumption_method, 
-                                     processed_simulation_data, oxycal = 13560) {
-  
+execute_daily_simulation <- function(day, current_weight, consumption_method,
+                                     processed_simulation_data, oxycal = 13560,
+                                     current_contaminant_concentration = NULL) {
+
   # Extract data for this day
   temperature <- processed_simulation_data$temporal_data$temperature[day]
   diet_proportions <- processed_simulation_data$temporal_data$diet_proportions[day, ]
   prey_energies <- processed_simulation_data$temporal_data$prey_energies[day, ]
   indigestible_fractions <- processed_simulation_data$temporal_data$prey_indigestible[day, ]
   reproduction_data <- processed_simulation_data$temporal_data$reproduction
-  
+
   # Calculate mean prey energy
   mean_prey_energy <- sum(diet_proportions * prey_energies, na.rm = TRUE)
-  
+
   # Calculate daily consumption
   consumption_result <- calculate_daily_consumption(
     current_weight = current_weight,
@@ -286,7 +289,7 @@ execute_daily_simulation <- function(day, current_weight, consumption_method,
     processed_consumption_params = processed_simulation_data$species_params$consumption,
     mean_prey_energy = mean_prey_energy
   )
-  
+
   # Calculate daily metabolism
   metabolism_result <- calculate_daily_metabolism(
     consumption_energy = consumption_result$consumption_energy,
@@ -298,16 +301,16 @@ execute_daily_simulation <- function(day, current_weight, consumption_method,
     indigestible_fractions = indigestible_fractions,
     oxycal = oxycal
   )
-  
+
   # Calculate spawning energy loss
   spawn_energy <- calculate_daily_spawn_energy(
     day = day,
     current_weight = current_weight,
-    predator_ed = calculate_predator_energy_density(current_weight, day, 
+    predator_ed = calculate_predator_energy_density(current_weight, day,
                                                     processed_simulation_data$species_params$predator),
     reproduction_data = reproduction_data
   )
-  
+
   # Calculate weight change
   growth_result <- calculate_daily_weight_change(
     current_weight = current_weight,
@@ -316,22 +319,84 @@ execute_daily_simulation <- function(day, current_weight, consumption_method,
     day = day,
     processed_predator_params = processed_simulation_data$species_params$predator
   )
-  
-  # Combine all daily results
-  return(list(
+
+  # Consumption by prey type (g/day): needed for nutrients and contaminants
+  consumption_by_prey <- consumption_result$consumption_gg * current_weight * diet_proportions
+
+  # ---- NUTRIENT REGENERATION (optional) ------------------------------------
+  nutrient_result <- NULL
+  nd <- processed_simulation_data$temporal_data$nutrient
+  if (!is.null(nd)) {
+    daily_nutrient_params <- list(
+      prey_n_concentrations     = nd$prey_n_concentrations[day, ],
+      prey_p_concentrations     = nd$prey_p_concentrations[day, ],
+      predator_n_concentration  = nd$predator_n_concentration[day],
+      predator_p_concentration  = nd$predator_p_concentration[day],
+      n_assimilation_efficiency = nd$n_assimilation_efficiency[day, ],
+      p_assimilation_efficiency = nd$p_assimilation_efficiency[day, ]
+    )
+    nutrient_result <- tryCatch(
+      calculate_nutrient_balance(
+        consumption  = consumption_by_prey,
+        weight_gain  = growth_result$weight_change,
+        processed_nutrient_params = daily_nutrient_params
+      ),
+      error = function(e) {
+        warning("Nutrient calculation failed on day ", day, ": ", e$message)
+        NULL
+      }
+    )
+  }
+
+  # ---- CONTAMINANT ACCUMULATION (optional) ---------------------------------
+  contaminant_result <- NULL
+  cd <- processed_simulation_data$temporal_data$contaminant
+  if (!is.null(cd) && !is.null(current_contaminant_concentration)) {
+    daily_contam_params <- list(
+      CONTEQ              = cd$CONTEQ,
+      prey_concentrations = cd$prey_concentrations[day, ],
+      transfer_efficiency = cd$transfer_efficiency[day, ],
+      assimilation_efficiency = cd$assimilation_efficiency[day, ]
+    )
+    if (cd$CONTEQ == 3) {
+      daily_contam_params$gill_efficiency      <- cd$gill_efficiency
+      daily_contam_params$fish_water_partition <- cd$fish_water_partition
+      daily_contam_params$water_concentration  <- cd$water_concentration
+      daily_contam_params$dissolved_fraction   <- cd$dissolved_fraction
+      daily_contam_params$do_saturation        <- cd$do_saturation
+    }
+    contaminant_result <- tryCatch(
+      calculate_contaminant_accumulation(
+        respiration_o2          = metabolism_result$respiration_o2,
+        consumption             = consumption_by_prey,
+        weight                  = current_weight,
+        temperature             = temperature,
+        current_concentration   = current_contaminant_concentration,
+        processed_contaminant_params = daily_contam_params
+      ),
+      error = function(e) {
+        warning("Contaminant calculation failed on day ", day, ": ", e$message)
+        NULL
+      }
+    )
+  }
+
+  # ---- Assemble result -----------------------------------------------------
+  daily_out <- list(
     # Basic metrics
     day = day,
     initial_weight = current_weight,
     final_weight = growth_result$final_weight,
     weight_change = growth_result$weight_change,
     temperature = temperature,
-    
+
     # Consumption
     consumption_gg = consumption_result$consumption_gg,
     consumption_energy = consumption_result$consumption_energy,
     effective_p = consumption_result$effective_p,
     mean_prey_energy = mean_prey_energy,
-    
+    consumption_by_prey = consumption_by_prey,  # vector (g/day per prey type)
+
     # Metabolism
     egestion_energy = metabolism_result$egestion_energy,
     excretion_energy = metabolism_result$excretion_energy,
@@ -339,11 +404,19 @@ execute_daily_simulation <- function(day, current_weight, consumption_method,
     respiration_o2 = metabolism_result$respiration_o2,
     sda_energy = metabolism_result$sda_energy,
     net_energy = metabolism_result$net_energy,
-    
+
     # Additional
     spawn_energy = spawn_energy,
-    energy_density = growth_result$energy_density
-  ))
+    energy_density = growth_result$energy_density,
+
+    # Nutrients (NULL when not calculated)
+    nutrient = nutrient_result,
+
+    # Contaminants (NULL when not calculated)
+    contaminant = contaminant_result
+  )
+
+  return(daily_out)
 }
 
 #' Run complete FB4 simulation (Mid-level - Main function)
@@ -415,42 +488,52 @@ run_fb4_simulation <- function(consumption_method, processed_simulation_data,
   # Extract simulation parameters
   initial_weight <- processed_simulation_data$simulation_settings$initial_weight
   n_days <- processed_simulation_data$temporal_data$duration
-  
+
   # Initialize tracking variables
   current_weight <- initial_weight
   total_consumption_g <- 0
-  
+
+  # Initialize contaminant state (carries across days)
+  cd <- processed_simulation_data$temporal_data$contaminant
+  current_contaminant_concentration <- if (!is.null(cd)) cd$initial_concentration else NULL
+
   # Initialize daily output if requested
   if (output_daily) {
     daily_results <- vector("list", n_days)
   }
-  
+
   # Progress tracking
   progress_interval <- calculate_progress_interval(n_days)
-  
+
   # Initial message
   if (verbose) {
-    message("Starting FB4 simulation: ", n_days, " days, initial weight: ", 
+    message("Starting FB4 simulation: ", n_days, " days, initial weight: ",
             round(initial_weight, 2), "g")
     message("Method: ", consumption_method$type, " = ", consumption_method$value)
   }
-  
+
   # Main simulation loop
   for (day in 1:n_days) {
-    
+
     # Execute daily simulation
     daily_result <- execute_daily_simulation(
       day = day,
       current_weight = current_weight,
       consumption_method = consumption_method,
       processed_simulation_data = processed_simulation_data,
-      oxycal = oxycal
+      oxycal = oxycal,
+      current_contaminant_concentration = current_contaminant_concentration
     )
-    
+
     # Update state for next day
     current_weight <- daily_result$final_weight
     total_consumption_g <- total_consumption_g + (daily_result$consumption_gg * daily_result$initial_weight)
-    
+
+    # Update contaminant state for next day
+    if (!is.null(daily_result$contaminant)) {
+      current_contaminant_concentration <- daily_result$contaminant$new_concentration
+    }
+
     # Store daily results if requested
     if (output_daily) {
       daily_results[[day]] <- daily_result
@@ -544,24 +627,60 @@ report_simulation_summary <- function(final_weight, initial_weight, total_consum
 #' Convert list of daily results to data frame
 #' @keywords internal
 convert_daily_results_to_dataframe <- function(daily_results) {
-  
-  # Extract vectors from daily results
-  # n_days <- length(daily_results)
-  
-  data.frame(
-    Day = vapply(daily_results, `[[`, numeric(1), "day"),
-    Weight = vapply(daily_results, `[[`, numeric(1), "final_weight"),
-    Weight_change = vapply(daily_results, `[[`, numeric(1), "weight_change"),
-    Temperature = vapply(daily_results, `[[`, numeric(1), "temperature"),
-    Consumption_gg = vapply(daily_results, `[[`, numeric(1), "consumption_gg"),
-    Consumption_energy = vapply(daily_results, `[[`, numeric(1), "consumption_energy"),
-    P_value = vapply(daily_results, `[[`, numeric(1), "effective_p"),
-    Respiration = vapply(daily_results, `[[`, numeric(1), "respiration_energy"),
-    Egestion = vapply(daily_results, `[[`, numeric(1), "egestion_energy"),
-    Excretion = vapply(daily_results, `[[`, numeric(1), "excretion_energy"),
-    SDA = vapply(daily_results, `[[`, numeric(1), "sda_energy"),
-    Net_energy = vapply(daily_results, `[[`, numeric(1), "net_energy"),
-    Energy_density = vapply(daily_results, `[[`, numeric(1), "energy_density"),
+
+  df <- data.frame(
+    Day                    = vapply(daily_results, `[[`, numeric(1), "day"),
+    Starting_Weight        = vapply(daily_results, `[[`, numeric(1), "initial_weight"),
+    Weight                 = vapply(daily_results, `[[`, numeric(1), "final_weight"),
+    Weight_change          = vapply(daily_results, `[[`, numeric(1), "weight_change"),
+    Temperature            = vapply(daily_results, `[[`, numeric(1), "temperature"),
+    Mean_Prey_Energy_J_g   = vapply(daily_results, `[[`, numeric(1), "mean_prey_energy"),
+    Consumption_gg         = vapply(daily_results, `[[`, numeric(1), "consumption_gg"),
+    Consumption_energy     = vapply(daily_results, `[[`, numeric(1), "consumption_energy"),
+    P_value                = vapply(daily_results, `[[`, numeric(1), "effective_p"),
+    Respiration            = vapply(daily_results, `[[`, numeric(1), "respiration_energy"),
+    Egestion               = vapply(daily_results, `[[`, numeric(1), "egestion_energy"),
+    Excretion              = vapply(daily_results, `[[`, numeric(1), "excretion_energy"),
+    SDA                    = vapply(daily_results, `[[`, numeric(1), "sda_energy"),
+    Net_energy             = vapply(daily_results, `[[`, numeric(1), "net_energy"),
+    Energy_density         = vapply(daily_results, `[[`, numeric(1), "energy_density"),
     stringsAsFactors = FALSE
   )
+
+  # ---- Per-prey consumption columns (g/day per prey type) ------------------
+  prey_names <- names(daily_results[[1]]$consumption_by_prey)
+  if (!is.null(prey_names) && length(prey_names) > 0) {
+    prey_cons_mat <- do.call(rbind, lapply(daily_results, function(x) x$consumption_by_prey))
+    colnames(prey_cons_mat) <- paste0("Cons_", prey_names, "_g")
+    df <- cbind(df, prey_cons_mat)
+  }
+
+  # ---- Nutrient columns (added when nutrient_data was provided) ------------
+  has_nutrients <- !is.null(daily_results[[1]]$nutrient)
+  if (has_nutrients) {
+    df$Nitrogen_consumed_g     <- vapply(daily_results, function(x) x$nutrient$nitrogen$consumed,    numeric(1))
+    df$Nitrogen_growth_g       <- vapply(daily_results, function(x) x$nutrient$nitrogen$growth,      numeric(1))
+    df$Nitrogen_excretion_g    <- vapply(daily_results, function(x) x$nutrient$nitrogen$excretion,   numeric(1))
+    df$Nitrogen_egestion_g     <- vapply(daily_results, function(x) x$nutrient$nitrogen$egestion,    numeric(1))
+    df$Phosphorus_consumed_g   <- vapply(daily_results, function(x) x$nutrient$phosphorus$consumed,  numeric(1))
+    df$Phosphorus_growth_g     <- vapply(daily_results, function(x) x$nutrient$phosphorus$growth,    numeric(1))
+    df$Phosphorus_excretion_g  <- vapply(daily_results, function(x) x$nutrient$phosphorus$excretion, numeric(1))
+    df$Phosphorus_egestion_g   <- vapply(daily_results, function(x) x$nutrient$phosphorus$egestion,  numeric(1))
+    # N:P ratios (matching Shiny output names)
+    df$N_to_P_consumption <- df$Nitrogen_consumed_g  / df$Phosphorus_consumed_g
+    df$N_to_P_growth      <- df$Nitrogen_growth_g    / df$Phosphorus_growth_g
+    df$N_to_P_excretion   <- df$Nitrogen_excretion_g / df$Phosphorus_excretion_g
+    df$N_to_P_egestion    <- df$Nitrogen_egestion_g  / df$Phosphorus_egestion_g
+  }
+
+  # ---- Contaminant columns (added when contaminant_data was provided) ------
+  has_contaminants <- !is.null(daily_results[[1]]$contaminant)
+  if (has_contaminants) {
+    df$Contaminant_clearance_ug_d   <- vapply(daily_results, function(x) x$contaminant$clearance,          numeric(1))
+    df$Contaminant_uptake_ug        <- vapply(daily_results, function(x) x$contaminant$uptake,             numeric(1))
+    df$Contaminant_burden_ug        <- vapply(daily_results, function(x) x$contaminant$new_burden,         numeric(1))
+    df$Contaminant_concentration_ug_g <- vapply(daily_results, function(x) x$contaminant$new_concentration, numeric(1))
+  }
+
+  df
 }

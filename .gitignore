@@ -41,3 +41,12 @@ CRAN-SUBMISSION
 # Personal analysis scripts (not part of the package)
 congreso_*
 test_chinook_equivalence.R
+fb4_daily_comparison.R
+
+# Output files from local validation runs
+output_comparison/
+
+# Manuscript / office files
+*.docx
+*.xlsx
+*.pptx
