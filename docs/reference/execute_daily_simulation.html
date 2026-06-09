@@ -12,7 +12,7 @@ Main business logic function that orchestrates low-level calculations."><meta pr
 
     <a class="navbar-brand me-2" href="../index.html">fb4package</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">2.0.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">2.1.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -69,7 +69,8 @@ Main business logic function that orchestrates low-level calculations.</p>
 <span>  <span class="va">current_weight</span>,</span>
 <span>  <span class="va">consumption_method</span>,</span>
 <span>  <span class="va">processed_simulation_data</span>,</span>
-<span>  oxycal <span class="op">=</span> <span class="fl">13560</span></span>
+<span>  oxycal <span class="op">=</span> <span class="fl">13560</span>,</span>
+<span>  current_contaminant_concentration <span class="op">=</span> <span class="cn">NULL</span></span>
 <span><span class="op">)</span></span></code></pre></div>
     </div>
 
@@ -95,6 +96,11 @@ Main business logic function that orchestrates low-level calculations.</p>
 
 <dt id="arg-oxycal">oxycal<a class="anchor" aria-label="anchor" href="#arg-oxycal"></a></dt>
 <dd><p>Oxycalorific coefficient (J/g O2)</p></dd>
+
+
+<dt id="arg-current-contaminant-concentration">current_contaminant_concentration<a class="anchor" aria-label="anchor" href="#arg-current-contaminant-concentration"></a></dt>
+<dd><p>Current predator contaminant concentration (ug/g);
+only used when contaminant data is present in processed_simulation_data</p></dd>
 
 </dl></div>
     <div class="section level2">

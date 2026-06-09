@@ -12,7 +12,7 @@ of the fish bioenergetic model for streamlined simulation management."><meta pro
 
     <a class="navbar-brand me-2" href="../index.html">fb4package</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">2.0.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">2.1.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -70,6 +70,8 @@ of the fish bioenergetic model for streamlined simulation management.</p>
 <span>  environmental_data <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  diet_data <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  reproduction_data <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  nutrient_data <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  contaminant_data <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  model_options <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="op">)</span>,</span>
 <span>  simulation_settings <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="op">)</span></span>
 <span><span class="op">)</span></span></code></pre></div>
@@ -97,6 +99,21 @@ of the fish bioenergetic model for streamlined simulation management.</p>
 
 <dt id="arg-reproduction-data">reproduction_data<a class="anchor" aria-label="anchor" href="#arg-reproduction-data"></a></dt>
 <dd><p>List with reproduction parameters (optional)</p></dd>
+
+
+<dt id="arg-nutrient-data">nutrient_data<a class="anchor" aria-label="anchor" href="#arg-nutrient-data"></a></dt>
+<dd><p>Optional list with nitrogen and phosphorus data for the
+nutrient sub-model. Expected fields: <code>N_conc</code>, <code>P_conc</code>,
+<code>N_assim</code>, <code>P_assim</code> (assimilation efficiencies). When
+<code>NULL</code> (default) the nutrient sub-model is disabled.</p></dd>
+
+
+<dt id="arg-contaminant-data">contaminant_data<a class="anchor" aria-label="anchor" href="#arg-contaminant-data"></a></dt>
+<dd><p>Optional list with contaminant data for the
+contaminant sub-model. Expected fields depend on the CONTEQ equation
+selected (pure accumulation, T/W-dependent elimination, or Arnot and
+Gobas 2004). When <code>NULL</code> (default) the contaminant sub-model is
+disabled.</p></dd>
 
 
 <dt id="arg-model-options">model_options<a class="anchor" aria-label="anchor" href="#arg-model-options"></a></dt>

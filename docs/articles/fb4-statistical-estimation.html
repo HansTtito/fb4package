@@ -29,7 +29,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">fb4package</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">2.0.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">2.1.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -83,7 +83,7 @@
       <img src="../logo.png" class="logo" alt=""><h1>Statistical estimation strategies</h1>
                         <h4 data-toc-skip class="author">Hans Ttito</h4>
             
-            <h4 data-toc-skip class="date">2026-06-06</h4>
+            <h4 data-toc-skip class="date">2026-06-09</h4>
       
       <small class="dont-index">Source: <a href="https://github.com/HansTtito/fb4package/blob/HEAD/vignettes/fb4-statistical-estimation.Rmd" class="external-link"><code>vignettes/fb4-statistical-estimation.Rmd</code></a></small>
       <div class="d-none name"><code>fb4-statistical-estimation.Rmd</code></div>
@@ -192,9 +192,7 @@ growth target.</p>
 <span>                  fit_value <span class="op">=</span> <span class="fl">3000</span><span class="op">)</span></span>
 <span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/cat.html" class="external-link">cat</a></span><span class="op">(</span><span class="st">"p estimate  :"</span>, <span class="fu"><a href="https://rdrr.io/r/base/Round.html" class="external-link">round</a></span><span class="op">(</span><span class="va">res_bs</span><span class="op">$</span><span class="va">summary</span><span class="op">$</span><span class="va">p_value</span>, <span class="fl">4</span><span class="op">)</span>, <span class="st">"\n"</span><span class="op">)</span></span>
-<span><span class="co">#&gt; p estimate  : 0.9095</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/base/cat.html" class="external-link">cat</a></span><span class="op">(</span><span class="st">"Final weight:"</span>, <span class="fu"><a href="https://rdrr.io/r/base/Round.html" class="external-link">round</a></span><span class="op">(</span><span class="va">res_bs</span><span class="op">$</span><span class="va">summary</span><span class="op">$</span><span class="va">final_weight</span>, <span class="fl">1</span><span class="op">)</span>, <span class="st">"g\n"</span><span class="op">)</span></span>
-<span><span class="co">#&gt; Final weight: 3000 g</span></span></code></pre></div>
+<span><span class="fu"><a href="https://rdrr.io/r/base/cat.html" class="external-link">cat</a></span><span class="op">(</span><span class="st">"Final weight:"</span>, <span class="fu"><a href="https://rdrr.io/r/base/Round.html" class="external-link">round</a></span><span class="op">(</span><span class="va">res_bs</span><span class="op">$</span><span class="va">summary</span><span class="op">$</span><span class="va">final_weight</span>, <span class="fl">1</span><span class="op">)</span>, <span class="st">"g\n"</span><span class="op">)</span></span></code></pre></div>
 <hr>
 </div>
 <div class="section level2">
@@ -211,11 +209,8 @@ interval via the profile likelihood.</p>
 <span>                   observed_weights <span class="op">=</span> <span class="va">obs_weights</span><span class="op">)</span></span>
 <span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/cat.html" class="external-link">cat</a></span><span class="op">(</span><span class="st">"p estimate :"</span>, <span class="fu"><a href="https://rdrr.io/r/base/Round.html" class="external-link">round</a></span><span class="op">(</span><span class="va">res_mle</span><span class="op">$</span><span class="va">summary</span><span class="op">$</span><span class="va">p_value</span>, <span class="fl">4</span><span class="op">)</span>, <span class="st">"\n"</span><span class="op">)</span></span>
-<span><span class="co">#&gt; p estimate : 0.9106</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/cat.html" class="external-link">cat</a></span><span class="op">(</span><span class="st">"SE         :"</span>, <span class="fu"><a href="https://rdrr.io/r/base/Round.html" class="external-link">round</a></span><span class="op">(</span><span class="va">res_mle</span><span class="op">$</span><span class="va">summary</span><span class="op">$</span><span class="va">p_se</span>,    <span class="fl">4</span><span class="op">)</span>, <span class="st">"\n"</span><span class="op">)</span></span>
-<span><span class="co">#&gt; SE         : 0.0055</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/base/cat.html" class="external-link">cat</a></span><span class="op">(</span><span class="st">"Converged  :"</span>, <span class="va">res_mle</span><span class="op">$</span><span class="va">summary</span><span class="op">$</span><span class="va">converged</span>, <span class="st">"\n"</span><span class="op">)</span></span>
-<span><span class="co">#&gt; Converged  : TRUE</span></span></code></pre></div>
+<span><span class="fu"><a href="https://rdrr.io/r/base/cat.html" class="external-link">cat</a></span><span class="op">(</span><span class="st">"Converged  :"</span>, <span class="va">res_mle</span><span class="op">$</span><span class="va">summary</span><span class="op">$</span><span class="va">converged</span>, <span class="st">"\n"</span><span class="op">)</span></span></code></pre></div>
 <hr>
 </div>
 <div class="section level2">
@@ -234,9 +229,7 @@ assuming a particular form for the weight distribution.</p>
 <span>                    parallel         <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span>
 <span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/cat.html" class="external-link">cat</a></span><span class="op">(</span><span class="st">"p mean :"</span>, <span class="fu"><a href="https://rdrr.io/r/base/Round.html" class="external-link">round</a></span><span class="op">(</span><span class="va">res_boot</span><span class="op">$</span><span class="va">summary</span><span class="op">$</span><span class="va">p_mean</span>, <span class="fl">4</span><span class="op">)</span>, <span class="st">"\n"</span><span class="op">)</span></span>
-<span><span class="co">#&gt; p mean : 0.9111</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/base/cat.html" class="external-link">cat</a></span><span class="op">(</span><span class="st">"p SD   :"</span>, <span class="fu"><a href="https://rdrr.io/r/base/Round.html" class="external-link">round</a></span><span class="op">(</span><span class="va">res_boot</span><span class="op">$</span><span class="va">summary</span><span class="op">$</span><span class="va">p_sd</span>,   <span class="fl">4</span><span class="op">)</span>, <span class="st">"\n"</span><span class="op">)</span></span>
-<span><span class="co">#&gt; p SD   : 0.0052</span></span></code></pre></div>
+<span><span class="fu"><a href="https://rdrr.io/r/base/cat.html" class="external-link">cat</a></span><span class="op">(</span><span class="st">"p SD   :"</span>, <span class="fu"><a href="https://rdrr.io/r/base/Round.html" class="external-link">round</a></span><span class="op">(</span><span class="va">res_boot</span><span class="op">$</span><span class="va">summary</span><span class="op">$</span><span class="va">p_sd</span>,   <span class="fl">4</span><span class="op">)</span>, <span class="st">"\n"</span><span class="op">)</span></span></code></pre></div>
 <hr>
 </div>
 <div class="section level2">
@@ -269,8 +262,7 @@ distribution.</p>
 <span>                   fit_to    <span class="op">=</span> <span class="st">"Weight"</span>,</span>
 <span>                   fit_value <span class="op">=</span> <span class="fl">2500</span><span class="op">)</span></span>
 <span><span class="va">ref_p</span> <span class="op">&lt;-</span> <span class="va">res_ref</span><span class="op">$</span><span class="va">summary</span><span class="op">$</span><span class="va">p_value</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/base/cat.html" class="external-link">cat</a></span><span class="op">(</span><span class="st">"Reference p (target 2 500 g):"</span>, <span class="fu"><a href="https://rdrr.io/r/base/Round.html" class="external-link">round</a></span><span class="op">(</span><span class="va">ref_p</span>, <span class="fl">4</span><span class="op">)</span>, <span class="st">"\n"</span><span class="op">)</span></span>
-<span><span class="co">#&gt; Reference p (target 2 500 g): 0.7528</span></span></code></pre></div>
+<span><span class="fu"><a href="https://rdrr.io/r/base/cat.html" class="external-link">cat</a></span><span class="op">(</span><span class="st">"Reference p (target 2 500 g):"</span>, <span class="fu"><a href="https://rdrr.io/r/base/Round.html" class="external-link">round</a></span><span class="op">(</span><span class="va">ref_p</span>, <span class="fl">4</span><span class="op">)</span>, <span class="st">"\n"</span><span class="op">)</span></span></code></pre></div>
 <div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/Random.html" class="external-link">set.seed</a></span><span class="op">(</span><span class="fl">123</span><span class="op">)</span></span>
 <span><span class="va">n_fish</span> <span class="op">&lt;-</span> <span class="fl">20</span></span>
@@ -296,14 +288,7 @@ distribution.</p>
 <span>  final_weight   <span class="op">=</span> <span class="va">final_weights</span></span>
 <span><span class="op">)</span></span>
 <span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="va">mr_data</span>, <span class="fl">6</span><span class="op">)</span></span>
-<span><span class="co">#&gt;   individual_id initial_weight final_weight</span></span>
-<span><span class="co">#&gt; 1       fish_01           1685       2620.3</span></span>
-<span><span class="co">#&gt; 2       fish_02           1956       2720.2</span></span>
-<span><span class="co">#&gt; 3       fish_03           1751       2565.9</span></span>
-<span><span class="co">#&gt; 4       fish_04           2007       2790.0</span></span>
-<span><span class="co">#&gt; 5       fish_05           2038       2686.7</span></span>
-<span><span class="co">#&gt; 6       fish_06           1555       2581.8</span></span></code></pre></div>
+<span><span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="va">mr_data</span>, <span class="fl">6</span><span class="op">)</span></span></code></pre></div>
 </div>
 <div class="section level3">
 <h3 id="running-the-hierarchical-model">Running the hierarchical model<a class="anchor" aria-label="anchor" href="#running-the-hierarchical-model"></a>
@@ -318,13 +303,9 @@ distribution.</p>
 <span><span class="op">)</span></span>
 <span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/cat.html" class="external-link">cat</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/sprintf.html" class="external-link">sprintf</a></span><span class="op">(</span><span class="st">"Population mean p  (mu_p)   : %.4f\n"</span>, <span class="va">res_hier</span><span class="op">$</span><span class="va">summary</span><span class="op">$</span><span class="va">mu_p_estimate</span><span class="op">)</span><span class="op">)</span></span>
-<span><span class="co">#&gt; Population mean p  (mu_p)   : 0.7447</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/cat.html" class="external-link">cat</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/sprintf.html" class="external-link">sprintf</a></span><span class="op">(</span><span class="st">"Population SD  p  (sigma_p) : %.4f\n"</span>, <span class="va">res_hier</span><span class="op">$</span><span class="va">summary</span><span class="op">$</span><span class="va">sigma_p_estimate</span><span class="op">)</span><span class="op">)</span></span>
-<span><span class="co">#&gt; Population SD  p  (sigma_p) : 0.0847</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/cat.html" class="external-link">cat</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/sprintf.html" class="external-link">sprintf</a></span><span class="op">(</span><span class="st">"Number of individuals       : %d\n"</span>,   <span class="va">res_hier</span><span class="op">$</span><span class="va">summary</span><span class="op">$</span><span class="va">n_individuals</span><span class="op">)</span><span class="op">)</span></span>
-<span><span class="co">#&gt; Number of individuals       : 20</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/base/cat.html" class="external-link">cat</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/sprintf.html" class="external-link">sprintf</a></span><span class="op">(</span><span class="st">"Converged                   : %s\n"</span>,   <span class="va">res_hier</span><span class="op">$</span><span class="va">summary</span><span class="op">$</span><span class="va">converged</span><span class="op">)</span><span class="op">)</span></span>
-<span><span class="co">#&gt; Converged                   : TRUE</span></span></code></pre></div>
+<span><span class="fu"><a href="https://rdrr.io/r/base/cat.html" class="external-link">cat</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/sprintf.html" class="external-link">sprintf</a></span><span class="op">(</span><span class="st">"Converged                   : %s\n"</span>,   <span class="va">res_hier</span><span class="op">$</span><span class="va">summary</span><span class="op">$</span><span class="va">converged</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
 <p>The data were generated with a theoretical population mean of
 <em>p</em> = 0.753 (the binary-search estimate for a 2 500 g target) and
 SD = 0.06. Because only 20 fish were drawn, the realised sample mean is
@@ -389,7 +370,7 @@ simulation, target weight ≈ 3 000 g).</caption>
 <tr class="even">
 <td align="left">mle</td>
 <td align="right">0.9106</td>
-<td align="right">0.0055</td>
+<td align="right">NA</td>
 <td align="left">SE (asymptotic)</td>
 </tr>
 <tr class="odd">
