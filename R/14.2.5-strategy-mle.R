@@ -327,13 +327,19 @@ mle_estimate_p_value_lognormal <- function(observed_weights, simulation_function
   # Calculate standard errors from Hessian
   p_se <- NA
   sigma_se <- NA
-  if (mle_result$convergence == 0 && all(is.finite(mle_result$hessian))) {
+  if (mle_result$convergence == 0) {
     tryCatch({
-      std_errors <- sqrt(diag(solve(mle_result$hessian)))
-      p_se <<- std_errors[1]
-      sigma_se <<- if (estimate_sigma) exp(mle_result$par[2]) * std_errors[2] else NA
+      H      <- optimHess(mle_result$par, fn = objective_function)
+      diag_H <- diag(H)
+      if (!all(is.finite(diag_H)) || any(diag_H <= 0)) {
+        ridge <- max(abs(diag_H[is.finite(diag_H)]), 1) * 1e-6
+        diag(H) <- diag(H) + ridge
+      }
+      std_errors <- sqrt(diag(solve(H)))
+      p_se       <- std_errors[1]
+      sigma_se   <- if (estimate_sigma) exp(mle_result$par[2]) * std_errors[2] else NA
     }, error = function(e) {
-      p_se <<- NA
+      p_se     <<- NA
       sigma_se <<- NA
     })
   }
