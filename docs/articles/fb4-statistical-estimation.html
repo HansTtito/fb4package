@@ -83,7 +83,7 @@
       <img src="../logo.png" class="logo" alt=""><h1>Statistical estimation strategies</h1>
                         <h4 data-toc-skip class="author">Hans Ttito</h4>
             
-            <h4 data-toc-skip class="date">2026-06-09</h4>
+            <h4 data-toc-skip class="date">2026-06-10</h4>
       
       <small class="dont-index">Source: <a href="https://github.com/HansTtito/fb4package/blob/HEAD/vignettes/fb4-statistical-estimation.Rmd" class="external-link"><code>vignettes/fb4-statistical-estimation.Rmd</code></a></small>
       <div class="d-none name"><code>fb4-statistical-estimation.Rmd</code></div>
@@ -115,18 +115,23 @@ proportion of maximum consumption (<em>p</em>):</p>
 </td>
 </tr>
 <tr class="even">
+<td><code>"optim"</code></td>
+<td>target final weight</td>
+<td>point estimate of <em>p</em> + convergence info</td>
+</tr>
+<tr class="odd">
 <td><code>"mle"</code></td>
 <td>observed final weights</td>
 <td>
 <em>p</em> + SE + 95 % CI</td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td><code>"bootstrap"</code></td>
 <td>observed final weights</td>
 <td>
 <em>p</em> + SD + bootstrap CI</td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td><code>"hierarchical"</code></td>
 <td>individual mark-recapture data</td>
 <td>population mean and SD of <em>p</em>
@@ -196,13 +201,40 @@ growth target.</p>
 <hr>
 </div>
 <div class="section level2">
-<h2 id="strategy-2-maximum-likelihood-estimation">Strategy 2 — Maximum Likelihood Estimation<a class="anchor" aria-label="anchor" href="#strategy-2-maximum-likelihood-estimation"></a>
+<h2 id="strategy-2-optimisation-optim">Strategy 2 — Optimisation (<code>optim</code>)<a class="anchor" aria-label="anchor" href="#strategy-2-optimisation-optim"></a>
+</h2>
+<p><code>optim</code> delegates the search to R’s
+<code><a href="https://rdrr.io/r/stats/optim.html" class="external-link">stats::optim()</a></code> (default method: Brent). Unlike binary
+search, which brackets a root, <code>optim</code> minimises the absolute
+difference between the simulated and target weight as a continuous
+objective function. It returns the same point estimate of <em>p</em> but
+also reports convergence status and the number of function evaluations
+used.</p>
+<p>Use <code>optim</code> when you want a drop-in replacement for binary
+search that leverages gradient or derivative-free optimisation, or when
+you need the Hessian for downstream uncertainty quantification.</p>
+<div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">res_optim</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/run_fb4.html">run_fb4</a></span><span class="op">(</span><span class="va">bio</span>,</span>
+<span>                     strategy     <span class="op">=</span> <span class="st">"optim"</span>,</span>
+<span>                     fit_to       <span class="op">=</span> <span class="st">"Weight"</span>,</span>
+<span>                     fit_value    <span class="op">=</span> <span class="fl">3000</span>,</span>
+<span>                     optim_method <span class="op">=</span> <span class="st">"Brent"</span>,</span>
+<span>                     lower        <span class="op">=</span> <span class="fl">0.01</span>,</span>
+<span>                     upper        <span class="op">=</span> <span class="fl">2.00</span><span class="op">)</span></span>
+<span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/cat.html" class="external-link">cat</a></span><span class="op">(</span><span class="st">"p estimate  :"</span>, <span class="fu"><a href="https://rdrr.io/r/base/Round.html" class="external-link">round</a></span><span class="op">(</span><span class="va">res_optim</span><span class="op">$</span><span class="va">summary</span><span class="op">$</span><span class="va">p_value</span>,      <span class="fl">4</span><span class="op">)</span>, <span class="st">"\n"</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/cat.html" class="external-link">cat</a></span><span class="op">(</span><span class="st">"Final weight:"</span>, <span class="fu"><a href="https://rdrr.io/r/base/Round.html" class="external-link">round</a></span><span class="op">(</span><span class="va">res_optim</span><span class="op">$</span><span class="va">summary</span><span class="op">$</span><span class="va">final_weight</span>, <span class="fl">1</span><span class="op">)</span>, <span class="st">"g\n"</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/cat.html" class="external-link">cat</a></span><span class="op">(</span><span class="st">"Converged   :"</span>, <span class="va">res_optim</span><span class="op">$</span><span class="va">summary</span><span class="op">$</span><span class="va">converged</span>, <span class="st">"\n"</span><span class="op">)</span></span></code></pre></div>
+<hr>
+</div>
+<div class="section level2">
+<h2 id="strategy-3-maximum-likelihood-estimation">Strategy 3 — Maximum Likelihood Estimation<a class="anchor" aria-label="anchor" href="#strategy-3-maximum-likelihood-estimation"></a>
 </h2>
 <p>MLE finds the <em>p</em> that maximises the likelihood of observing
 the supplied weights, assuming a log-normal distribution around the
 predicted weight. It returns a standard error and a 95 % confidence
 interval via the profile likelihood.</p>
-<div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">res_mle</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/run_fb4.html">run_fb4</a></span><span class="op">(</span><span class="va">bio</span>,</span>
 <span>                   strategy         <span class="op">=</span> <span class="st">"mle"</span>,</span>
 <span>                   fit_to           <span class="op">=</span> <span class="st">"Weight"</span>,</span>
@@ -214,12 +246,12 @@ interval via the profile likelihood.</p>
 <hr>
 </div>
 <div class="section level2">
-<h2 id="strategy-3-bootstrap">Strategy 3 — Bootstrap<a class="anchor" aria-label="anchor" href="#strategy-3-bootstrap"></a>
+<h2 id="strategy-4-bootstrap">Strategy 4 — Bootstrap<a class="anchor" aria-label="anchor" href="#strategy-4-bootstrap"></a>
 </h2>
 <p>Bootstrap resamples the observed weights and re-fits the model at
 each replicate, producing a distribution of <em>p</em> estimates without
 assuming a particular form for the weight distribution.</p>
-<div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">res_boot</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/run_fb4.html">run_fb4</a></span><span class="op">(</span><span class="va">bio</span>,</span>
 <span>                    strategy         <span class="op">=</span> <span class="st">"bootstrap"</span>,</span>
 <span>                    fit_to           <span class="op">=</span> <span class="st">"Weight"</span>,</span>
@@ -233,7 +265,7 @@ assuming a particular form for the weight distribution.</p>
 <hr>
 </div>
 <div class="section level2">
-<h2 id="strategy-4-hierarchical-model-mark-recapture">Strategy 4 — Hierarchical model (mark-recapture)<a class="anchor" aria-label="anchor" href="#strategy-4-hierarchical-model-mark-recapture"></a>
+<h2 id="strategy-5-hierarchical-model-mark-recapture">Strategy 5 — Hierarchical model (mark-recapture)<a class="anchor" aria-label="anchor" href="#strategy-5-hierarchical-model-mark-recapture"></a>
 </h2>
 <div class="section level3">
 <h3 id="biological-context">Biological context<a class="anchor" aria-label="anchor" href="#biological-context"></a>
@@ -256,14 +288,14 @@ behaviour within that population?</p>
 with this <code>bio</code> object (initial weight 1 800 g, 100 days).
 That value becomes the centre of the simulated population
 distribution.</p>
-<div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">res_ref</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/run_fb4.html">run_fb4</a></span><span class="op">(</span><span class="va">bio</span>,</span>
 <span>                   strategy  <span class="op">=</span> <span class="st">"binary_search"</span>,</span>
 <span>                   fit_to    <span class="op">=</span> <span class="st">"Weight"</span>,</span>
 <span>                   fit_value <span class="op">=</span> <span class="fl">2500</span><span class="op">)</span></span>
 <span><span class="va">ref_p</span> <span class="op">&lt;-</span> <span class="va">res_ref</span><span class="op">$</span><span class="va">summary</span><span class="op">$</span><span class="va">p_value</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/cat.html" class="external-link">cat</a></span><span class="op">(</span><span class="st">"Reference p (target 2 500 g):"</span>, <span class="fu"><a href="https://rdrr.io/r/base/Round.html" class="external-link">round</a></span><span class="op">(</span><span class="va">ref_p</span>, <span class="fl">4</span><span class="op">)</span>, <span class="st">"\n"</span><span class="op">)</span></span></code></pre></div>
-<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/Random.html" class="external-link">set.seed</a></span><span class="op">(</span><span class="fl">123</span><span class="op">)</span></span>
 <span><span class="va">n_fish</span> <span class="op">&lt;-</span> <span class="fl">20</span></span>
 <span></span>
@@ -293,7 +325,7 @@ distribution.</p>
 <div class="section level3">
 <h3 id="running-the-hierarchical-model">Running the hierarchical model<a class="anchor" aria-label="anchor" href="#running-the-hierarchical-model"></a>
 </h3>
-<div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">res_hier</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/run_fb4.html">run_fb4</a></span><span class="op">(</span></span>
 <span>  x                <span class="op">=</span> <span class="va">bio</span>,</span>
 <span>  strategy         <span class="op">=</span> <span class="st">"hierarchical"</span>,</span>
@@ -344,15 +376,15 @@ likelihood. The pure-R backend does not support this strategy.</p>
 <h2 id="comparing-strategies">Comparing strategies<a class="anchor" aria-label="anchor" href="#comparing-strategies"></a>
 </h2>
 <div class="section level3">
-<h3 id="strategies-13-single-population-estimates">Strategies 1–3: single-population estimates<a class="anchor" aria-label="anchor" href="#strategies-13-single-population-estimates"></a>
+<h3 id="strategies-14-single-population-estimates">Strategies 1–4: single-population estimates<a class="anchor" aria-label="anchor" href="#strategies-14-single-population-estimates"></a>
 </h3>
-<p>Binary search, MLE, and bootstrap all answer the same question —
-<em>what p produces the observed growth of a representative fish?</em> —
-and can therefore be compared numerically. All three use the same
+<p>Binary search, optim, MLE, and bootstrap all answer the same question
+— <em>what p produces the observed growth of a representative fish?</em>
+— and can therefore be compared numerically. All four use the same
 <code>bio</code> object (<code>initial_weight = 1800 g</code>, target or
 observed weights ≈ 3 000 g).</p>
 <table class="table">
-<caption>Strategies 1–3 fitted to the same data (Chinook salmon, 100-day
+<caption>Strategies 1–4 fitted to the same data (Chinook salmon, 100-day
 simulation, target weight ≈ 3 000 g).</caption>
 <thead><tr class="header">
 <th align="left">Strategy</th>
@@ -368,12 +400,18 @@ simulation, target weight ≈ 3 000 g).</caption>
 <td align="left">none (point estimate)</td>
 </tr>
 <tr class="even">
+<td align="left">optim</td>
+<td align="right">2.8196</td>
+<td align="right">NA</td>
+<td align="left">none (point estimate)</td>
+</tr>
+<tr class="odd">
 <td align="left">mle</td>
 <td align="right">0.9106</td>
 <td align="right">NA</td>
 <td align="left">SE (asymptotic)</td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td align="left">bootstrap</td>
 <td align="right">0.9111</td>
 <td align="right">0.0052</td>
@@ -383,7 +421,7 @@ simulation, target weight ≈ 3 000 g).</caption>
 </table>
 </div>
 <div class="section level3">
-<h3 id="strategy-4-population-level-distribution">Strategy 4: population-level distribution<a class="anchor" aria-label="anchor" href="#strategy-4-population-level-distribution"></a>
+<h3 id="strategy-5-population-level-distribution">Strategy 5: population-level distribution<a class="anchor" aria-label="anchor" href="#strategy-5-population-level-distribution"></a>
 </h3>
 <p>The hierarchical model answers a <strong>different question</strong>:
 not the <em>p</em> of a representative individual, but the
