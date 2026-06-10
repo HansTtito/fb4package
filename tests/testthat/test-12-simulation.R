@@ -70,10 +70,10 @@ test_that("run_fb4_simulation: mayor p produce mayor peso final", {
 
 test_that("run_fb4_simulation: p = 0 produce pérdida de peso (catabolismo)", {
   psd <- prepare_simulation_data(bio_obj = bio_chinook_30, strategy = "direct")
-  result <- run_fb4_simulation(
+  result <- suppressWarnings(run_fb4_simulation(
     consumption_method        = list(type = "p_value", value = 0.0),
     processed_simulation_data = psd
-  )
+  ))
   expect_lt(result$final_weight, psd$initial_weight)
 })
 

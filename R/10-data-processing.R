@@ -256,7 +256,7 @@ process_bioenergetic_data <- function(bio_obj, first_day, last_day) {
       for (prey in prey_names) {
         default_indigestible[[prey]] <- 0.0
       }
-      warning("No indigestible fraction data provided, using default 0% for all prey (FB4 default)")
+      message("No indigestible fraction data provided, using default 0% for all prey (FB4 default)")
       default_indigestible
     }
   }, error = function(e) {

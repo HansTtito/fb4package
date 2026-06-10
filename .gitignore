@@ -50,3 +50,6 @@ output_comparison/
 *.docx
 *.xlsx
 *.pptx
+
+/doc/
+/Meta/

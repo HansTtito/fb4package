@@ -21,6 +21,17 @@ knitr::opts_chunk$set(
 library(fb4package)
 ```
 
+```{r load-precomputed, include=FALSE}
+# Load pre-computed results so the vignette builds quickly on CRAN.
+# To regenerate, run data-raw/precompute_vignettes.R
+.pc <- readRDS(system.file("extdata/case_study_chinook_precomputed.rds",
+                           package = "fb4package"))
+res_bs     <- .pc$res_bs
+res_direct <- .pc$res_direct
+res_boot   <- .pc$res_boot
+rm(.pc)
+```
+
 ## Overview
 
 This vignette walks through a complete bioenergetics analysis of juvenile
@@ -165,7 +176,7 @@ We ask: *what feeding level (p) produces a final weight of 40 g after 180 days?*
 This is the standard FB4 approach when a target weight has been measured in
 the field.
 
-```{r binary-search}
+```{r binary-search, eval=FALSE}
 res_bs <- run_fb4(
   x         = bio_chinook,
   fit_to    = "Weight",
@@ -174,6 +185,13 @@ res_bs <- run_fb4(
   verbose   = FALSE
 )
 
+cat(sprintf("Estimated p-value     : %.4f\n", res_bs$summary$p_value))
+cat(sprintf("Final weight          : %.1f g\n", res_bs$summary$final_weight))
+cat(sprintf("Total consumption     : %.1f g\n", res_bs$summary$total_consumption_g))
+cat(sprintf("Simulation converged  : %s\n",     res_bs$summary$converged))
+```
+
+```{r binary-search-output, echo=FALSE}
 cat(sprintf("Estimated p-value     : %.4f\n", res_bs$summary$p_value))
 cat(sprintf("Final weight          : %.1f g\n", res_bs$summary$final_weight))
 cat(sprintf("Total consumption     : %.1f g\n", res_bs$summary$total_consumption_g))
@@ -205,7 +223,7 @@ plot(res_bs, type = "dashboard")
 When *p* is known (e.g., from a bioenergetics study), use
 `strategy = "direct_p_value"` to forward-simulate without fitting.
 
-```{r direct}
+```{r direct, eval=FALSE}
 res_direct <- run_fb4(
   x         = bio_chinook,
   fit_to    = "p_value",
@@ -214,6 +232,11 @@ res_direct <- run_fb4(
   verbose   = FALSE
 )
 
+cat(sprintf("Final weight at p = 0.75 : %.1f g\n", res_direct$summary$final_weight))
+cat(sprintf("Total consumption        : %.1f g\n", res_direct$summary$total_consumption_g))
+```
+
+```{r direct-output, echo=FALSE}
 cat(sprintf("Final weight at p = 0.75 : %.1f g\n", res_direct$summary$final_weight))
 cat(sprintf("Total consumption        : %.1f g\n", res_direct$summary$total_consumption_g))
 ```
@@ -229,7 +252,7 @@ tagged fish), bootstrap resampling propagates measurement variability into the
 We simulate 25 observed final weights around the binary-search result, with a
 CV of 8 % to mimic realistic field sampling variability.
 
-```{r bootstrap, cache=TRUE}
+```{r bootstrap, eval=FALSE}
 set.seed(123)
 n_obs           <- 25
 final_wt_true   <- res_bs$summary$final_weight
@@ -254,7 +277,7 @@ cat(sprintf("95%% CI             : [%.4f, %.4f]\n",
             res_boot$method_data$confidence_intervals$p_ci_upper))
 ```
 
-```{r plot-boot, cache=TRUE, fig.cap="Bootstrap distribution of estimated p-values with 95% CI."}
+```{r plot-boot, fig.cap="Bootstrap distribution of estimated p-values with 95% CI."}
 plot(res_boot, type = "uncertainty")
 ```
 

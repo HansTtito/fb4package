@@ -24,6 +24,7 @@ obs_individual_30 <- data.frame(
 # =============================================================================
 
 test_that("run_fb4 mle retorna objeto fb4_result", {
+  skip_on_cran()
   set.seed(1)
   result <- run_fb4(
     x                = bio_chinook_30,
@@ -36,6 +37,7 @@ test_that("run_fb4 mle retorna objeto fb4_result", {
 })
 
 test_that("run_fb4 mle: method es 'mle'", {
+  skip_on_cran()
   set.seed(1)
   result <- run_fb4(
     x                = bio_chinook_30,
@@ -48,6 +50,7 @@ test_that("run_fb4 mle: method es 'mle'", {
 })
 
 test_that("run_fb4 mle: summary$p_value es numerico y finito", {
+  skip_on_cran()
   set.seed(1)
   result <- run_fb4(
     x                = bio_chinook_30,
@@ -64,6 +67,7 @@ test_that("run_fb4 mle: summary$p_value es numerico y finito", {
 })
 
 test_that("run_fb4 mle: p_value y p_estimate son el mismo valor", {
+  skip_on_cran()
   set.seed(1)
   result <- run_fb4(
     x                = bio_chinook_30,
@@ -76,6 +80,7 @@ test_that("run_fb4 mle: p_value y p_estimate son el mismo valor", {
 })
 
 test_that("run_fb4 mle: summary$total_consumption es alias de total_consumption_g", {
+  skip_on_cran()
   set.seed(1)
   result <- run_fb4(
     x                = bio_chinook_30,
@@ -89,6 +94,7 @@ test_that("run_fb4 mle: summary$total_consumption es alias de total_consumption_
 })
 
 test_that("run_fb4 mle: summary$p_se es numerico (puede ser NA si no converge)", {
+  skip_on_cran()
   set.seed(1)
   result <- run_fb4(
     x                = bio_chinook_30,
@@ -102,6 +108,7 @@ test_that("run_fb4 mle: summary$p_se es numerico (puede ser NA si no converge)",
 })
 
 test_that("run_fb4 mle: summary$converged es logico", {
+  skip_on_cran()
   set.seed(1)
   result <- run_fb4(
     x                = bio_chinook_30,
@@ -114,6 +121,7 @@ test_that("run_fb4 mle: summary$converged es logico", {
 })
 
 test_that("run_fb4 mle: daily_output tiene 30 filas", {
+  skip_on_cran()
   set.seed(1)
   result <- run_fb4(
     x                = bio_chinook_30,
@@ -126,6 +134,7 @@ test_that("run_fb4 mle: daily_output tiene 30 filas", {
 })
 
 test_that("run_fb4 mle: print no lanza error", {
+  skip_on_cran()
   set.seed(1)
   result <- run_fb4(
     x                = bio_chinook_30,
@@ -138,6 +147,7 @@ test_that("run_fb4 mle: print no lanza error", {
 })
 
 test_that("run_fb4 mle: mle con mas observaciones da SE menor o igual", {
+  skip_on_cran()
   set.seed(42)
   obs_small <- rnorm(5,  mean = target_weight_30, sd = 15)
   obs_large <- rnorm(50, mean = target_weight_30, sd = 15)
@@ -165,6 +175,7 @@ test_that("run_fb4 mle: mle con mas observaciones da SE menor o igual", {
 # =============================================================================
 
 test_that("run_fb4 hierarchical retorna objeto fb4_result", {
+  skip_on_cran()
   skip_if_not(requireNamespace("TMB", quietly = TRUE),
               "TMB not available — skipping hierarchical tests")
   set.seed(1)
@@ -179,6 +190,7 @@ test_that("run_fb4 hierarchical retorna objeto fb4_result", {
 })
 
 test_that("run_fb4 hierarchical: method es 'hierarchical'", {
+  skip_on_cran()
   skip_if_not(requireNamespace("TMB", quietly = TRUE),
               "TMB not available")
   set.seed(1)
@@ -193,6 +205,7 @@ test_that("run_fb4 hierarchical: method es 'hierarchical'", {
 })
 
 test_that("run_fb4 hierarchical: mu_p_estimate es numerico y positivo", {
+  skip_on_cran()
   skip_if_not(requireNamespace("TMB", quietly = TRUE),
               "TMB not available")
   set.seed(1)
@@ -209,6 +222,7 @@ test_that("run_fb4 hierarchical: mu_p_estimate es numerico y positivo", {
 })
 
 test_that("run_fb4 hierarchical: sigma_p_estimate es numerico y no negativo", {
+  skip_on_cran()
   skip_if_not(requireNamespace("TMB", quietly = TRUE),
               "TMB not available")
   set.seed(1)
@@ -225,6 +239,7 @@ test_that("run_fb4 hierarchical: sigma_p_estimate es numerico y no negativo", {
 })
 
 test_that("run_fb4 hierarchical: n_individuals coincide con nrow(observed_weights)", {
+  skip_on_cran()
   skip_if_not(requireNamespace("TMB", quietly = TRUE),
               "TMB not available")
   set.seed(1)
@@ -239,6 +254,7 @@ test_that("run_fb4 hierarchical: n_individuals coincide con nrow(observed_weight
 })
 
 test_that("run_fb4 hierarchical: summary$converged es logico", {
+  skip_on_cran()
   skip_if_not(requireNamespace("TMB", quietly = TRUE),
               "TMB not available")
   set.seed(1)
@@ -253,6 +269,7 @@ test_that("run_fb4 hierarchical: summary$converged es logico", {
 })
 
 test_that("run_fb4 hierarchical: mu_p coherente con binary_search en datos sin ruido", {
+  skip_on_cran()
   skip_if_not(requireNamespace("TMB", quietly = TRUE),
               "TMB not available")
 

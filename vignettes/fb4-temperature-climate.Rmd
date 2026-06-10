@@ -21,6 +21,20 @@ knitr::opts_chunk$set(
 library(fb4package)
 ```
 
+```{r load-precomputed, include=FALSE}
+# Load pre-computed results so the vignette builds quickly on CRAN.
+# To regenerate, run data-raw/precompute_vignettes.R
+.pc <- readRDS(system.file("extdata/temperature_climate_precomputed.rds",
+                           package = "fb4package"))
+sens_df     <- .pc$sens_df
+scenario_df <- .pc$scenario_df
+perf_df     <- .pc$perf_df
+p_fixed     <- .pc$p_fixed
+target_wt   <- .pc$target_wt
+feasible    <- perf_df[!is.na(perf_df$p_required) & perf_df$p_required <= 1, ]
+rm(.pc)
+```
+
 ## Overview
 
 Temperature is the primary environmental driver in fish bioenergetics.
@@ -107,7 +121,7 @@ cat(sprintf("Baseline temperature range : %.1f – %.1f °C\n",
 We run binary search at each temperature offset and record the *p* required
 to achieve 40 g after 120 days (our target growth endpoint).
 
-```{r manual-sensitivity}
+```{r manual-sensitivity, eval=FALSE}
 offsets   <- c(-3, -2, -1, 0, 1, 2, 3, 4)
 target_wt <- 40
 
@@ -136,7 +150,9 @@ results_sens <- lapply(offsets, function(delta) {
 })
 
 sens_df <- do.call(rbind, results_sens)
+```
 
+```{r manual-sensitivity-table, echo=FALSE}
 knitr::kable(
   sens_df,
   caption    = paste0("p-value required to achieve ", target_wt,
@@ -168,13 +184,17 @@ that growth to 40 g may become impossible at those temperatures.
 `plot(bio, type = "sensitivity")` runs the same analysis internally and
 produces a formatted figure directly.
 
-```{r sensitivity-plot, fig.cap="Built-in temperature sensitivity plot. Each point shows the p required to achieve the target weight at a given temperature offset."}
+```{r sensitivity-plot, eval=FALSE}
 plot(bio_base,
-     type      = "sensitivity",
+     type         = "sensitivity",
      temp_offsets = c(-3, -2, -1, 0, 1, 2, 3, 4),
-     fit_to    = "Weight",
-     fit_value = 40,
-     colors    = "blue")
+     fit_to       = "Weight",
+     fit_value    = 40,
+     colors       = "blue")
+```
+
+```{r sensitivity-plot-img, echo=FALSE, fig.cap="Built-in temperature sensitivity plot. Each point shows the p required to achieve the target weight at a given temperature offset."}
+knitr::include_graphics("temperature_sensitivity_plot.png")
 ```
 
 ---
@@ -184,7 +204,7 @@ plot(bio_base,
 Rather than fixing a target weight, here we fix *p* = 0.65 (estimated from
 field data) and ask: *how does final weight change under warming scenarios?*
 
-```{r climate-scenarios}
+```{r climate-scenarios, eval=FALSE}
 p_fixed   <- 0.65
 scenarios <- c("Baseline" = 0, "+1 °C" = 1, "+2 °C" = 2, "+4 °C" = 4)
 
@@ -211,7 +231,9 @@ scenario_results <- lapply(names(scenarios), function(sc) {
 })
 
 scenario_df <- do.call(rbind, scenario_results)
+```
 
+```{r climate-scenarios-table, echo=FALSE}
 knitr::kable(
   scenario_df,
   caption   = paste0("Projected outcomes at p = ", p_fixed,
@@ -245,7 +267,7 @@ The metabolism–consumption balance defines a **thermal performance window**:
 the temperature range where the fish can maintain positive growth (*p* < 1).
 We can derive it by finding the temperature at which *p* = 1 for our target weight.
 
-```{r thermal-window}
+```{r thermal-window, eval=FALSE}
 # Sweep a fine temperature grid and record required p
 temp_grid   <- seq(2, 24, by = 1)
 p_at_target <- sapply(temp_grid, function(t_const) {
@@ -261,9 +283,11 @@ p_at_target <- sapply(temp_grid, function(t_const) {
   }, error = function(e) NA_real_)
 })
 
-perf_df <- data.frame(Temperature = temp_grid, p_required = p_at_target)
+perf_df  <- data.frame(Temperature = temp_grid, p_required = p_at_target)
 feasible <- perf_df[!is.na(perf_df$p_required) & perf_df$p_required <= 1, ]
+```
 
+```{r thermal-window-output, echo=FALSE}
 cat(sprintf("Feasible temperature range for %.0f g in %d days : %.0f – %.0f °C\n",
             target_wt, max(days),
             min(feasible$Temperature), max(feasible$Temperature)))
@@ -285,7 +309,7 @@ polygon(c(min(feasible$Temperature), feasible$Temperature,
         border = NA)
 
 abline(h = 1, lty = 2, col = "firebrick", lwd = 1.5)
-text(max(temp_grid) - 2, 1.02, "p = 1 (maximum ration)", col = "firebrick", cex = 0.8)
+text(max(perf_df$Temperature) - 2, 1.02, "p = 1 (maximum ration)", col = "firebrick", cex = 0.8)
 grid()
 ```
 

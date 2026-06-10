@@ -1,7 +1,7 @@
 Package: fb4package
 Type: Package
 Title: 'Fish Bioenergetics 4.0' Model Implementation with High-Performance 'TMB' Backend
-Version: 2.0.0
+Version: 2.1.0
 Authors@R: c(
    person(
      "Hans", "Ttito",

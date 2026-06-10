@@ -14,3 +14,10 @@
 ^cran-comments\.md$
 ^CRAN-SUBMISSION$
 ^congreso_.*$
+^fb4_daily_comparison\.R$
+^fb4package_manuscript_with_equations\.docx$
+^output_comparison$
+^data-raw$
+^src/.*\.dll$
+^src/.*\.so$
+^src/.*\.o$

@@ -21,6 +21,18 @@ knitr::opts_chunk$set(
 library(fb4package)
 ```
 
+```{r load-precomputed, include=FALSE}
+# Load pre-computed results so the vignette builds quickly on CRAN.
+# To regenerate, run data-raw/precompute_vignettes.R
+.pc <- readRDS(system.file("extdata/intro_precomputed.rds",
+                           package = "fb4package"))
+res_direct <- .pc$res_direct
+res_bs     <- .pc$res_bs
+res_mle    <- .pc$res_mle
+res_boot   <- .pc$res_boot
+rm(.pc)
+```
+
 ## Overview
 
 `fb4package` implements Fish Bioenergetics 4.0 (Deslauriers et al. 2017) in R.
@@ -114,8 +126,12 @@ print(bio)
 
 Run the model with a constant proportion of maximum consumption (*p* = 0.8):
 
-```{r direct}
+```{r direct, eval=FALSE}
 res_direct <- run_fb4(bio, strategy = "direct", p_value = 0.8)
+print(res_direct)
+```
+
+```{r direct-output, echo=FALSE}
 print(res_direct)
 ```
 
@@ -123,7 +139,7 @@ print(res_direct)
 
 Find the *p* that produces a target weight of 3 000 g after 100 days:
 
-```{r binary-search}
+```{r binary-search, eval=FALSE}
 res_bs <- run_fb4(bio,
                   strategy  = "binary_search",
                   fit_to    = "Weight",
@@ -134,7 +150,13 @@ cat("Final weight      :", round(res_bs$summary$final_weight, 1), "g\n")
 cat("Total consumption :", round(res_bs$summary$total_consumption_g, 1), "g\n")
 ```
 
-```{r obs-weights-def, include=FALSE}
+```{r binary-search-output, echo=FALSE}
+cat("Estimated p-value :", round(res_bs$summary$p_value, 4), "\n")
+cat("Final weight      :", round(res_bs$summary$final_weight, 1), "g\n")
+cat("Total consumption :", round(res_bs$summary$total_consumption_g, 1), "g\n")
+```
+
+```{r obs-weights-def, eval=FALSE, include=FALSE}
 set.seed(42)
 obs_weights <- rnorm(30, mean = 3000, sd = 80)
 ```
@@ -145,7 +167,7 @@ When multiple fish weights are available, `strategy = "mle"` returns a
 point estimate of *p* together with its standard error and 95% confidence
 interval:
 
-```{r mle, cache=TRUE, dependson="obs-weights-def"}
+```{r mle, eval=FALSE}
 set.seed(42)
 obs_weights <- rnorm(30, mean = 3000, sd = 80)   # 30 observed final weights
 
@@ -161,7 +183,7 @@ cat("Converged      :", res_mle$summary$converged, "\n")
 
 ### 4d. Bootstrap — non-parametric uncertainty
 
-```{r bootstrap, cache=TRUE, dependson=c("obs-weights-def", "mle")}
+```{r bootstrap, eval=FALSE}
 set.seed(42)
 res_boot <- run_fb4(bio,
                     strategy         = "bootstrap",

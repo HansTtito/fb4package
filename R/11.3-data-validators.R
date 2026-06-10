@@ -251,10 +251,9 @@ check_weight_outliers <- function(individual_data) {
     n_outliers <- sum(outliers)
     outlier_ids <- individual_data$individual_id[outliers]
     
-    warning("Detected ", n_outliers, " potential outliers in growth ratios: ",
+    message("Detected ", n_outliers, " potential outliers in growth ratios: ",
             paste(head(outlier_ids, 5), collapse = ", "),
-            if (n_outliers > 5) " ... and others" else "",
-            call. = FALSE)
+            if (n_outliers > 5) " ... and others" else "")
   }
   
   return(invisible(TRUE))

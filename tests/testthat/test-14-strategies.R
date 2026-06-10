@@ -47,6 +47,7 @@ test_that("run_fb4 direct tiene daily_output con 30 filas", {
 target_weight <- 900  # g (por encima del inicial de 800 g)
 
 test_that("run_fb4 binary_search retorna objeto fb4_result", {
+  skip_on_cran()
   result <- run_fb4(
     x      = bio_chinook_30,
     fit_to = "Weight",
@@ -56,6 +57,7 @@ test_that("run_fb4 binary_search retorna objeto fb4_result", {
 })
 
 test_that("run_fb4 binary_search: final_weight converge al objetivo", {
+  skip_on_cran()
   result <- run_fb4(
     x         = bio_chinook_30,
     fit_to    = "Weight",
@@ -66,6 +68,7 @@ test_that("run_fb4 binary_search: final_weight converge al objetivo", {
 })
 
 test_that("run_fb4 binary_search: p_estimate en rango (0, 1]", {
+  skip_on_cran()
   result <- run_fb4(
     x         = bio_chinook_30,
     fit_to    = "Weight",
@@ -77,6 +80,7 @@ test_that("run_fb4 binary_search: p_estimate en rango (0, 1]", {
 })
 
 test_that("run_fb4 binary_search: método reportado es 'binary_search'", {
+  skip_on_cran()
   result <- run_fb4(
     x         = bio_chinook_30,
     fit_to    = "Weight",
@@ -86,6 +90,7 @@ test_that("run_fb4 binary_search: método reportado es 'binary_search'", {
 })
 
 test_that("run_fb4 binary_search: objetivo mayor requiere p mayor", {
+  skip_on_cran()
   r_low  <- run_fb4(bio_chinook_30, fit_to = "Weight", fit_value = 820)
   r_high <- run_fb4(bio_chinook_30, fit_to = "Weight", fit_value = 950)
 
@@ -97,6 +102,7 @@ test_that("run_fb4 binary_search: objetivo mayor requiere p mayor", {
 # =============================================================================
 
 test_that("run_fb4 bootstrap retorna objeto fb4_result con método 'bootstrap'", {
+  skip_on_cran()
   set.seed(123)
   obs_w <- rnorm(10, mean = target_weight, sd = 20)
 
@@ -105,7 +111,7 @@ test_that("run_fb4 bootstrap retorna objeto fb4_result con método 'bootstrap'",
     fit_to             = "Weight",
     strategy           = "bootstrap",
     observed_weights   = obs_w,
-    n_bootstrap        = 50,    # pocas iter para que sea rápido
+    n_bootstrap        = 20,    # pocas iter para que sea rápido
     upper              = 1.0,
     parallel           = FALSE
   )
@@ -114,6 +120,7 @@ test_that("run_fb4 bootstrap retorna objeto fb4_result con método 'bootstrap'",
 })
 
 test_that("run_fb4 bootstrap: p_mean en rango (0, 1]", {
+  skip_on_cran()
   set.seed(123)
   obs_w <- rnorm(10, mean = target_weight, sd = 20)
 
@@ -122,7 +129,7 @@ test_that("run_fb4 bootstrap: p_mean en rango (0, 1]", {
     fit_to           = "Weight",
     strategy         = "bootstrap",
     observed_weights = obs_w,
-    n_bootstrap      = 50,
+    n_bootstrap      = 20,
     upper            = 1.0,
     parallel         = FALSE
   )
@@ -132,6 +139,7 @@ test_that("run_fb4 bootstrap: p_mean en rango (0, 1]", {
 })
 
 test_that("run_fb4 bootstrap: method_data contiene bootstrap_results", {
+  skip_on_cran()
   set.seed(123)
   obs_w <- rnorm(10, mean = target_weight, sd = 20)
 
@@ -140,7 +148,7 @@ test_that("run_fb4 bootstrap: method_data contiene bootstrap_results", {
     fit_to           = "Weight",
     strategy         = "bootstrap",
     observed_weights = obs_w,
-    n_bootstrap      = 50,
+    n_bootstrap      = 20,
     upper            = 1.0,
     parallel         = FALSE
   )

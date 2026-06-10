@@ -39,6 +39,15 @@ NULL
 #' @param environmental_data List with environmental data (temperature, etc.)
 #' @param diet_data List with diet and prey energy data
 #' @param reproduction_data List with reproduction parameters (optional)
+#' @param nutrient_data Optional list with nitrogen and phosphorus data for the
+#'   nutrient sub-model. Expected fields: \code{N_conc}, \code{P_conc},
+#'   \code{N_assim}, \code{P_assim} (assimilation efficiencies). When
+#'   \code{NULL} (default) the nutrient sub-model is disabled.
+#' @param contaminant_data Optional list with contaminant data for the
+#'   contaminant sub-model. Expected fields depend on the CONTEQ equation
+#'   selected (pure accumulation, T/W-dependent elimination, or Arnot and
+#'   Gobas 2004). When \code{NULL} (default) the contaminant sub-model is
+#'   disabled.
 #' @param model_options List with model configuration options
 #' @param simulation_settings List with simulation configuration
 #'
