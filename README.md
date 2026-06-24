@@ -38,6 +38,12 @@ bio <- Bioenergetic(
   simulation_settings = list(initial_weight = 1800, duration = 100)
 )
 
+# Predator energy density: chinook has PREDEDEQ = 1 in the database but no
+# published ED_data, so supply ED_ini/ED_end directly (see the Chinook
+# salmon case study vignette for details)
+bio$species_params$predator$ED_ini <- 4200
+bio$species_params$predator$ED_end <- 5000
+
 # Fit p to a target final weight
 res <- run_fb4(bio, strategy = "binary_search", fit_to = "Weight", fit_value = 3000)
 print(res)
