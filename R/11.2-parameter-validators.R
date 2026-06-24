@@ -622,7 +622,8 @@ validate_predator_energy_params <- function(predator_params, weight_range = c(1,
     tryCatch({
       # This would use your existing calculate_predator_energy_density function
       ed <- if (PREDEDEQ == 1) {
-        predator_params$ED_data %||% 7000  # Default
+        # ED_data may now be a full n_days+1 vector; take one value for this check
+        (predator_params$ED_data %||% 7000)[1]  # Default
       } else if (PREDEDEQ %in% 2:3) {
         predator_params$Alpha1 * (weight ^ predator_params$Beta1)
       } else {

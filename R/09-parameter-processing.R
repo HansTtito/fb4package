@@ -322,40 +322,79 @@ process_predator_params <- function(predator_params, n_days = NULL) {
 #' Process predator energy data for equation 1 (PREDEDEQ = 1)
 #'
 #' Ensures \code{ED_data} is available as a numeric vector of length
-#' \code{n_days + 1}. Accepts either a pre-built vector via \code{ED_data}
-#' or a pair of scalars via \code{ED_ini}/\code{ED_end} (which are linearly
-#' interpolated to produce the full vector internally).
+#' \code{n_days + 1}. Accepts a pre-built vector of that exact length, a
+#' single constant value, or a pair of scalars via \code{ED_ini}/\code{ED_end}
+#' (which are linearly interpolated to produce the full vector internally).
 #'
-#' @param predator_params List of predator parameters. Must include either:
+#' @param predator_params List of predator parameters. Must include one of:
 #'   \describe{
-#'     \item{\code{ED_data}}{Numeric vector of length \code{n_days + 1}
-#'       (e.g., 366 for 365 days). Element \code{[i]} is the energy density
-#'       at the boundary of day \code{i-1}. Generate with
+#'     \item{\code{ED_data} (full vector)}{Numeric vector of length
+#'       \code{n_days + 1} (e.g., 366 for 365 days). Element \code{[i]} is
+#'       the energy density at the boundary of day \code{i-1}. Generate with
 #'       \code{approx(..., xout = 0:n_days)$y} or
 #'       \code{seq(ED_ini, ED_end, length.out = n_days + 1)}.}
+#'     \item{\code{ED_data} (single value)}{A single numeric value is
+#'       treated as a constant energy density and expanded to length
+#'       \code{n_days + 1} using the same single-point-to-constant rule
+#'       already used by \code{\link{interpolate_time_series}} for
+#'       temperature/diet/reproduction data.}
 #'     \item{\code{ED_ini} + \code{ED_end}}{Scalar start/end values; the
 #'       function creates the full vector via linear interpolation.}
 #'   }
 #' @return Predator parameters list with \code{ED_data} populated.
 #' @keywords internal
 process_predator_energy_data <- function(predator_params) {
-  
-  # Check if user provided ED_data directly
-  if (!is.null(predator_params$ED_data) && !anyNA(predator_params$ED_data)) {
-    return(predator_params)
+
+  ed_data <- predator_params$ED_data
+  n_days <- predator_params$simulation_days %||% 365
+  expected_length <- n_days + 1
+
+  has_usable_ed_data <- !is.null(ed_data) && !anyNA(ed_data)
+
+  if (has_usable_ed_data) {
+
+    if (!is.numeric(ed_data)) {
+      stop("PREDEDEQ=1: ED_data must be numeric (J/g), got \"",
+           paste(ed_data, collapse = ", "), "\". Use a numeric value, a full ",
+           "vector, or ED_ini/ED_end.", call. = FALSE)
+    }
+
+    if (length(ed_data) == expected_length) {
+      # Already the right shape - use as-is (original behaviour)
+      return(predator_params)
+    }
+
+    if (length(ed_data) == 1) {
+      # Single value: treat as a constant ED, reusing interpolate_time_series()'s
+      # single-point-to-constant rule instead of duplicating it here
+      filled <- suppressWarnings(interpolate_time_series(
+        data = data.frame(Day = 1, ED = ed_data),
+        value_columns = "ED",
+        target_days = seq_len(expected_length),
+        method = "constant",
+        validate_input = FALSE
+      ))
+      predator_params$ED_data <- filled$ED
+      return(predator_params)
+    }
+
+    # Length mismatch - fail loudly instead of indexing out of bounds later
+    stop("PREDEDEQ=1 requires ED_data to have length n_days + 1 (expected ",
+         expected_length, " for a ", n_days, "-day simulation), got ",
+         length(ed_data), ". Use a full vector of that length, a single ",
+         "constant value, or ED_ini/ED_end.", call. = FALSE)
   }
-  
+
   # Check if user provided ED_ini and ED_end
   if (!is.null(predator_params$ED_ini) && !is.null(predator_params$ED_end)) {
     # Create linear interpolation between initial and final
-    n_days <- predator_params$simulation_days %||% 365
-    predator_params$ED_data <- seq(from = predator_params$ED_ini, 
-                                   to = predator_params$ED_end, 
-                                   length.out = (n_days + 1))
+    predator_params$ED_data <- seq(from = predator_params$ED_ini,
+                                   to = predator_params$ED_end,
+                                   length.out = expected_length)
     return(predator_params)
   }
-  
-  stop("PREDEDEQ=1 requires either ED_data OR both ED_ini and ED_end")
+
+  stop("PREDEDEQ=1 requires either ED_data OR both ED_ini and ED_end", call. = FALSE)
 }
 
 # ============================================================================
