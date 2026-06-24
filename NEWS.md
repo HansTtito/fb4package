@@ -1,3 +1,25 @@
+# fb4package 2.1.1 (2026-06-24)
+
+### Bug fixes
+
+* `process_predator_energy_data()`: a single-value `ED_data` (PREDEDEQ = 1)
+  is now expanded to a full `n_days + 1` vector instead of being left as a
+  scalar, which previously caused silent `NA` propagation and a misleading
+  "fish mortality" warning on day 1 (#3). Non-numeric `ED_data` and
+  length-mismatched vectors now raise a clear error instead of failing
+  silently.
+
+* `validate_predator_energy_params()`: fixed a latent error (`the condition
+  has length > 1`) that would have been triggered once `ED_data` started
+  being expanded to a full vector by the fix above.
+
+* `optim` strategy: default upper bound for *p*-value fitting corrected
+  (5 → 2).
+
+* MLE strategy: fixed standard error computation.
+
+---
+
 # fb4package 2.1.0 (2026-06-06)
 
 ### New features
